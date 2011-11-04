@@ -1,9 +1,7 @@
 package jstreamserver.utils;
 
-import java.io.UnsupportedEncodingException;
-
 /**
- * Helper class which incapsulates HTTML rendering
+ * Helper class which encapsulates HTML rendering
  *
  * @author Sergey Prilukin
  */
@@ -28,31 +26,24 @@ public final class HtmlRenderer {
         return "<style>ul, p {font-size: 32px;}</style>";
     }
 
-    public static String getUTFEncodedString(String string, String charset) {
-        try {
-            return new String(string.getBytes(charset), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public static String renderDirView(String[] files, String parentPath, String charset) {
         StringBuilder sb = new StringBuilder();
         renderHeader(sb);
         sb.append("<ul>\r\n");
 
         if (!"/".equals(parentPath)) {
+            String parentDir = EncodingUtil.encodeStringToUTF8(parentPath, charset).replaceAll("\\/[^\\/]+$", "");
             sb.append("<li><a href=\"")
-                    .append(getUTFEncodedString(parentPath, charset).replaceAll("\\/[^\\/]+$", ""))
+                    .append(parentDir.isEmpty() ? "/" : parentDir)
                     .append("\">").append("..").append("</a>").append("</li>\r\n");
         }
 
         for (String file: files) {
             sb.append("<li><a href=\"");
             if (!"/".equals(parentPath)) {
-                sb.append(getUTFEncodedString(parentPath, charset));
+                sb.append(EncodingUtil.encodeStringToUTF8(parentPath, charset));
             }
-            sb.append("/").append(getUTFEncodedString(file, charset)).append("\">")
+            sb.append("/").append(EncodingUtil.encodeStringToUTF8(file, charset)).append("\">")
                     .append(file).append("</a>").append("</li>\r\n");
         }
         sb.append("</ul>");
@@ -65,7 +56,7 @@ public final class HtmlRenderer {
         StringBuilder sb = new StringBuilder();
         renderHeader(sb);
         sb.append("<h1>Resource not found</h1>\r\n");
-        sb.append("<p>").append(getUTFEncodedString(path, charset)).append("</p>\r\n");
+        sb.append("<p>").append(EncodingUtil.encodeStringToUTF8(path, charset)).append("</p>\r\n");
         renderFooter(sb);
 
         return sb.toString();
