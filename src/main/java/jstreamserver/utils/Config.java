@@ -14,6 +14,7 @@ public final class Config {
     private int maxThreads = 10;
     private String charset = "windows-1251";
     private Map<String, String> rootDirs = new TreeMap<String, String>();
+    private String mimeProperties = null;
 
     public Config() {
         rootDirs.put("C", "c:\\");
@@ -58,5 +59,13 @@ public final class Config {
 
     public void setCharset(String charset) {
         this.charset = charset;
+    }
+
+    public String getMimeProperties() {
+        return mimeProperties;
+    }
+
+    public void setMimeProperties(String mimeProperties) {
+        this.mimeProperties = mimeProperties;
     }
 }
