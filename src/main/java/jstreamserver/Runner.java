@@ -17,10 +17,20 @@ public final class Runner {
 
     private void start(Config config) {
         SimpleHttpServer server = new DefaultSimpleHttpServer();
+        server.setMaxThreads(config.getMaxThreads());
+        server.setHost(config.getHost());
+        server.setPort(config.getPort());
+
         server.addHandler("/", new StreamServerHandler(config));
         server.start();
     }
 
+    /**
+     * Create {@link Config} instance from passed params
+     *
+     * @param args command-line parameters
+     * @return instance of {@link Config}
+     */
     private static Config getConfig(String[] args) {
         return new Config();
     }
