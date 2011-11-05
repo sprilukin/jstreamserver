@@ -67,26 +67,6 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         }
     }
 
-    @Override
-    public int getResponseCode(HttpRequestContext httpRequestContext) {
-        String path = httpRequestContext.getRequestURI().getPath();
-        if ("/".equals(path)) {
-            return HttpURLConnection.HTTP_OK;
-        }
-
-        File file = getFile(path);
-
-        if (file.exists() && file.isDirectory()) {
-            return HttpURLConnection.HTTP_OK;
-        } else if (file.exists() && file.isFile()) {
-            List<String> range = httpRequestContext.getRequestHeaders().get("Range");
-            return range != null ? HttpURLConnection.HTTP_PARTIAL : HttpURLConnection.HTTP_OK;
-        } else {
-            //Resource not found
-            return HttpURLConnection.HTTP_NOT_FOUND;
-        }
-    }
-
     private void loadMimeProperties() {
         try {
             InputStream is = null;
@@ -141,6 +121,7 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         setContentType(contentType);
         byte[] bytes = HtmlRenderer.renderDirView(children, path, config.getCharset()).getBytes();
         setResponseSize(bytes.length, httpRequestContext);
+        setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
         return new ByteArrayInputStream(bytes);
     }
 
@@ -149,6 +130,7 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         setContentType(contentType);
         byte[] bytes = HtmlRenderer.renderResourceNotFound(path, config.getCharset()).getBytes();
         setResponseSize(bytes.length, httpRequestContext);
+        setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
         return new ByteArrayInputStream(bytes);
     }
 
@@ -181,15 +163,17 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
 
         if (range == null) {
             setResponseSize((int) length, httpRequestContext);
+            setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
             result = new BufferedInputStream(new FileInputStream(file));
         } else {
             setResponseHeader("Content-Range", String.format("bytes %s-%s/%s", rangeArray[0], rangeArray[1], length));
             long rangeLength = rangeArray[1] - rangeArray[0] + 1;
             setResponseSize((int)rangeLength, httpRequestContext);
+            setResponseCode(HttpURLConnection.HTTP_PARTIAL, httpRequestContext);
+
             final RandomAccessFile raf = new RandomAccessFile(file, "r");
 
             raf.seek(rangeArray[0]);
-            //raf.read(result, 0, (int)rangeLength);
 
             return new BufferedInputStream(new InputStream() {
                 @Override
