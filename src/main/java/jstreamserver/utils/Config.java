@@ -76,4 +76,23 @@ public final class Config {
     public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Jstreamserver config:\r\n");
+        sb.append("listening on: ").append(host).append(":").append(port).append("\r\n");
+        sb.append("max threads count: ").append(maxThreads).append("\r\n");
+        sb.append("response buffer size: ").append(bufferSize).append("\r\n");
+        if (mimeProperties != null) {
+            sb.append("mimeProperties: ").append(mimeProperties).append("\r\n");
+        }
+
+        sb.append("rootDirs:\r\n");
+        for (Map.Entry<String, String> entry: rootDirs.entrySet()) {
+            sb.append("\"").append(entry.getValue()).append("\"").append(" with label: ").append(entry.getKey()).append("\r\n");
+        }
+
+        return sb.toString();
+    }
 }

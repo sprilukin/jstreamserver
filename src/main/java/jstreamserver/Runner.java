@@ -86,6 +86,8 @@ public final class Runner {
     }
 
     private void start(Config config) {
+        System.out.print(config.toString());
+
         SimpleHttpServer server = new DefaultSimpleHttpServer();
         server.setMaxThreads(config.getMaxThreads());
         server.setHost(config.getHost());
