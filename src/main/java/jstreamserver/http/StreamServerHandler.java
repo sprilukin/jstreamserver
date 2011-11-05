@@ -175,28 +175,7 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
 
             raf.seek(rangeArray[0]);
 
-            return new BufferedInputStream(new InputStream() {
-                @Override
-                public int read() throws IOException {
-                    return raf.read();
-                }
-
-                @Override
-                public int read(byte[] b) throws IOException {
-                    return raf.read(b);
-                }
-
-                @Override
-                public int read(byte[] b, int off, int len) throws IOException {
-                    return raf.read(b, off, len);
-                }
-
-                @Override
-                public void close() throws IOException {
-                    super.close();
-                    raf.close();
-                }
-            }, config.getBufferSize());
+            result = new BufferedInputStream(new RandomAccessFileInputStream(raf), config.getBufferSize());
         }
 
         return result;
@@ -222,5 +201,37 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         return httpDateFormat;
+    }
+
+    /**
+     * Helper class which wraps {@link RandomAccessFile} into {@link InputStream}
+     */
+    class RandomAccessFileInputStream extends InputStream {
+        private RandomAccessFile raf;
+
+        RandomAccessFileInputStream(RandomAccessFile raf) {
+            this.raf = raf;
+        }
+
+        @Override
+        public int read() throws IOException {
+            return raf.read();
+        }
+
+        @Override
+        public int read(byte[] b) throws IOException {
+            return raf.read(b);
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            return raf.read(b, off, len);
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            raf.close();
+        }
     }
 }
