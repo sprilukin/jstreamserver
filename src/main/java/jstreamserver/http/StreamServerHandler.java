@@ -137,8 +137,7 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         setResponseHeader("Content-Type", contentType, httpRequestContext);
     }
 
-    private InputStream getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
-
+    private void setCommonResourceHeaders(File file, HttpRequestContext httpRequestContext) {
         String extension = FilenameUtils.getExtension(file.getName());
         String mimeType = mimeProperties.get(extension.toLowerCase());
 
@@ -149,36 +148,45 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         setResponseHeader("Cache-Control", "no-store,private,no-cache", httpRequestContext);
         setResponseHeader("Accept-Ranges", "bytes", httpRequestContext);
         setResponseHeader("Connection", "close", httpRequestContext);
+    }
 
-        long length = file.length();
+    private InputStream getResourceAsAttachment(File file, HttpRequestContext httpRequestContext) throws IOException {
+        setResponseSize(file.length(), httpRequestContext);
+        setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
+        String contentDisposition = String.format("attachment; filename=\"%s\"", EncodingUtil.encodeStringFromUTF8(file.getName(), "ISO-8859-1"));
+        setResponseHeader("Content-Disposition", contentDisposition, httpRequestContext);
+        return new BufferedInputStream(new FileInputStream(file), config.getBufferSize());
+    }
+
+    private InputStream getResourceRange(File file, String range, HttpRequestContext httpRequestContext) throws IOException {
+        long[] rangeArray = parseRange(range, file.length());
+
+        String contentRange = String.format("bytes %s-%s/%s", rangeArray[0], rangeArray[1], file.length());
+        setResponseHeader("Content-Range", contentRange, httpRequestContext);
+
+        //Range should be an integer
+        int rangeLength = (int)(rangeArray[1] - rangeArray[0] + 1);
+
+        setResponseSize(rangeLength, httpRequestContext);
+        setResponseCode(HttpURLConnection.HTTP_PARTIAL, httpRequestContext);
+
+        return new BufferedInputStream(new RandomAccessFileInputStream(file, rangeArray[0], rangeLength), config.getBufferSize());
+    }
+
+
+    private InputStream getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
+        setCommonResourceHeaders(file, httpRequestContext);
 
         String range = null;
         if (httpRequestContext.getRequestHeaders().get("Range") != null) {
             range = httpRequestContext.getRequestHeaders().get("Range").get(0);
         }
 
-        long[] rangeArray = parseRange(range, length);
-
-        InputStream result = null;
-
         if (range == null) {
-            setResponseSize((int) length, httpRequestContext);
-            setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-            String contentDisposition = String.format("attachment; filename=\"%s\"", EncodingUtil.encodeStringFromUTF8(file.getName(), "ISO-8859-1"));
-            setResponseHeader("Content-Disposition", contentDisposition, httpRequestContext);
-            result = new BufferedInputStream(new FileInputStream(file));
+            return getResourceAsAttachment(file, httpRequestContext);
         } else {
-            String contentRange = String.format("bytes %s-%s/%s", rangeArray[0], rangeArray[1], length);
-            setResponseHeader("Content-Range", contentRange, httpRequestContext);
-            long rangeLength = rangeArray[1] - rangeArray[0] + 1;
-            setResponseSize((int)rangeLength, httpRequestContext);
-            setResponseCode(HttpURLConnection.HTTP_PARTIAL, httpRequestContext);
-
-            final RandomAccessFile raf = new RandomAccessFile(file, "r");
-            result = new BufferedInputStream(new RandomAccessFileInputStream(raf, rangeArray[0], (int)rangeLength), config.getBufferSize());
+            return getResourceRange(file, range, httpRequestContext);
         }
-
-        return result;
     }
 
     public long[] parseRange(String range, long fileLength) {
@@ -220,6 +228,18 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
             this.raf = raf;
             this.maxBytesToRead = maxBytesToRead;
             try {
+                if (startPos > 0) {
+                    raf.seek(startPos);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        RandomAccessFileInputStream(File file, long startPos, int maxBytesToRead) {
+            this.maxBytesToRead = maxBytesToRead;
+            try {
+                this.raf = new RandomAccessFile(file, "r");
                 if (startPos > 0) {
                     raf.seek(startPos);
                 }
