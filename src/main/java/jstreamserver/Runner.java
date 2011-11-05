@@ -5,6 +5,7 @@ import anhttpserver.DefaultSimpleHttpServer;
 import anhttpserver.SimpleHttpServer;
 import jstreamserver.http.StreamServerHandler;
 import jstreamserver.utils.Config;
+import jstreamserver.utils.EncodingUtil;
 
 /**
  * entry point for <b>jstreamserver</b>
@@ -36,6 +37,8 @@ public final class Runner {
     }
 
     public static void main(String[] args) throws Exception {
+        System.setProperty("file.encoding", EncodingUtil.UTF8_ENCODING);
+
         Runner runner = new Runner();
         runner.start(getConfig(args));
 

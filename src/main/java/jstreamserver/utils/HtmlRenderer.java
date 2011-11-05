@@ -1,5 +1,8 @@
 package jstreamserver.utils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 /**
  * Helper class which encapsulates HTML rendering
  *
@@ -19,44 +22,48 @@ public final class HtmlRenderer {
 
     public static String renderMetaContentType() {
         return (new StringBuilder("<meta http-equiv=\"Content-Type\" content=\""))
-                .append("text/html; charset=UTF-8").append("\">").toString();
+                .append("text/html; charset=").append(EncodingUtil.UTF8_ENCODING).append("\">").toString();
     }
 
     public static String renderCSS() {
         return "<style>ul, p {font-size: 32px;}</style>";
     }
 
-    public static String renderDirView(String[] files, String parentPath, String charset) {
-        StringBuilder sb = new StringBuilder();
-        renderHeader(sb);
-        sb.append("<ul>\r\n");
+    public static String renderDirView(String[] files, String parentPath) {
+        try {
+            StringBuilder sb = new StringBuilder();
+            renderHeader(sb);
+            sb.append("<ul>\r\n");
 
-        if (!"/".equals(parentPath)) {
-            String parentDir = EncodingUtil.encodeStringToUTF8(parentPath, charset).replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
-            sb.append("<li><a href=\"")
-                    .append(parentDir.isEmpty() ? "/" : parentDir)
-                    .append("\">").append("..").append("</a>").append("</li>\r\n");
-        }
-
-        for (String file: files) {
-            sb.append("<li><a href=\"");
             if (!"/".equals(parentPath)) {
-                sb.append(EncodingUtil.encodeStringToUTF8(parentPath, charset));
+                String parentDir = parentPath.replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
+                sb.append("<li><a href=\"")
+                        .append(parentDir.isEmpty() ? "/" : parentDir)
+                        .append("\">").append("..").append("</a>").append("</li>\r\n");
             }
-            sb.append("/").append(EncodingUtil.encodeStringToUTF8(file, charset)).append("\">")
-                    .append(file).append("</a>").append("</li>\r\n");
-        }
-        sb.append("</ul>");
-        renderFooter(sb);
 
-        return sb.toString();
+            for (String file: files) {
+                sb.append("<li><a href=\"");
+                if (!"/".equals(parentPath)) {
+                    sb.append(parentPath);
+                }
+                sb.append("/").append(URLEncoder.encode(file, EncodingUtil.UTF8_ENCODING)).append("\">")
+                        .append(file).append("</a>").append("</li>\r\n");
+            }
+            sb.append("</ul>");
+            renderFooter(sb);
+
+            return sb.toString();
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static String renderResourceNotFound(String path, String charset) {
+    public static String renderResourceNotFound(String path) {
         StringBuilder sb = new StringBuilder();
         renderHeader(sb);
         sb.append("<h1>Resource not found</h1>\r\n");
-        sb.append("<p>").append(EncodingUtil.encodeStringToUTF8(path, charset)).append("</p>\r\n");
+        sb.append("<p>").append(path).append("</p>\r\n");
         renderFooter(sb);
 
         return sb.toString();

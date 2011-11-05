@@ -50,8 +50,7 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
     }
 
     public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
-        String uriDecodedPath = URLDecoder.decode(httpRequestContext.getRequestURI().getPath(), EncodingUtil.UTF8_ENCODING);
-        String path = EncodingUtil.encodeStringFromUTF8(uriDecodedPath, config.getCharset());
+        String path = URLDecoder.decode(httpRequestContext.getRequestURI().getPath(), EncodingUtil.UTF8_ENCODING);
 
         if ("/".equals(path)) {
             return renderDirectory(path, config.getRootDirs().keySet().toArray(new String[0]), httpRequestContext);
@@ -117,25 +116,25 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
     }
 
     private InputStream renderDirectory(String path, String[] children, HttpRequestContext httpRequestContext) {
-        String contentType = "text/html; charset=UTF-8";
-        setContentType(contentType);
-        byte[] bytes = HtmlRenderer.renderDirView(children, path, config.getCharset()).getBytes();
+        String contentType = "text/html; charset=" + EncodingUtil.UTF8_ENCODING;
+        setContentType(contentType, httpRequestContext);
+        byte[] bytes = HtmlRenderer.renderDirView(children, path).getBytes();
         setResponseSize(bytes.length, httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
         return new ByteArrayInputStream(bytes);
     }
 
     private InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) {
-        String contentType = "text/html; charset=UTF-8";
-        setContentType(contentType);
-        byte[] bytes = HtmlRenderer.renderResourceNotFound(path, config.getCharset()).getBytes();
+        String contentType = "text/html; charset=" + EncodingUtil.UTF8_ENCODING;
+        setContentType(contentType, httpRequestContext);
+        byte[] bytes = HtmlRenderer.renderResourceNotFound(path).getBytes();
         setResponseSize(bytes.length, httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
         return new ByteArrayInputStream(bytes);
     }
 
-    private void setContentType(String contentType) {
-        setResponseHeader("Content-Type", contentType);
+    private void setContentType(String contentType, HttpRequestContext httpRequestContext) {
+        setResponseHeader("Content-Type", contentType, httpRequestContext);
     }
 
     private InputStream getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
@@ -144,11 +143,12 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         String mimeType = mimeProperties.get(extension.toLowerCase());
 
         //Set response headers
-        setContentType(mimeType != null ? mimeType : "application/octet-stream");
-        setResponseHeader("Expires", htmlExpiresDateFormat().format(new Date(0)));
-        setResponseHeader("Pragma", "no-cache");
-        setResponseHeader("Cache-Control", "no-store,private,no-cache");
-        setResponseHeader("Accept-Ranges", "bytes");
+        setContentType(mimeType != null ? mimeType : "application/octet-stream", httpRequestContext);
+        setResponseHeader("Expires", htmlExpiresDateFormat().format(new Date(0)), httpRequestContext);
+        setResponseHeader("Pragma", "no-cache", httpRequestContext);
+        setResponseHeader("Cache-Control", "no-store,private,no-cache", httpRequestContext);
+        setResponseHeader("Accept-Ranges", "bytes", httpRequestContext);
+        setResponseHeader("Connection", "close", httpRequestContext);
 
         long length = file.length();
 
@@ -164,18 +164,18 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         if (range == null) {
             setResponseSize((int) length, httpRequestContext);
             setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
+            String contentDisposition = String.format("attachment; filename=\"%s\"", EncodingUtil.encodeStringFromUTF8(file.getName(), "ISO-8859-1"));
+            setResponseHeader("Content-Disposition", contentDisposition, httpRequestContext);
             result = new BufferedInputStream(new FileInputStream(file));
         } else {
-            setResponseHeader("Content-Range", String.format("bytes %s-%s/%s", rangeArray[0], rangeArray[1], length));
+            String contentRange = String.format("bytes %s-%s/%s", rangeArray[0], rangeArray[1], length);
+            setResponseHeader("Content-Range", contentRange, httpRequestContext);
             long rangeLength = rangeArray[1] - rangeArray[0] + 1;
             setResponseSize((int)rangeLength, httpRequestContext);
             setResponseCode(HttpURLConnection.HTTP_PARTIAL, httpRequestContext);
 
             final RandomAccessFile raf = new RandomAccessFile(file, "r");
-
-            raf.seek(rangeArray[0]);
-
-            result = new BufferedInputStream(new RandomAccessFileInputStream(raf), config.getBufferSize());
+            result = new BufferedInputStream(new RandomAccessFileInputStream(raf, rangeArray[0], (int)rangeLength), config.getBufferSize());
         }
 
         return result;
@@ -208,24 +208,51 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
      */
     class RandomAccessFileInputStream extends InputStream {
         private RandomAccessFile raf;
+        private int maxBytesToRead;
+        private int currentPos = 0;
 
         RandomAccessFileInputStream(RandomAccessFile raf) {
             this.raf = raf;
+            this.maxBytesToRead = Integer.MAX_VALUE;
+        }
+
+        RandomAccessFileInputStream(RandomAccessFile raf, long startPos, int maxBytesToRead) {
+            this.raf = raf;
+            this.maxBytesToRead = maxBytesToRead;
+            try {
+                if (startPos > 0) {
+                    raf.seek(startPos);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         @Override
         public int read() throws IOException {
-            return raf.read();
+            if (maxBytesToRead - currentPos > 0) {
+                currentPos++;
+                return raf.read();
+            } else {
+                return -1;
+            }
         }
 
         @Override
         public int read(byte[] b) throws IOException {
-            return raf.read(b);
+            return this.read(b, 0, b.length);
         }
 
         @Override
         public int read(byte[] b, int off, int len) throws IOException {
-            return raf.read(b, off, len);
+            int maxBytesLeftToRead = maxBytesToRead - currentPos;
+            if (maxBytesLeftToRead > 0) {
+                int readLength = Math.min(maxBytesLeftToRead, len);
+                currentPos += readLength;
+                return raf.read(b, off, readLength);
+            } else {
+                return -1;
+            }
         }
 
         @Override
