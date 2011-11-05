@@ -32,7 +32,7 @@ public final class HtmlRenderer {
         sb.append("<ul>\r\n");
 
         if (!"/".equals(parentPath)) {
-            String parentDir = EncodingUtil.encodeStringToUTF8(parentPath, charset).replaceAll("\\/[^\\/]+$", "");
+            String parentDir = EncodingUtil.encodeStringToUTF8(parentPath, charset).replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
             sb.append("<li><a href=\"")
                     .append(parentDir.isEmpty() ? "/" : parentDir)
                     .append("\">").append("..").append("</a>").append("</li>\r\n");

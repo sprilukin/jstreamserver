@@ -15,6 +15,7 @@ public final class Config {
     private String charset = "windows-1251";
     private Map<String, String> rootDirs = new TreeMap<String, String>();
     private String mimeProperties = null;
+    private int bufferSize = 1024 * 1024; //1MB
 
     public Config() {
         rootDirs.put("C", "c:\\");
@@ -67,5 +68,13 @@ public final class Config {
 
     public void setMimeProperties(String mimeProperties) {
         this.mimeProperties = mimeProperties;
+    }
+
+    public int getBufferSize() {
+        return bufferSize;
+    }
+
+    public void setBufferSize(int bufferSize) {
+        this.bufferSize = bufferSize;
     }
 }

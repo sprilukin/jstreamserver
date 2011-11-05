@@ -6,8 +6,9 @@ import jstreamserver.utils.Config;
 import jstreamserver.utils.EncodingUtil;
 import jstreamserver.utils.HtmlRenderer;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -48,22 +49,21 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         loadMimeProperties();
     }
 
-    @Override
-    public byte[] getResponse(HttpRequestContext httpRequestContext) throws IOException {
+    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
         String uriDecodedPath = URLDecoder.decode(httpRequestContext.getRequestURI().getPath(), EncodingUtil.UTF8_ENCODING);
         String path = EncodingUtil.encodeStringFromUTF8(uriDecodedPath, config.getCharset());
 
         if ("/".equals(path)) {
-            return renderDirectory(path, config.getRootDirs().keySet().toArray(new String[0]));
+            return renderDirectory(path, config.getRootDirs().keySet().toArray(new String[0]), httpRequestContext);
         }
 
         File file = getFile(path);
         if (file.exists() && file.isDirectory()) {
-            return renderDirectory(path, getDirectoryContent(file));
+            return renderDirectory(path, getDirectoryContent(file), httpRequestContext);
         } else if (file.exists() && file.isFile()) {
             return getResource(file, httpRequestContext);
         } else {
-            return rendeResourceNotFound(path);
+            return rendeResourceNotFound(path, httpRequestContext);
         }
     }
 
@@ -136,23 +136,27 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         return names;
     }
 
-    private byte[] renderDirectory(String path, String[] children) {
+    private InputStream renderDirectory(String path, String[] children, HttpRequestContext httpRequestContext) {
         String contentType = "text/html; charset=UTF-8";
         setContentType(contentType);
-        return HtmlRenderer.renderDirView(children, path, config.getCharset()).getBytes();
+        byte[] bytes = HtmlRenderer.renderDirView(children, path, config.getCharset()).getBytes();
+        setResponseSize(bytes.length, httpRequestContext);
+        return new ByteArrayInputStream(bytes);
     }
 
-    private byte[] rendeResourceNotFound(String path) {
+    private InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) {
         String contentType = "text/html; charset=UTF-8";
         setContentType(contentType);
-        return HtmlRenderer.renderResourceNotFound(path, config.getCharset()).getBytes();
+        byte[] bytes = HtmlRenderer.renderResourceNotFound(path, config.getCharset()).getBytes();
+        setResponseSize(bytes.length, httpRequestContext);
+        return new ByteArrayInputStream(bytes);
     }
 
     private void setContentType(String contentType) {
         setResponseHeader("Content-Type", contentType);
     }
 
-    private byte[] getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
+    private InputStream getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
 
         String extension = FilenameUtils.getExtension(file.getName());
         String mimeType = mimeProperties.get(extension.toLowerCase());
@@ -173,21 +177,42 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
 
         long[] rangeArray = parseRange(range, length);
 
-        byte[] result = null;
+        InputStream result = null;
 
         if (range == null) {
-            //setResponseHeader("Content-Length", String.valueOf(length));
-            result = IOUtils.toByteArray(new FileInputStream(file));
+            setResponseSize((int) length, httpRequestContext);
+            result = new BufferedInputStream(new FileInputStream(file));
         } else {
             setResponseHeader("Content-Range", String.format("bytes %s-%s/%s", rangeArray[0], rangeArray[1], length));
             long rangeLength = rangeArray[1] - rangeArray[0] + 1;
-            //setResponseHeader("Content-Length", String.valueOf(rangeLength));
-            RandomAccessFile raf = new RandomAccessFile(file, "r");
-
-            result = new byte[(int)rangeLength];
+            setResponseSize((int)rangeLength, httpRequestContext);
+            final RandomAccessFile raf = new RandomAccessFile(file, "r");
 
             raf.seek(rangeArray[0]);
-            raf.read(result, 0, (int)rangeLength);
+            //raf.read(result, 0, (int)rangeLength);
+
+            return new BufferedInputStream(new InputStream() {
+                @Override
+                public int read() throws IOException {
+                    return raf.read();
+                }
+
+                @Override
+                public int read(byte[] b) throws IOException {
+                    return raf.read(b);
+                }
+
+                @Override
+                public int read(byte[] b, int off, int len) throws IOException {
+                    return raf.read(b, off, len);
+                }
+
+                @Override
+                public void close() throws IOException {
+                    super.close();
+                    raf.close();
+                }
+            }, config.getBufferSize());
         }
 
         return result;
