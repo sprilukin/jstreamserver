@@ -19,7 +19,6 @@ public final class Config {
 
     public Config() {
         rootDirs.put("C", "c:\\");
-        rootDirs.put("D", "d:\\");
     }
 
     public int getPort() {
