@@ -155,7 +155,7 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
     private byte[] getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
 
         String extension = FilenameUtils.getExtension(file.getName());
-        String mimeType = mimeProperties.get(extension);
+        String mimeType = mimeProperties.get(extension.toLowerCase());
 
         //Set response headers
         setContentType(mimeType != null ? mimeType : "application/octet-stream");
@@ -186,7 +186,8 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
 
             result = new byte[(int)rangeLength];
 
-            raf.read(result, (int)rangeArray[0], (int)rangeLength);
+            raf.seek(rangeArray[0]);
+            raf.read(result, 0, (int)rangeLength);
         }
 
         return result;
