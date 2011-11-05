@@ -21,6 +21,7 @@ public final class Runner {
         server.setMaxThreads(config.getMaxThreads());
         server.setHost(config.getHost());
         server.setPort(config.getPort());
+        server.setBufferSize(config.getBufferSize());
 
         server.addHandler("/", new StreamServerHandler(config));
         server.start();

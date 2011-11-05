@@ -5,6 +5,7 @@ import anhttpserver.SimpleHttpHandlerAdapter;
 import jstreamserver.utils.Config;
 import jstreamserver.utils.EncodingUtil;
 import jstreamserver.utils.HtmlRenderer;
+import jstreamserver.utils.RandomAccessFileInputStream;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedInputStream;
@@ -14,14 +15,12 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -35,6 +34,7 @@ import java.util.TimeZone;
  */
 public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
     public static final String DEFAULT_MIME_PROPERTIES = "jstreamserver/http/mime.properties";
+    public static final String DEFAULT_HTML_CONTENT_TYPE = "text/html; charset=" + EncodingUtil.UTF8_ENCODING;
 
     private Config config;
     private Map<String, String> mimeProperties = new HashMap<String, String>();
@@ -116,21 +116,19 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
     }
 
     private InputStream renderDirectory(String path, String[] children, HttpRequestContext httpRequestContext) {
-        String contentType = "text/html; charset=" + EncodingUtil.UTF8_ENCODING;
-        setContentType(contentType, httpRequestContext);
-        byte[] bytes = HtmlRenderer.renderDirView(children, path).getBytes();
-        setResponseSize(bytes.length, httpRequestContext);
+        setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
+        String response = HtmlRenderer.renderDirView(children, path);
+        setResponseSize(response.length(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-        return new ByteArrayInputStream(bytes);
+        return new ByteArrayInputStream(response.getBytes());
     }
 
     private InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) {
-        String contentType = "text/html; charset=" + EncodingUtil.UTF8_ENCODING;
-        setContentType(contentType, httpRequestContext);
-        byte[] bytes = HtmlRenderer.renderResourceNotFound(path).getBytes();
-        setResponseSize(bytes.length, httpRequestContext);
+        setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
+        String response = HtmlRenderer.renderResourceNotFound(path);
+        setResponseSize(response.length(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
-        return new ByteArrayInputStream(bytes);
+        return new ByteArrayInputStream(response.getBytes());
     }
 
     private void setContentType(String contentType, HttpRequestContext httpRequestContext) {
@@ -209,76 +207,5 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
         DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         return httpDateFormat;
-    }
-
-    /**
-     * Helper class which wraps {@link RandomAccessFile} into {@link InputStream}
-     */
-    class RandomAccessFileInputStream extends InputStream {
-        private RandomAccessFile raf;
-        private int maxBytesToRead;
-        private int currentPos = 0;
-
-        RandomAccessFileInputStream(RandomAccessFile raf) {
-            this.raf = raf;
-            this.maxBytesToRead = Integer.MAX_VALUE;
-        }
-
-        RandomAccessFileInputStream(RandomAccessFile raf, long startPos, int maxBytesToRead) {
-            this.raf = raf;
-            this.maxBytesToRead = maxBytesToRead;
-            try {
-                if (startPos > 0) {
-                    raf.seek(startPos);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        RandomAccessFileInputStream(File file, long startPos, int maxBytesToRead) {
-            this.maxBytesToRead = maxBytesToRead;
-            try {
-                this.raf = new RandomAccessFile(file, "r");
-                if (startPos > 0) {
-                    raf.seek(startPos);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        @Override
-        public int read() throws IOException {
-            if (maxBytesToRead - currentPos > 0) {
-                currentPos++;
-                return raf.read();
-            } else {
-                return -1;
-            }
-        }
-
-        @Override
-        public int read(byte[] b) throws IOException {
-            return this.read(b, 0, b.length);
-        }
-
-        @Override
-        public int read(byte[] b, int off, int len) throws IOException {
-            int maxBytesLeftToRead = maxBytesToRead - currentPos;
-            if (maxBytesLeftToRead > 0) {
-                int readLength = Math.min(maxBytesLeftToRead, len);
-                currentPos += readLength;
-                return raf.read(b, off, readLength);
-            } else {
-                return -1;
-            }
-        }
-
-        @Override
-        public void close() throws IOException {
-            super.close();
-            raf.close();
-        }
     }
 }
