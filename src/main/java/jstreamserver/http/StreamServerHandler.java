@@ -117,18 +117,18 @@ public final class StreamServerHandler extends SimpleHttpHandlerAdapter {
 
     private InputStream renderDirectory(String path, String[] children, HttpRequestContext httpRequestContext) {
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
-        String response = HtmlRenderer.renderDirView(children, path);
-        setResponseSize(response.length(), httpRequestContext);
+        byte[] response = HtmlRenderer.renderDirView(children, path).getBytes();
+        setResponseSize(response.length, httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-        return new ByteArrayInputStream(response.getBytes());
+        return new ByteArrayInputStream(response);
     }
 
     private InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) {
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
-        String response = HtmlRenderer.renderResourceNotFound(path);
-        setResponseSize(response.length(), httpRequestContext);
+        byte[] response = HtmlRenderer.renderResourceNotFound(path).getBytes();
+        setResponseSize(response.length, httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
-        return new ByteArrayInputStream(response.getBytes());
+        return new ByteArrayInputStream(response);
     }
 
     private void setContentType(String contentType, HttpRequestContext httpRequestContext) {
