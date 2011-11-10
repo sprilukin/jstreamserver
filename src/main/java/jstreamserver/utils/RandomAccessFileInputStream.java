@@ -10,7 +10,7 @@ import java.io.RandomAccessFile;
  *
  * @author Sergey Prilukin
  */
-public class RandomAccessFileInputStream extends InputStream {
+public final class RandomAccessFileInputStream extends InputStream {
     private RandomAccessFile raf;
     private int maxBytesToRead;
     private int currentPos = 0;
