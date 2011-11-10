@@ -1,28 +1,21 @@
 package jstreamserver.ui;
 
-import com.sun.corba.se.spi.orbutil.fsm.Input;
 import jstreamserver.utils.GrowingFileInputStream;
 import org.junit.Test;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Sergey
- * Date: 08.11.11
- * Time: 9:40
- * To change this template use File | Settings | File Templates.
+ * Tests for {@link GrowingFileInputStream}
+ *
+ * @author Sergey Prilukin
  */
 public class MultithreadFileReadWrite {
 
