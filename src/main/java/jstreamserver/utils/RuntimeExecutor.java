@@ -1,6 +1,7 @@
 package jstreamserver.utils;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -35,33 +36,83 @@ public final class RuntimeExecutor {
      *
      * @param pathToExecutable path to executable file
      * @param args commant-line arguments
+     * @param envp environment variables array
+     * @param homeDir home dir of process
      * @throws IOException If the process call fails.
      */
-    public void execute(String pathToExecutable, String[] args) throws IOException {
+    public void execute(String pathToExecutable, String[] args, String[] envp, File homeDir) throws IOException {
         Runtime runtime = Runtime.getRuntime();
 
         synchronized (RuntimeExecutor.class) {
             runtime.addShutdownHook(shutdownHook);
         }
 
-        process = runtime.exec(getCmdArguments(pathToExecutable, args));
+        process = runtime.exec(getCmdArguments(pathToExecutable, args), envp, homeDir);
         inputStream = process.getInputStream();
         outputStream = process.getOutputStream();
         errorStream = process.getErrorStream();
     }
 
     /**
+     * Same as {@link #execute(String, String[], String[], File)}
+     * but home dir is not set
+     *
+     * @param pathToExecutable path to executable file
+     * @param args commant-line arguments
+     * @param envp environment variables array
+     * @throws IOException If the process call fails.
+     */
+    public void execute(String pathToExecutable, String[] args, String[] envp) throws IOException {
+        execute(pathToExecutable, args, envp, null);
+    }
+
+    /**
+     * Same as {@link #execute(String, String[], String[])}
+     * but home environment variables are not set
+     *
+     * @param pathToExecutable path to executable file
+     * @param args commant-line arguments
+     * @throws IOException If the process call fails.
+     */
+    public void execute(String pathToExecutable, String[] args) throws IOException {
+        execute(pathToExecutable, args, null, null);
+    }
+
+    /**
+     * Suspend current thread untill process execution will be finished
+     * @throws InterruptedException if thread was interrupted
+     */
+    public void waitFor() throws InterruptedException {
+        if (process != null) {
+            process.waitFor();
+        }
+    }
+
+    /**
+     * Returns exit code of process
+     *
+     * @return exit code or process
+     */
+    public int getExitCode() {
+        if (process != null) {
+            return process.exitValue();
+        }
+
+        return 0;
+    }
+
+    /**
      * Forces stoping of process execution
      */
     public void destroy() {
-        closeCloseable(inputStream);
-        closeCloseable(outputStream);
-        closeCloseable(errorStream);
         destroyProcess(process);
-
         synchronized (RuntimeExecutor.class) {
             removeShutdownHook(shutdownHook);
         }
+
+        closeCloseable(inputStream);
+        closeCloseable(outputStream);
+        closeCloseable(errorStream);
     }
 
     /**
