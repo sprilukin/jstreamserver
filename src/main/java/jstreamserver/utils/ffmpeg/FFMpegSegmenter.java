@@ -23,10 +23,13 @@
 package jstreamserver.utils.ffmpeg;
 
 import jstreamserver.utils.RuntimeExecutor;
+import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -35,35 +38,83 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Utility class which wraps execution of ffmpeg library
- * using {@link RuntimeExecutor}.
+ * This class implements HTTP Streaming technology
+ * described <a href="http://developer.apple.com/library/ios/#documentation/networkinginternet/conceptual/streamingmediaguide/HTTPStreamingArchitecture/HTTPStreamingArchitecture.html">here</a>
+ * by using <a href="http://ffmpeg.org">ffmpeg</a> and native MAC OS segmenter or some platform specific implementations:
+ *  <ul><li><a href="http://code.google.com/p/httpsegmenter">windows</a></li>
+ *  <li><a href="https://github.com/carsonmcdonald/HTTP-Live-Video-Stream-Segmenter-and-Distributor">linux</a></li></ul>
  *
- * It can use instance of {@link ProgressListener}
- * to report the progress.
+ * @author Sergey Prilukin
  */
-public final class FFMpegWrapper {
-
+public final class FFMpegSegmenter {
     public static final String FRAME_PATTERN = "frame=[\\s]*([\\d]+)[\\s]*fps=[\\s]*([\\d]+)[\\s]*q=([\\d\\.]+)[\\s]*size=[\\s]*([\\d]+)kB[\\s]*time=([\\d]+:[\\d]+:[\\d]+\\.[\\d]+)[\\s]*bitrate=[\\s]*([\\d\\.]+)kbits/s[\\s]*dup=([\\d]+)[\\s]*drop=([\\d]+)";
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss.SS");
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
-    final private RuntimeExecutor runtimeExecutor = new RuntimeExecutor();
-    private Thread inputReader;
-    private Thread errorReader;
-    private Thread finishWaiter;
+    private final RuntimeExecutor ffmpegExecutor = new RuntimeExecutor();
+    private final RuntimeExecutor segmenterExecutor = new RuntimeExecutor();
+
+    public void start(String ffmpegPath, String segmenterPath, String ffmpegParams, String segmenterParams) throws IOException {
+        ffmpegExecutor.execute(ffmpegPath, ffmpegParams.split("[\\s]+"));
+        segmenterExecutor.execute(segmenterPath, segmenterParams.split("[\\s]+"));
+
+        new Thread(new StreamCopier(ffmpegExecutor.getInputStream(), segmenterExecutor.getOutputStream()), "StreamCopier").start();
+    }
+
+    public void setProgressListener(ProgressListener progressListener) {
+        new Thread(new InputReader(segmenterExecutor.getInputStream(), progressListener), "SegmenterInputReader").start();
+        new Thread(new InputReader(segmenterExecutor.getErrorStream(), progressListener), "SegmenterErrorReader").start();
+        new Thread(new InputReader(ffmpegExecutor.getErrorStream(), progressListener), "FFMpegInputReader").start();
+        new Thread(new FinishWaiter(progressListener)).start();
+    }
+
+    public void stop() {
+        ffmpegExecutor.destroy();
+        segmenterExecutor.destroy();
+    }
+
+    public void waitFor() throws InterruptedException {
+        segmenterExecutor.waitFor();
+    }
+
+    class StreamCopier implements Runnable {
+        private InputStream inputStream;
+        private OutputStream outputStream;
+
+        StreamCopier(InputStream inputStream, OutputStream outputStream) {
+            this.inputStream = inputStream;
+            this.outputStream = outputStream;
+        }
+
+        @Override
+        public void run() {
+            try {
+                IOUtils.copyLarge(inputStream, outputStream);
+            } catch (IOException e) {
+                /* ignore */
+            } finally {
+                try {
+                    inputStream.close();
+                    outputStream.close();
+                } catch (IOException e) {
+                    /* Ignore */
+                }
+            }
+        }
+    }
 
     /**
-     * Utility class which reads from passed {@link BufferedReader}
+     * Utility class which reads text lines from passed {@link InputStream}
      * And reports progress to passed {@link ProgressListener}
      */
     class InputReader implements Runnable {
         private BufferedReader reader;
         private ProgressListener progressListener;
 
-        public InputReader(BufferedReader reader, ProgressListener progressListener) {
-            this.reader = reader;
+        public InputReader(InputStream inputStream, ProgressListener progressListener) {
+            this.reader = new BufferedReader(new InputStreamReader(inputStream));
             this.progressListener = progressListener;
         }
 
@@ -91,6 +142,12 @@ public final class FFMpegWrapper {
                 }
             } catch (Exception e) {
                 /* ignore */
+            } finally {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    /* ignore */
+                }
             }
         }
     }
@@ -109,43 +166,12 @@ public final class FFMpegWrapper {
         @Override
         public void run() {
             try {
-                runtimeExecutor.waitFor();
-                this.progressListener.onFinish(runtimeExecutor.getExitCode());
+                ffmpegExecutor.waitFor();
+                segmenterExecutor.waitFor();
+                this.progressListener.onFinish(segmenterExecutor.getExitCode());
             } catch (InterruptedException e) {
-                this.progressListener.onFinish(runtimeExecutor.getExitCode());
+                this.progressListener.onFinish(segmenterExecutor.getExitCode());
             }
         }
-    }
-
-    public FFMpegWrapper(String pathToFFMpegBinary, String[] params, final ProgressListener progressListener) throws IOException {
-        runtimeExecutor.execute(pathToFFMpegBinary, params);
-        setProgressListener(progressListener);
-    }
-
-    public FFMpegWrapper(String pathToFFMpegBinary, String[] params) throws IOException {
-        runtimeExecutor.execute(pathToFFMpegBinary, params);
-    }
-
-    public void setProgressListener(final ProgressListener progressListener) {
-        if (progressListener != null) {
-            final BufferedReader input = new BufferedReader(new InputStreamReader(runtimeExecutor.getInputStream()));
-            final BufferedReader error = new BufferedReader(new InputStreamReader(runtimeExecutor.getErrorStream()));
-
-            inputReader = (new Thread(new InputReader(input, progressListener), "InputReader"));
-            errorReader = (new Thread(new InputReader(error, progressListener), "ErrorReader"));
-            finishWaiter = (new Thread(new FinishWaiter(progressListener), "FinishWaiter"));
-
-            inputReader.start();
-            errorReader.start();
-            finishWaiter.start();
-        }
-    }
-
-    public void destroy() {
-        runtimeExecutor.destroy();
-    }
-
-    public void waitFor() throws InterruptedException {
-        runtimeExecutor.waitFor();
     }
 }
