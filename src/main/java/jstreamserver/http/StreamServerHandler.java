@@ -49,6 +49,8 @@ import java.util.TreeMap;
  */
 public final class StreamServerHandler extends BaseHandler {
 
+    public static final String HANDLE_PATH = "/";
+
     public StreamServerHandler() {
         super();
     }
@@ -72,12 +74,6 @@ public final class StreamServerHandler extends BaseHandler {
         } else {
             return rendeResourceNotFound(path, httpRequestContext);
         }
-    }
-
-    private File getFile(String path) {
-        String rootDir = path.replaceFirst("\\/", "").replaceAll("\\/.*$", "");
-        String fsPath = path.replaceFirst("\\/[^\\/]+", "");
-        return new File(getConfig().getRootDirs().get(rootDir) + fsPath);
     }
 
     private String[] getDirectoryContent(File dir) {
@@ -110,8 +106,8 @@ public final class StreamServerHandler extends BaseHandler {
         }
 
         for (String name : fileNames) {
-            File file = new File(name);
             String parentDir = "/".equals(parentPath) ? "" : parentPath + "/";
+            File file = getFile(parentDir + name);
 
             String href = null;
             try {
@@ -121,7 +117,7 @@ public final class StreamServerHandler extends BaseHandler {
                     String extension = FilenameUtils.getExtension(file.getName());
                     String mimeType = getMimeProperties().get(extension.toLowerCase());
                     if (getConfig().httpLiveStreamingSupported(extension, mimeType)) {
-                        href = "/livestream?file=" + parentDir + encodedName;
+                        href = LiveStreamHandler.HANDLE_PATH + "?file=" + parentDir + encodedName;
                     } else {
                         href = parentDir + encodedName;
                     }

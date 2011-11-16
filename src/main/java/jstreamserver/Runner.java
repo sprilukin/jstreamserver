@@ -149,8 +149,8 @@ public final class Runner {
         server.setPort(config.getPort());
         server.setBufferSize(config.getBufferSize());
 
-        server.addHandler("/", new StreamServerHandler(config));
-        server.addHandler("/livestream", new LiveStreamHandler(config));
+        server.addHandler(StreamServerHandler.HANDLE_PATH, new StreamServerHandler(config));
+        server.addHandler(LiveStreamHandler.HANDLE_PATH, new LiveStreamHandler(config));
 
         server.start();
     }

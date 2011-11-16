@@ -152,6 +152,12 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
         }
     }
 
+    protected File getFile(String path) {
+        String rootDir = path.replaceFirst("\\/", "").replaceAll("\\/.*$", "");
+        String fsPath = path.replaceFirst("\\/[^\\/]+", "");
+        return new File(getConfig().getRootDirs().get(rootDir) + fsPath);
+    }
+
     protected InputStream getResourceRange(File file, String range, HttpRequestContext httpRequestContext) throws IOException {
         long[] rangeArray = parseRange(range, file.length());
 
