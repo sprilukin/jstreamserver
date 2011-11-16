@@ -22,6 +22,7 @@
 
 package jstreamserver.utils.ffmpeg;
 
+import jstreamserver.utils.Destroyable;
 import jstreamserver.utils.RuntimeExecutor;
 import org.apache.commons.io.IOUtils;
 
@@ -46,31 +47,22 @@ import java.util.regex.Pattern;
  *
  * @author Sergey Prilukin
  */
-public final class FFMpegSegmenter {
-    public static final String FRAME_PATTERN = "frame=[\\s]*([\\d]+)[\\s]*fps=[\\s]*([\\d]+)[\\s]*q=([\\d\\.]+)[\\s]*size=[\\s]*([\\d]+)kB[\\s]*time=([\\d]+:[\\d]+:[\\d]+\\.[\\d]+)[\\s]*bitrate=[\\s]*([\\d\\.]+)kbits/s[\\s]*dup=([\\d]+)[\\s]*drop=([\\d]+)";
-    public static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss.SS");
-    static {
-        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
-    }
-
+public final class FFMpegSegmenter implements Destroyable {
     private final RuntimeExecutor ffmpegExecutor = new RuntimeExecutor();
     private final RuntimeExecutor segmenterExecutor = new RuntimeExecutor();
 
-    public void start(String ffmpegPath, String segmenterPath, String ffmpegParams, String segmenterParams) throws IOException {
+    public void start(String ffmpegPath, String segmenterPath, String ffmpegParams, String segmenterParams, ProgressListener progressListener) throws IOException {
         ffmpegExecutor.execute(ffmpegPath, ffmpegParams.split("[\\s]+"));
         segmenterExecutor.execute(segmenterPath, segmenterParams.split("[\\s]+"));
 
         new Thread(new StreamCopier(ffmpegExecutor.getInputStream(), segmenterExecutor.getOutputStream()), "StreamCopier").start();
-    }
-
-    public void setProgressListener(ProgressListener progressListener) {
         new Thread(new InputReader(segmenterExecutor.getInputStream(), progressListener), "SegmenterInputReader").start();
         new Thread(new InputReader(segmenterExecutor.getErrorStream(), progressListener), "SegmenterErrorReader").start();
         new Thread(new InputReader(ffmpegExecutor.getErrorStream(), progressListener), "FFMpegInputReader").start();
         new Thread(new FinishWaiter(progressListener)).start();
     }
 
-    public void stop() {
+    public void destroy() {
         ffmpegExecutor.destroy();
         segmenterExecutor.destroy();
     }
@@ -123,14 +115,14 @@ public final class FFMpegSegmenter {
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    Matcher matcher = Pattern.compile(FRAME_PATTERN).matcher(line);
+                    Matcher matcher = Pattern.compile(FrameMessage.FRAME_PATTERN).matcher(line);
                     if (matcher.find()) {
                         FrameMessage frameMessage = new FrameMessage();
                         frameMessage.setFrameNumber(Long.parseLong(matcher.group(1)));
                         frameMessage.setFps(Integer.parseInt(matcher.group(2)));
                         frameMessage.setQ(new BigDecimal(matcher.group(3)));
                         frameMessage.setSize(Long.parseLong(matcher.group(4)));
-                        frameMessage.setTime(DATE_FORMAT.parse(matcher.group(5)).getTime());
+                        frameMessage.setTime(FrameMessage.DATE_FORMAT.parse(matcher.group(5)).getTime());
                         frameMessage.setBitrate(new BigDecimal(matcher.group(6)));
                         frameMessage.setDup(Long.parseLong(matcher.group(7)));
                         frameMessage.setDrop(Long.parseLong(matcher.group(8)));

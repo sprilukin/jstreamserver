@@ -38,9 +38,12 @@ public final class Config {
     private Map<String, String> rootDirs = new TreeMap<String, String>();
     private String mimeProperties = null;
     private int bufferSize = 1024 * 1024; //1MB
+    private String ffmpegLocation = null; //ffmpeg not available by default
+    private String ffmpegParams = "-f mpegts -acodec libmp3lame -ab 64000 -s 480x320 -vcodec libx264 -b 480000 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -subq 5 -trellis 1 -refs 1 -coder 0 -me_range 16  -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -bt 400k -maxrate 524288 -bufsize 524288 -rc_eq 'blurCplx^(1-qComp)' -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -level 30 -aspect 480:320 -g 30 -async 2";
+    private String segmenterLocation = null; //segmenter not available by default
+    private String segmenterParams = "10 stream stream.m3u8 {0} 5 1";
 
     public Config() {
-        rootDirs.put("C", "c:\\");
     }
 
     public int getPort() {
@@ -99,6 +102,38 @@ public final class Config {
         this.bufferSize = bufferSize;
     }
 
+    public String getFfmpegLocation() {
+        return ffmpegLocation;
+    }
+
+    public void setFfmpegLocation(String ffmpegLocation) {
+        this.ffmpegLocation = ffmpegLocation;
+    }
+
+    public String getFfmpegParams() {
+        return ffmpegParams;
+    }
+
+    public void setFfmpegParams(String ffmpegParams) {
+        this.ffmpegParams = ffmpegParams;
+    }
+
+    public String getSegmenterLocation() {
+        return segmenterLocation;
+    }
+
+    public void setSegmenterLocation(String segmenterLocation) {
+        this.segmenterLocation = segmenterLocation;
+    }
+
+    public String getSegmenterParams() {
+        return segmenterParams;
+    }
+
+    public void setSegmenterParams(String segmenterParams) {
+        this.segmenterParams = segmenterParams;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -108,6 +143,19 @@ public final class Config {
         sb.append("response buffer size: ").append(bufferSize).append("\r\n");
         if (mimeProperties != null) {
             sb.append("mimeProperties: ").append(mimeProperties).append("\r\n");
+        }
+        if (ffmpegLocation != null) {
+            sb.append("ffmpegLocation: ").append(ffmpegLocation).append("\r\n");
+            sb.append("ffmpegParams: ").append(ffmpegParams).append("\r\n");
+        } else {
+            sb.append("ffmpegLocation not set - live conversion is not available\r\n");
+        }
+
+        if (segmenterLocation != null) {
+            sb.append("segmenterLocation: ").append(segmenterLocation).append("\r\n");
+            sb.append("segmenterParams: ").append(segmenterParams).append("\r\n");
+        } else {
+            sb.append("segmenterLocation not set - live conversion is not available\r\n");
         }
 
         sb.append("rootDirs:\r\n");

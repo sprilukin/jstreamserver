@@ -23,7 +23,10 @@
 package jstreamserver.utils.ffmpeg;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * POJO which incapsulates encoded frame info
@@ -31,6 +34,12 @@ import java.util.Date;
  * @author Sergey Prilukin
  */
 public final class FrameMessage {
+    public static final String FRAME_PATTERN = "frame=[\\s]*([\\d]+)[\\s]*fps=[\\s]*([\\d]+)[\\s]*q=([\\d\\.]+)[\\s]*size=[\\s]*([\\d]+)kB[\\s]*time=([\\d]+:[\\d]+:[\\d]+\\.[\\d]+)[\\s]*bitrate=[\\s]*([\\d\\.]+)kbits/s[\\s]*dup=([\\d]+)[\\s]*drop=([\\d]+)";
+    public static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss.SS");
+    static {
+        DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+
     private long frameNumber;
     private int fps;
     private BigDecimal q;
@@ -112,7 +121,7 @@ public final class FrameMessage {
         sb.append(", fps=").append(fps);
         sb.append(", q=").append(q);
         sb.append(", size=").append(size);
-        sb.append(", time=").append(FFMpegWrapper.DATE_FORMAT.format(new Date(time)));
+        sb.append(", time=").append(DATE_FORMAT.format(new Date(time)));
         sb.append(", bitrate=").append(bitrate);
         sb.append(", dup=").append(dup);
         sb.append(", drop=").append(drop);

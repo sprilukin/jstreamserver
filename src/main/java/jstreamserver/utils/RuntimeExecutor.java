@@ -34,7 +34,7 @@ import java.io.OutputStream;
  *
  * @author Sergey Prilukin
  */
-public final class RuntimeExecutor {
+public final class RuntimeExecutor implements Destroyable {
 
     private InputStream inputStream;
     private OutputStream outputStream;

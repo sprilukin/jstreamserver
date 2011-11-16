@@ -90,6 +90,34 @@ public final class Runner {
         bufferSize.setArgName("bufferSize");
         bufferSize.setRequired(false);
 
+        //FFmppeg executble location
+        Option ffmpegLocation = new Option("ff", "ffmpeg", true, "Full path to ffmpeg executable. By default not set");
+        ffmpegLocation.setArgs(1);
+        ffmpegLocation.setOptionalArg(false);
+        ffmpegLocation.setArgName("ffmpegLocation");
+        ffmpegLocation.setRequired(false);
+
+        //FFmppeg executble location
+        Option ffmpegParams = new Option("fp", "ffmpegp", true, "Params for ffmpeg.");
+        ffmpegParams.setArgs(1);
+        ffmpegParams.setOptionalArg(false);
+        ffmpegParams.setArgName("ffmpegParams");
+        ffmpegParams.setRequired(false);
+
+        //FFmppeg executble location
+        Option segmenterocation = new Option("se", "segmenter", true, "Full path to segmenter executable. By default not set");
+        segmenterocation.setArgs(1);
+        segmenterocation.setOptionalArg(false);
+        segmenterocation.setArgName("segmenterLocation");
+        segmenterocation.setRequired(false);
+
+        //FFmppeg executble location
+        Option segmenterParams = new Option("sp", "segmenterp", true, "Params for segmenter.");
+        segmenterParams.setArgs(1);
+        segmenterParams.setOptionalArg(false);
+        segmenterParams.setArgName("segmenterParams");
+        segmenterParams.setRequired(false);
+
         //Root locations
         Option locations = new Option("f", "folders", true, "List of folders which will be shown in root.");
         locations.setArgs(Option.UNLIMITED_VALUES);
@@ -104,6 +132,10 @@ public final class Runner {
         options.addOption(threads);
         options.addOption(mime);
         options.addOption(bufferSize);
+        options.addOption(ffmpegLocation);
+        options.addOption(ffmpegParams);
+        options.addOption(segmenterocation);
+        options.addOption(segmenterParams);
         options.addOption(locations);
     }
 
@@ -147,6 +179,20 @@ public final class Runner {
 
         if (commandLine.hasOption("b")) {
             config.setBufferSize(Integer.parseInt(commandLine.getOptionValue("b")));
+        }
+
+        if (commandLine.hasOption("ff")) {
+            config.setFfmpegLocation(commandLine.getOptionValue("ff"));
+            if (commandLine.hasOption("fp")) {
+                config.setFfmpegParams(commandLine.getOptionValue("fp"));
+            }
+        }
+
+        if (commandLine.hasOption("se")) {
+            config.setSegmenterLocation(commandLine.getOptionValue("se"));
+            if (commandLine.hasOption("sp")) {
+                config.setSegmenterParams(commandLine.getOptionValue("sp"));
+            }
         }
 
         if (commandLine.hasOption("f")) {
