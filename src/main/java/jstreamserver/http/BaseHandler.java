@@ -57,7 +57,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
     public static final String DEFAULT_HTML_CONTENT_TYPE = "text/html; charset=" + EncodingUtil.UTF8_ENCODING;
 
     private Config config;
-    private Map<String, String> mimeProperties = new HashMap<String, String>();
+    private Properties mimeProperties = new Properties();
 
     public BaseHandler() {
         config = new Config();
@@ -100,7 +100,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
         return this.config;
     }
 
-    protected Map<String, String> getMimeProperties() {
+    protected Properties getMimeProperties() {
         return mimeProperties;
     }
 
@@ -136,7 +136,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
 
     protected InputStream getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
         String extension = FilenameUtils.getExtension(file.getName());
-        String mimeType = getMimeProperties().get(extension.toLowerCase());
+        String mimeType = getMimeProperties().getProperty(extension.toLowerCase());
 
         setCommonResourceHeaders(httpRequestContext, mimeType);
 

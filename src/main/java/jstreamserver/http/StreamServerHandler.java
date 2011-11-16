@@ -115,7 +115,7 @@ public final class StreamServerHandler extends BaseHandler {
 
                 if (file.isFile()) {
                     String extension = FilenameUtils.getExtension(file.getName());
-                    String mimeType = getMimeProperties().get(extension.toLowerCase());
+                    String mimeType = getMimeProperties().getProperty(extension.toLowerCase(), "application/octet-stream");
                     if (getConfig().httpLiveStreamingSupported(extension, mimeType)) {
                         href = LiveStreamHandler.HANDLE_PATH + "?file=" + parentDir + encodedName;
                     } else {

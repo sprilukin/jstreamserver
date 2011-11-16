@@ -24,6 +24,7 @@ package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
 import jstreamserver.utils.Config;
+import jstreamserver.utils.Destroyable;
 import jstreamserver.utils.EncodingUtil;
 import jstreamserver.utils.HtmlRenderer;
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
@@ -48,10 +49,17 @@ import java.text.MessageFormat;
 public final class LiveStreamHandler extends BaseHandler {
 
     public static final String HANDLE_PATH = "/livestream";
-    public static final int START_STREAMING_DELAY = 5000;
+    public static final String LIVE_STREAM_FILE_PREFIX = "stream";
+    public static final String PLAYLIST_EXTENSION = "m3u8";
+    public static final String LIVE_STREAM_FILE_PATH = HANDLE_PATH.substring(1) + "/" + LIVE_STREAM_FILE_PREFIX;
+    public static final String PLAYLIST_FULL_PATH = HANDLE_PATH + "/" + LIVE_STREAM_FILE_PREFIX + "." + PLAYLIST_EXTENSION;
+    public static final int DESTROY_SEGMENTER_DELAY = 1000;
+    public static final int START_STREAMING_DELAY = 4000;
 
     private String currentStreamingFile;
     private Thread segmenterKiller;
+    private FFMpegSegmenter ffMpegSegmenter;
+    private ProcessAwareProgressListener progressListener;
 
     public LiveStreamHandler() {
         super();
@@ -62,16 +70,15 @@ public final class LiveStreamHandler extends BaseHandler {
     }
 
     @Override
-    public synchronized InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
-        String param = httpRequestContext.getRequestURI().getRawQuery();
+    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
 
-        if (param != null && param.startsWith("playList")) {
-            File playlist = new File("stream.m3u8");
+        if (PLAYLIST_FULL_PATH.equals(httpRequestContext.getRequestURI().getPath())) {
+            File playlist = new File(LIVE_STREAM_FILE_PATH + "." + PLAYLIST_EXTENSION);
             return getPlayList(playlist, httpRequestContext);
-        }
+        } else if (HANDLE_PATH.equals(httpRequestContext.getRequestURI().getPath())) {
+            String param = httpRequestContext.getRequestURI().getRawQuery();
 
-        if (param != null && param.startsWith("file")) {
-            String fileString = param.split("\\&")[0].split("=")[1];
+            String fileString = param.split("=")[1];
             File file = getFile(URLDecoder.decode(fileString, EncodingUtil.UTF8_ENCODING));
             if (!file.exists() || !file.isFile() || file.isHidden()) {
                 return rendeResourceNotFound(fileString, httpRequestContext);
@@ -79,7 +86,13 @@ public final class LiveStreamHandler extends BaseHandler {
                 return getLiveStream(file, httpRequestContext);
             }
         } else {
-            throw new IllegalStateException("Not implemented.");
+            String path = httpRequestContext.getRequestURI().getPath();
+            File file = new File(path.substring(1));
+            if (file.exists() && file.isFile()) {
+                return getResource(file, httpRequestContext);
+            } else {
+                return rendeResourceNotFound(path, httpRequestContext);
+            }
         }
     }
 
@@ -90,32 +103,25 @@ public final class LiveStreamHandler extends BaseHandler {
 
     private InputStream getLiveStream(File file, HttpRequestContext httpRequestContext) throws IOException {
 
-        FFMpegSegmenter ffMpegSegmenter = new FFMpegSegmenter();
+        if (ffMpegSegmenter != null) {
+            ffMpegSegmenter.destroy();
+        }
 
-        ProcessAwareProgressListener progressListener = new ProcessAwareProgressListener(ffMpegSegmenter) {
-            @Override
-            public void onFrameMessage(FrameMessage frameMessage) {
-                System.out.println(frameMessage.toString());
-            }
+        try {
+            Thread.sleep(DESTROY_SEGMENTER_DELAY);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
-            @Override
-            public void onProgress(String progressString) {
-                System.out.println(progressString);
-            }
-
-            @Override
-            public void onFinish(int exitCode) {
-                System.out.println("Segmenter finished. Exit code: " + exitCode);
-            }
-        };
-
-        String playListUrlPrefix = httpRequestContext.getRequestHeaders().get("Host").get(0) + LiveStreamHandler.HANDLE_PATH;
+        ffMpegSegmenter = new FFMpegSegmenter();
+        progressListener = new LiveStreamProgressListener(ffMpegSegmenter);
 
         ffMpegSegmenter.start(
                 getConfig().getFfmpegLocation(),
                 getConfig().getSegmenterLocation(),
                 MessageFormat.format("-i \"{0}\" {1} -", file.getAbsolutePath(), getConfig().getFfmpegParams()),
-                MessageFormat.format("- " + getConfig().getSegmenterParams(), "stream", "stream.m3u8", playListUrlPrefix), progressListener);
+                MessageFormat.format("- " + getConfig().getSegmenterParams(), LIVE_STREAM_FILE_PATH, PLAYLIST_FULL_PATH.substring(1)),
+                progressListener);
 
         try {
             Thread.sleep(START_STREAMING_DELAY);
@@ -123,7 +129,7 @@ public final class LiveStreamHandler extends BaseHandler {
             throw new RuntimeException(e);
         }
 
-        byte[] response = HtmlRenderer.renderLiveStreamPage(playListUrlPrefix + "/stream.m3u8").getBytes();
+        byte[] response = HtmlRenderer.renderLiveStreamPage(PLAYLIST_FULL_PATH).getBytes();
 
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
         setResponseSize(response.length, httpRequestContext);
@@ -134,6 +140,27 @@ public final class LiveStreamHandler extends BaseHandler {
     private void startSegmenterKiller() {
         if (segmenterKiller == null || !segmenterKiller.isAlive()) {
             //TODO
+        }
+    }
+
+    class LiveStreamProgressListener extends ProcessAwareProgressListener {
+        LiveStreamProgressListener(Destroyable process) {
+            super(process);
+        }
+
+        @Override
+        public void onFrameMessage(FrameMessage frameMessage) {
+            System.out.println(frameMessage.toString());
+        }
+
+        @Override
+        public void onProgress(String progressString) {
+            System.out.println(progressString);
+        }
+
+        @Override
+        public void onFinish(int exitCode) {
+            System.out.println("Segmenter finished. Exit code: " + exitCode);
         }
     }
 }
