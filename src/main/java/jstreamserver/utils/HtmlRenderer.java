@@ -22,8 +22,7 @@
 
 package jstreamserver.utils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.util.Map;
 
 /**
  * Helper class which encapsulates HTML rendering
@@ -51,34 +50,20 @@ public final class HtmlRenderer {
         return "<style>ul, p {font-size: 32px;}</style>";
     }
 
-    public static String renderDirView(String[] files, String parentPath) {
-        try {
-            StringBuilder sb = new StringBuilder();
-            renderHeader(sb);
-            sb.append("<ul>\r\n");
+    public static String renderDirView(Map<String, String> hrefs) {
+        StringBuilder sb = new StringBuilder();
+        renderHeader(sb);
+        sb.append("<ul>\r\n");
 
-            if (!"/".equals(parentPath)) {
-                String parentDir = parentPath.replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
-                sb.append("<li><a href=\"")
-                        .append(parentDir.isEmpty() ? "/" : parentDir)
-                        .append("\">").append("..").append("</a>").append("</li>\r\n");
-            }
-
-            for (String file: files) {
-                sb.append("<li><a href=\"");
-                if (!"/".equals(parentPath)) {
-                    sb.append(parentPath);
-                }
-                sb.append("/").append(URLEncoder.encode(file, EncodingUtil.UTF8_ENCODING)).append("\">")
-                        .append(file).append("</a>").append("</li>\r\n");
-            }
-            sb.append("</ul>");
-            renderFooter(sb);
-
-            return sb.toString();
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
+        for (Map.Entry<String, String> entry: hrefs.entrySet()) {
+            sb.append("<li><a href=\"")
+                    .append(entry.getKey()).append("\">")
+                    .append(entry.getValue()).append("</a>").append("</li>\r\n");
         }
+        sb.append("</ul>");
+        renderFooter(sb);
+
+        return sb.toString();
     }
 
     public static String renderResourceNotFound(String path) {
@@ -88,6 +73,14 @@ public final class HtmlRenderer {
         sb.append("<p>").append(path).append("</p>\r\n");
         renderFooter(sb);
 
+        return sb.toString();
+    }
+
+    public static String renderLiveStreamPage(String pathToPlayList) {
+        StringBuilder sb = new StringBuilder();
+        renderHeader(sb);
+        sb.append("<video controls autoplay src=\"").append(pathToPlayList).append("\"></video>");
+        renderFooter(sb);
         return sb.toString();
     }
 }

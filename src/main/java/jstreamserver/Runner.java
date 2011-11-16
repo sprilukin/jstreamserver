@@ -25,6 +25,7 @@ package jstreamserver;
 
 import anhttpserver.DefaultSimpleHttpServer;
 import anhttpserver.SimpleHttpServer;
+import jstreamserver.http.LiveStreamHandler;
 import jstreamserver.http.StreamServerHandler;
 import jstreamserver.utils.Config;
 import jstreamserver.utils.EncodingUtil;
@@ -149,6 +150,8 @@ public final class Runner {
         server.setBufferSize(config.getBufferSize());
 
         server.addHandler("/", new StreamServerHandler(config));
+        server.addHandler("/livestream", new LiveStreamHandler(config));
+
         server.start();
     }
 
