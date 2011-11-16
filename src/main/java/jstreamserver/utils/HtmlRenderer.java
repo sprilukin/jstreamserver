@@ -31,9 +31,9 @@ import java.util.Map;
  */
 public final class HtmlRenderer {
 
-    public static void renderHeader(StringBuilder sb) {
+    public static void renderHeader(StringBuilder sb, StringBuilder meta) {
         sb.append("<!DOCTYPE html><html><head>");
-        sb.append(renderMetaContentType()).append("\r\n");
+        sb.append(renderMetaContentType(meta)).append("\r\n");
         sb.append(renderCSS()).append("</head><body>\r\n");
     }
 
@@ -41,9 +41,9 @@ public final class HtmlRenderer {
         sb.append("</body></html>\r\n");
     }
 
-    public static String renderMetaContentType() {
+    public static String renderMetaContentType(StringBuilder meta) {
         return (new StringBuilder("<meta http-equiv=\"Content-Type\" content=\""))
-                .append("text/html; charset=").append(EncodingUtil.UTF8_ENCODING).append("\">").toString();
+                .append("text/html; charset=").append(EncodingUtil.UTF8_ENCODING).append("\">\r\n").append(meta != null ? meta : "").toString();
     }
 
     public static String renderCSS() {
@@ -52,7 +52,7 @@ public final class HtmlRenderer {
 
     public static String renderDirView(Map<String, String> hrefs) {
         StringBuilder sb = new StringBuilder();
-        renderHeader(sb);
+        renderHeader(sb, null);
         sb.append("<ul>\r\n");
 
         for (Map.Entry<String, String> entry: hrefs.entrySet()) {
@@ -68,7 +68,7 @@ public final class HtmlRenderer {
 
     public static String renderResourceNotFound(String path) {
         StringBuilder sb = new StringBuilder();
-        renderHeader(sb);
+        renderHeader(sb, null);
         sb.append("<h1>Resource not found</h1>\r\n");
         sb.append("<p>").append(path).append("</p>\r\n");
         renderFooter(sb);
@@ -78,8 +78,8 @@ public final class HtmlRenderer {
 
     public static String renderLiveStreamPage(String pathToPlayList) {
         StringBuilder sb = new StringBuilder();
-        renderHeader(sb);
-        sb.append("<video controls autoplay src=\"").append(pathToPlayList).append("\"></video>");
+        renderHeader(sb, new StringBuilder("<meta name=\"viewport\" content=\"width=320; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;\"/>\r\n"));
+        sb.append("<video src=\"").append(pathToPlayList).append("\" controls autoplay ></video>");
         renderFooter(sb);
         return sb.toString();
     }

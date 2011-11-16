@@ -30,9 +30,11 @@ import jstreamserver.utils.HtmlRenderer;
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
 import jstreamserver.utils.ffmpeg.ProcessAwareProgressListener;
+import org.apache.commons.io.FilenameUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -101,11 +103,32 @@ public final class LiveStreamHandler extends BaseHandler {
         return getResource(playListFile, httpRequestContext);
     }
 
-    private InputStream getLiveStream(File file, HttpRequestContext httpRequestContext) throws IOException {
-
+    private void cleanResources() {
         if (ffMpegSegmenter != null) {
             ffMpegSegmenter.destroy();
+            ffMpegSegmenter = null;
         }
+
+        File streamDir = new File(HANDLE_PATH.substring(1));
+        String[] files = streamDir.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                String extension = FilenameUtils.getExtension(name);
+                return extension.equals(PLAYLIST_EXTENSION) || extension.equals("ts");
+            }
+        });
+
+        for (String fileName: files) {
+            File file = new File(streamDir + "/" + fileName);
+            if (file.exists()) {
+                file.delete();
+            }
+        }
+    }
+
+    private InputStream getLiveStream(File file, HttpRequestContext httpRequestContext) throws IOException {
+
+        cleanResources();
 
         try {
             Thread.sleep(DESTROY_SEGMENTER_DELAY);
