@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package jstreamserver.ui;
+package jstreamserver.ffmpeg;
 
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
@@ -30,7 +30,7 @@ import org.junit.Test;
 import java.io.File;
 
 /**
- * Tests for {@link jstreamserver.ui.FFMpegSegmenterTest}
+ * Tests for {@link FFMpegSegmenterTest}
  *
  * @author Sergey Prilukin
  */

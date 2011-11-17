@@ -1,4 +1,4 @@
-package jstreamserver.ui;
+package jstreamserver.utils;
 
 import jstreamserver.utils.RuntimeExecutor;
 import org.junit.Test;

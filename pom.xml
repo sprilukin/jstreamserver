@@ -90,6 +90,11 @@
             <version>1.2</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+            <version>1.7</version>
+        </dependency>
+        <dependency>
             <groupId>anhttpserver</groupId>
             <artifactId>anhttpserver</artifactId>
             <version>0.2.4</version>
