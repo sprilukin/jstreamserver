@@ -24,12 +24,10 @@ package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
 import jstreamserver.utils.Config;
-import jstreamserver.utils.Destroyable;
 import jstreamserver.utils.EncodingUtil;
 import jstreamserver.utils.HtmlRenderer;
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
-import jstreamserver.utils.ffmpeg.ProcessAwareProgressListener;
 import jstreamserver.utils.ffmpeg.ProgressListener;
 import org.apache.commons.io.FilenameUtils;
 
@@ -40,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
-import java.text.MessageFormat;
 
 /**
  * HTTP Live stream handler
@@ -59,6 +56,7 @@ public final class LiveStreamHandler extends BaseHandler {
 
     private FFMpegSegmenter ffMpegSegmenter;
     private final Object ffmpegSegmenterMonitor = new Object();
+    private ProgressListener progressListener = new LiveStreamProgressListener();
 
     private Thread segmenterKiller;
     private int segmenterKillerIdleTime = 0;
@@ -136,7 +134,6 @@ public final class LiveStreamHandler extends BaseHandler {
 
         synchronized (ffmpegSegmenterMonitor) {
             ffMpegSegmenter = new FFMpegSegmenter();
-            ProgressListener progressListener = new LiveStreamProgressListener(ffMpegSegmenter);
 
             ffMpegSegmenter.start(
                     getConfig().getFfmpegLocation(),
@@ -193,11 +190,7 @@ public final class LiveStreamHandler extends BaseHandler {
         }
     }
 
-    class LiveStreamProgressListener extends ProcessAwareProgressListener {
-        LiveStreamProgressListener(Destroyable process) {
-            super(process);
-        }
-
+    class LiveStreamProgressListener implements ProgressListener {
         @Override
         public void onFrameMessage(FrameMessage frameMessage) {
             //System.out.println(frameMessage.toString());

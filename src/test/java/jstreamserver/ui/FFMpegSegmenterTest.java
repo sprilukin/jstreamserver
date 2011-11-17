@@ -24,7 +24,6 @@ package jstreamserver.ui;
 
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
-import jstreamserver.utils.ffmpeg.ProcessAwareProgressListener;
 import jstreamserver.utils.ffmpeg.ProgressListener;
 import org.junit.Test;
 
@@ -44,7 +43,8 @@ public class FFMpegSegmenterTest {
         fil.mkdirs();
 
         final FFMpegSegmenter ffMpegSegmenter = new FFMpegSegmenter();
-        ProcessAwareProgressListener progressListener = new ProcessAwareProgressListener(ffMpegSegmenter) {
+
+        ProgressListener progressListener = new ProgressListener() {
             int frameCount = 0;
 
             @Override
@@ -54,7 +54,7 @@ public class FFMpegSegmenterTest {
                 frameCount++;
 
                 if (frameCount > 10) {
-                    this.getProcess().destroy();
+                    ffMpegSegmenter.destroy();
                 }
             }
 
@@ -69,7 +69,7 @@ public class FFMpegSegmenterTest {
             }
         };
 
-        ffMpegSegmenter.start("d:\\work\\projects\\my\\java\\jstreamserver-livestreaming-branch\\ffmpeg.exe", "d:\\install\\IPad\\segmenter\\segmenter.exe",
+        ffMpegSegmenter.start("d:\\work\\projects\\my\\java\\jstreamserver\\ffmpeg.exe", "d:\\install\\IPad\\segmenter\\segmenter.exe",
                 "-i d:\\movies\\drakon.avi -f mpegts -acodec libmp3lame -ab 64000 -s 480x320 -vcodec libx264 -b 480000 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -subq 5 -trellis 1 -refs 1 -coder 0 -me_range 16  -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -bt 400k -maxrate 524288 -bufsize 524288 -rc_eq 'blurCplx^(1-qComp)' -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -level 30 -aspect 480:320 -g 30 -async 2 -",
                 "- 10 stream/stream stream/stream.m3u8 http://localhost:8888/d/work/projects/my/java/jstreamserver-livestreaming-branch/stream 10 5", progressListener);
 

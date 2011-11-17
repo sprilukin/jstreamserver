@@ -23,7 +23,7 @@
 package jstreamserver.utils.ffmpeg;
 
 /**
- * Implementations can be used in {@link FFMpegWrapper}
+ * Implementations can be used in {@link FFMpegSegmenter}
  * to receive progress info from ffmpeg process
  *
  * @author Sergey
