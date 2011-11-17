@@ -40,7 +40,6 @@ import java.net.HttpURLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
@@ -115,7 +114,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
         setResponseHeader("Pragma", "no-cache", httpRequestContext);
         setResponseHeader("Cache-Control", "no-store,private,no-cache", httpRequestContext);
         setResponseHeader("Accept-Ranges", "bytes", httpRequestContext);
-        setResponseHeader("Connection", "close", httpRequestContext);
+        setResponseHeader("Connection", "keep-alive", httpRequestContext);
     }
 
     protected InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) {
@@ -126,30 +125,18 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
         return new ByteArrayInputStream(response);
     }
 
-    protected InputStream getResourceAsAttachment(File file, HttpRequestContext httpRequestContext) throws IOException {
-        setResponseSize(file.length(), httpRequestContext);
-        setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-        String contentDisposition = String.format("attachment; filename=\"%s\"", EncodingUtil.encodeStringFromUTF8(file.getName(), "ISO-8859-1"));
-        setResponseHeader("Content-Disposition", contentDisposition, httpRequestContext);
-        return new BufferedInputStream(new FileInputStream(file));
-    }
-
     protected InputStream getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
         String extension = FilenameUtils.getExtension(file.getName());
         String mimeType = getMimeProperties().getProperty(extension.toLowerCase());
 
         setCommonResourceHeaders(httpRequestContext, mimeType);
 
-        String range = null;
+        String range = "bytes=0-";
         if (httpRequestContext.getRequestHeaders().get("Range") != null) {
             range = httpRequestContext.getRequestHeaders().get("Range").get(0);
         }
 
-        if (range == null) {
-            return getResourceAsAttachment(file, httpRequestContext);
-        } else {
-            return getResourceRange(file, range, httpRequestContext);
-        }
+        return getResourceRange(file, range, httpRequestContext);
     }
 
     protected File getFile(String path) {
