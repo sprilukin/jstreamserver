@@ -30,6 +30,7 @@ import jstreamserver.utils.HtmlRenderer;
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
 import jstreamserver.utils.ffmpeg.ProcessAwareProgressListener;
+import jstreamserver.utils.ffmpeg.ProgressListener;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.ByteArrayInputStream;
@@ -57,7 +58,6 @@ public final class LiveStreamHandler extends BaseHandler {
     public static final String PLAYLIST_FULL_PATH = HANDLE_PATH + "/" + LIVE_STREAM_FILE_PREFIX + "." + PLAYLIST_EXTENSION;
 
     private FFMpegSegmenter ffMpegSegmenter;
-    private ProcessAwareProgressListener progressListener;
     private final Object ffmpegSegmenterMonitor = new Object();
 
     private Thread segmenterKiller;
@@ -136,7 +136,7 @@ public final class LiveStreamHandler extends BaseHandler {
 
         synchronized (ffmpegSegmenterMonitor) {
             ffMpegSegmenter = new FFMpegSegmenter();
-            progressListener = new LiveStreamProgressListener(ffMpegSegmenter);
+            ProgressListener progressListener = new LiveStreamProgressListener(ffMpegSegmenter);
 
             ffMpegSegmenter.start(
                     getConfig().getFfmpegLocation(),
@@ -160,18 +160,13 @@ public final class LiveStreamHandler extends BaseHandler {
         return new ByteArrayInputStream(response);
     }
 
-    private int getMaxTimeout() {
-        return getConfig().getSegmentDurationInSec() * 1000;
-    }
-
     private void updateSegmenterKiller() {
         synchronized (ffmpegSegmenterMonitor) {
-            segmenterKillerIdleTime -= getMaxTimeout();
-        }
-
-        if (segmenterKiller == null) {
-            segmenterKiller = new Thread(new SegmenterKiller());
-            segmenterKiller.start();
+            segmenterKillerIdleTime -= getConfig().getSegmentDurationInSec() * 1000;
+            if (segmenterKiller == null) {
+                segmenterKiller = new Thread(new SegmenterKiller());
+                segmenterKiller.start();
+            }
         }
     }
 
@@ -181,13 +176,11 @@ public final class LiveStreamHandler extends BaseHandler {
             try {
                 synchronized (ffmpegSegmenterMonitor) {
                     while (true) {
-                        System.out.println("SegmenterKiller will wait " + getConfig().getSegmenterMaxtimeout() + " seconds...");
                         ffmpegSegmenterMonitor.wait(getConfig().getSegmenterMaxtimeout());
 
                         segmenterKillerIdleTime += getConfig().getSegmenterMaxtimeout();
-                        System.out.println("SegmenterKiller idleTime: " + segmenterKillerIdleTime);
                         if (segmenterKillerIdleTime >= getConfig().getSegmenterMaxtimeout() && ffMpegSegmenter != null) {
-                            System.out.println("Destroying idle ffmpeg segmnter...");
+                            System.out.println("Destroying idle ffmpeg segmenter...");
                             ffMpegSegmenter.destroy();
                             segmenterKillerIdleTime = 0;
                             ffmpegSegmenterMonitor.wait();

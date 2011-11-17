@@ -131,7 +131,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
         String contentDisposition = String.format("attachment; filename=\"%s\"", EncodingUtil.encodeStringFromUTF8(file.getName(), "ISO-8859-1"));
         setResponseHeader("Content-Disposition", contentDisposition, httpRequestContext);
-        return new BufferedInputStream(new FileInputStream(file), getConfig().getBufferSize());
+        return new BufferedInputStream(new FileInputStream(file));
     }
 
     protected InputStream getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
@@ -170,7 +170,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
         setResponseSize(rangeLength, httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_PARTIAL, httpRequestContext);
 
-        return new BufferedInputStream(new RandomAccessFileInputStream(file, rangeArray[0], rangeLength), config.getBufferSize());
+        return new BufferedInputStream(new RandomAccessFileInputStream(file, rangeArray[0], rangeLength));
     }
 
     private long[] parseRange(String range, long fileLength) {

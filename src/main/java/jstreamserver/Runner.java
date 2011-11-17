@@ -84,13 +84,6 @@ public final class Runner {
         mime.setArgName("pathToFile");
         mime.setRequired(false);
 
-        //Response buffer size
-        Option bufferSize = new Option("b", "buffer", true, "Max size of response buffer in bytes. By default: 1024 * 1024 (1Mb)");
-        bufferSize.setArgs(1);
-        bufferSize.setOptionalArg(false);
-        bufferSize.setArgName("bufferSize");
-        bufferSize.setRequired(false);
-
         //FFmppeg executble location
         Option ffmpegLocation = new Option("ff", "ffmpeg", true, "Full path to ffmpeg executable. By default not set");
         ffmpegLocation.setArgs(1);
@@ -167,7 +160,6 @@ public final class Runner {
         options.addOption(host);
         options.addOption(threads);
         options.addOption(mime);
-        options.addOption(bufferSize);
         options.addOption(ffmpegLocation);
         options.addOption(ffmpegParams);
         options.addOption(segmenterocation);
@@ -187,7 +179,6 @@ public final class Runner {
         server.setMaxThreads(config.getMaxThreads());
         server.setHost(config.getHost());
         server.setPort(config.getPort());
-        server.setBufferSize(config.getBufferSize());
 
         server.addHandler(StreamServerHandler.HANDLE_PATH, new StreamServerHandler(config));
         server.addHandler(LiveStreamHandler.HANDLE_PATH, new LiveStreamHandler(config));
@@ -218,10 +209,6 @@ public final class Runner {
 
         if (commandLine.hasOption("m")) {
             config.setMimeProperties(commandLine.getOptionValue("m"));
-        }
-
-        if (commandLine.hasOption("b")) {
-            config.setBufferSize(Integer.parseInt(commandLine.getOptionValue("b")));
         }
 
         if (commandLine.hasOption("ff")) {
