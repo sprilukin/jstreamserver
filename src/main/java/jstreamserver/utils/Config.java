@@ -22,6 +22,7 @@
 
 package jstreamserver.utils;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,9 @@ import java.util.TreeMap;
  * @author Sergey Prilukin
  */
 public final class Config {
+    public static final String SEGMENTER_PARAMS_FORMAT = "- {0} %s %s / {1} {2}";
+    public static final String FFMPEG_PARAMS_FORMAT = "-i %s {0} -";
+
     private int port = 8888;
     private String host = "0.0.0.0";
     private int maxThreads = 10;
@@ -43,7 +47,13 @@ public final class Config {
     private String ffmpegLocation = null; //ffmpeg not available by default
     private String ffmpegParams = "-f mpegts -acodec libmp3lame -ab 64000 -s 480x320 -vcodec libx264 -b 480000 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -subq 5 -trellis 1 -refs 1 -coder 0 -me_range 16  -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -bt 400k -maxrate 524288 -bufsize 524288 -rc_eq 'blurCplx^(1-qComp)' -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -level 30 -aspect 480:320 -g 30 -async 2";
     private String segmenterLocation = null; //segmenter not available by default
-    private String segmenterParams = "10 {0} {1} / 5 1";
+    private int segmentDurationInSec = 10;
+    private int segmentWindowSize = 2 * 60 * 60 / segmentDurationInSec;
+    private int segmenterSearchKillFile = 1;
+    private int destroySegmenterDelay = 1000;
+    private int startSegmenterDelay = 1000;
+    private int segmenterMaxtimeout = 20000;
+
 
     private static List<String> iosSupportedVideoExtensions = new ArrayList<String>();
     static {
@@ -122,7 +132,7 @@ public final class Config {
     }
 
     public String getFfmpegParams() {
-        return ffmpegParams;
+        return MessageFormat.format(FFMPEG_PARAMS_FORMAT, ffmpegParams);
     }
 
     public void setFfmpegParams(String ffmpegParams) {
@@ -137,12 +147,60 @@ public final class Config {
         this.segmenterLocation = segmenterLocation;
     }
 
-    public String getSegmenterParams() {
-        return segmenterParams;
+    public int getSegmentDurationInSec() {
+        return segmentDurationInSec;
     }
 
-    public void setSegmenterParams(String segmenterParams) {
-        this.segmenterParams = segmenterParams;
+    public void setSegmentDurationInSec(int segmentDurationInSec) {
+        this.segmentDurationInSec = segmentDurationInSec;
+    }
+
+    public int getSegmentWindowSize() {
+        return segmentWindowSize;
+    }
+
+    public void setSegmentWindowSize(int segmentWindowSize) {
+        this.segmentWindowSize = segmentWindowSize;
+    }
+
+    public int getSegmenterSearchKillFile() {
+        return segmenterSearchKillFile;
+    }
+
+    public void setSegmenterSearchKillFile(int segmenterSearchKillFile) {
+        this.segmenterSearchKillFile = segmenterSearchKillFile;
+    }
+
+    public int getDestroySegmenterDelay() {
+        return destroySegmenterDelay;
+    }
+
+    public void setDestroySegmenterDelay(int destroySegmenterDelay) {
+        this.destroySegmenterDelay = destroySegmenterDelay;
+    }
+
+    public int getStartSegmenterDelay() {
+        return startSegmenterDelay;
+    }
+
+    public void setStartSegmenterDelay(int startSegmenterDelay) {
+        this.startSegmenterDelay = startSegmenterDelay;
+    }
+
+    public int getSegmenterMaxtimeout() {
+        return segmenterMaxtimeout;
+    }
+
+    public void setSegmenterMaxtimeout(int segmenterMaxtimeout) {
+        this.segmenterMaxtimeout = segmenterMaxtimeout;
+    }
+
+    public String getSegmenterParams() {
+        return MessageFormat.format(
+                SEGMENTER_PARAMS_FORMAT,
+                String.valueOf(segmentDurationInSec),
+                String.valueOf(segmentWindowSize),
+                String.valueOf(segmenterSearchKillFile));
     }
 
     public boolean httpLiveStreamingSupported(String extension, String mimeType) {
@@ -164,14 +222,20 @@ public final class Config {
             sb.append("ffmpegLocation: ").append(ffmpegLocation).append("\r\n");
             sb.append("ffmpegParams: ").append(ffmpegParams).append("\r\n");
         } else {
-            sb.append("ffmpegLocation not set - live conversion is not available\r\n");
+            sb.append("ffmpegLocation not set - HTTP Live Streaming is not available\r\n");
         }
 
         if (segmenterLocation != null) {
             sb.append("segmenterLocation: ").append(segmenterLocation).append("\r\n");
-            sb.append("segmenterParams: ").append(segmenterParams).append("\r\n");
+            //sb.append("segmenterParams: ").append(segmenterParams).append("\r\n");
+            sb.append("segmentDurationInSec: ").append(segmentDurationInSec).append("\r\n");
+            sb.append("segmentWindowSize: ").append(segmentWindowSize).append("\r\n");
+            sb.append("segmenterSearchKillFile: ").append(segmenterSearchKillFile).append("\r\n");
+            sb.append("destroySegmenterDelay: ").append(destroySegmenterDelay).append("\r\n");
+            sb.append("startSegmenterDelay: ").append(startSegmenterDelay).append("\r\n");
+            sb.append("segmenterMaxtimeout: ").append(segmenterMaxtimeout).append("\r\n");
         } else {
-            sb.append("segmenterLocation not set - live conversion is not available\r\n");
+            sb.append("segmenterLocation not set - HTTP Live Streaming is not available\r\n");
         }
 
         sb.append("rootDirs:\r\n");
@@ -179,6 +243,6 @@ public final class Config {
             sb.append("\"").append(entry.getValue()).append("\"").append(" with label: ").append(entry.getKey()).append("\r\n");
         }
 
-        return sb.toString();
+        return sb.append("\r\n").toString();
     }
 }

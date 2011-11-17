@@ -55,13 +55,13 @@ public final class LiveStreamHandler extends BaseHandler {
     public static final String PLAYLIST_EXTENSION = "m3u8";
     public static final String LIVE_STREAM_FILE_PATH = HANDLE_PATH.substring(1) + "/" + LIVE_STREAM_FILE_PREFIX;
     public static final String PLAYLIST_FULL_PATH = HANDLE_PATH + "/" + LIVE_STREAM_FILE_PREFIX + "." + PLAYLIST_EXTENSION;
-    public static final int DESTROY_SEGMENTER_DELAY = 1000;
-    public static final int START_STREAMING_DELAY = 4000;
 
-    private String currentStreamingFile;
-    private Thread segmenterKiller;
     private FFMpegSegmenter ffMpegSegmenter;
     private ProcessAwareProgressListener progressListener;
+    private final Object ffmpegSegmenterMonitor = new Object();
+
+    private Thread segmenterKiller;
+    private int segmenterKillerIdleTime = 0;
 
     public LiveStreamHandler() {
         super();
@@ -76,7 +76,7 @@ public final class LiveStreamHandler extends BaseHandler {
 
         if (PLAYLIST_FULL_PATH.equals(httpRequestContext.getRequestURI().getPath())) {
             File playlist = new File(LIVE_STREAM_FILE_PATH + "." + PLAYLIST_EXTENSION);
-            return getPlayList(playlist, httpRequestContext);
+            return getResource(playlist, httpRequestContext);
         } else if (HANDLE_PATH.equals(httpRequestContext.getRequestURI().getPath())) {
             String param = httpRequestContext.getRequestURI().getRawQuery();
 
@@ -91,6 +91,7 @@ public final class LiveStreamHandler extends BaseHandler {
             String path = httpRequestContext.getRequestURI().getPath();
             File file = new File(path.substring(1));
             if (file.exists() && file.isFile()) {
+                updateSegmenterKiller();
                 return getResource(file, httpRequestContext);
             } else {
                 return rendeResourceNotFound(path, httpRequestContext);
@@ -98,15 +99,12 @@ public final class LiveStreamHandler extends BaseHandler {
         }
     }
 
-    private InputStream getPlayList(File playListFile, HttpRequestContext httpRequestContext) throws IOException {
-        startSegmenterKiller();
-        return getResource(playListFile, httpRequestContext);
-    }
-
     private void cleanResources() {
-        if (ffMpegSegmenter != null) {
-            ffMpegSegmenter.destroy();
-            ffMpegSegmenter = null;
+        synchronized (ffmpegSegmenterMonitor) {
+            if (ffMpegSegmenter != null) {
+                ffMpegSegmenter.destroy();
+                ffMpegSegmenter = null;
+            }
         }
 
         File streamDir = new File(HANDLE_PATH.substring(1));
@@ -131,23 +129,25 @@ public final class LiveStreamHandler extends BaseHandler {
         cleanResources();
 
         try {
-            Thread.sleep(DESTROY_SEGMENTER_DELAY);
+            Thread.sleep(getConfig().getDestroySegmenterDelay());
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        ffMpegSegmenter = new FFMpegSegmenter();
-        progressListener = new LiveStreamProgressListener(ffMpegSegmenter);
+        synchronized (ffmpegSegmenterMonitor) {
+            ffMpegSegmenter = new FFMpegSegmenter();
+            progressListener = new LiveStreamProgressListener(ffMpegSegmenter);
 
-        ffMpegSegmenter.start(
-                getConfig().getFfmpegLocation(),
-                getConfig().getSegmenterLocation(),
-                MessageFormat.format("-i \"{0}\" {1} -", file.getAbsolutePath(), getConfig().getFfmpegParams()),
-                MessageFormat.format("- " + getConfig().getSegmenterParams(), LIVE_STREAM_FILE_PATH, PLAYLIST_FULL_PATH.substring(1)),
-                progressListener);
+            ffMpegSegmenter.start(
+                    getConfig().getFfmpegLocation(),
+                    getConfig().getSegmenterLocation(),
+                    String.format(getConfig().getFfmpegParams(), file.getAbsolutePath()),
+                    String.format(getConfig().getSegmenterParams(), LIVE_STREAM_FILE_PATH, PLAYLIST_FULL_PATH.substring(1)),
+                    progressListener);
+        }
 
         try {
-            Thread.sleep(START_STREAMING_DELAY);
+            Thread.sleep(getConfig().getStartSegmenterDelay());
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -160,9 +160,43 @@ public final class LiveStreamHandler extends BaseHandler {
         return new ByteArrayInputStream(response);
     }
 
-    private void startSegmenterKiller() {
-        if (segmenterKiller == null || !segmenterKiller.isAlive()) {
-            //TODO
+    private int getMaxTimeout() {
+        return getConfig().getSegmentDurationInSec() * 1000;
+    }
+
+    private void updateSegmenterKiller() {
+        synchronized (ffmpegSegmenterMonitor) {
+            segmenterKillerIdleTime -= getMaxTimeout();
+        }
+
+        if (segmenterKiller == null) {
+            segmenterKiller = new Thread(new SegmenterKiller());
+            segmenterKiller.start();
+        }
+    }
+
+    class SegmenterKiller implements Runnable {
+        @Override
+        public void run() {
+            try {
+                synchronized (ffmpegSegmenterMonitor) {
+                    while (true) {
+                        System.out.println("SegmenterKiller will wait " + getConfig().getSegmenterMaxtimeout() + " seconds...");
+                        ffmpegSegmenterMonitor.wait(getConfig().getSegmenterMaxtimeout());
+
+                        segmenterKillerIdleTime += getConfig().getSegmenterMaxtimeout();
+                        System.out.println("SegmenterKiller idleTime: " + segmenterKillerIdleTime);
+                        if (segmenterKillerIdleTime >= getConfig().getSegmenterMaxtimeout() && ffMpegSegmenter != null) {
+                            System.out.println("Destroying idle ffmpeg segmnter...");
+                            ffMpegSegmenter.destroy();
+                            segmenterKillerIdleTime = 0;
+                            ffmpegSegmenterMonitor.wait();
+                        }
+                    }
+                }
+            } catch (InterruptedException e) {
+                /* do nothing */
+            }
         }
     }
 
@@ -173,12 +207,12 @@ public final class LiveStreamHandler extends BaseHandler {
 
         @Override
         public void onFrameMessage(FrameMessage frameMessage) {
-            System.out.println(frameMessage.toString());
+            //System.out.println(frameMessage.toString());
         }
 
         @Override
         public void onProgress(String progressString) {
-            System.out.println(progressString);
+            //System.out.println(progressString);
         }
 
         @Override

@@ -113,11 +113,46 @@ public final class Runner {
         segmenterocation.setRequired(false);
 
         //FFmppeg executble location
-        Option segmenterParams = new Option("sp", "segmenterp", true, "Params for segmenter.");
-        segmenterParams.setArgs(1);
-        segmenterParams.setOptionalArg(false);
-        segmenterParams.setArgName("segmenterParams");
-        segmenterParams.setRequired(false);
+        Option segmenterDuration = new Option("sd", "sduration", true, "Duration of segment for HTTP Live streaming (in seconds)");
+        segmenterDuration.setArgs(1);
+        segmenterDuration.setOptionalArg(false);
+        segmenterDuration.setArgName("segmentDuration");
+        segmenterDuration.setRequired(false);
+
+        //FFmppeg executble location
+        Option segmenterWindowSize = new Option("sw", "swindow", true, "Window size of the segmenter for HTTP Live streaming");
+        segmenterWindowSize.setArgs(1);
+        segmenterWindowSize.setOptionalArg(false);
+        segmenterWindowSize.setArgName("windowSize");
+        segmenterWindowSize.setRequired(false);
+
+        //FFmppeg executble location
+        Option segmenterSearchKillFile = new Option("sk", "skillfile", true, "Search kill file for HTTP Live streaming");
+        segmenterSearchKillFile.setArgs(1);
+        segmenterSearchKillFile.setOptionalArg(false);
+        segmenterSearchKillFile.setArgName("searchKillFile");
+        segmenterSearchKillFile.setRequired(false);
+
+        //FFmppeg executble location
+        Option segmenterDestroydelay = new Option("dd", "destroydelay", true, "Destroy segmenter delay in msec for HTTP Live streaming");
+        segmenterDestroydelay.setArgs(1);
+        segmenterDestroydelay.setOptionalArg(false);
+        segmenterDestroydelay.setArgName("delay");
+        segmenterDestroydelay.setRequired(false);
+
+        //FFmppeg executble location
+        Option segmenterStartDelay = new Option("d", "startdelay", true, "Start segmenter delay in msec for HTTP Live streaming");
+        segmenterStartDelay.setArgs(1);
+        segmenterStartDelay.setOptionalArg(false);
+        segmenterStartDelay.setArgName("delay");
+        segmenterStartDelay.setRequired(false);
+
+        //FFmppeg executble location
+        Option segmenterMaxTimeout = new Option("dt", "timeout", true, "Max segmenter timeout in msec for HTTP Live streaming");
+        segmenterMaxTimeout.setArgs(1);
+        segmenterMaxTimeout.setOptionalArg(false);
+        segmenterMaxTimeout.setArgName("timeout");
+        segmenterMaxTimeout.setRequired(false);
 
         //Root locations
         Option locations = new Option("f", "folders", true, "List of folders which will be shown in root.");
@@ -136,7 +171,12 @@ public final class Runner {
         options.addOption(ffmpegLocation);
         options.addOption(ffmpegParams);
         options.addOption(segmenterocation);
-        options.addOption(segmenterParams);
+        options.addOption(segmenterDuration);
+        options.addOption(segmenterWindowSize);
+        options.addOption(segmenterSearchKillFile);
+        options.addOption(segmenterDestroydelay);
+        options.addOption(segmenterStartDelay);
+        options.addOption(segmenterMaxTimeout);
         options.addOption(locations);
     }
 
@@ -193,8 +233,23 @@ public final class Runner {
 
         if (commandLine.hasOption("se")) {
             config.setSegmenterLocation(commandLine.getOptionValue("se"));
-            if (commandLine.hasOption("sp")) {
-                config.setSegmenterParams(commandLine.getOptionValue("sp"));
+            if (commandLine.hasOption("sd")) {
+                config.setSegmentDurationInSec(Integer.parseInt(commandLine.getOptionValue("sd")));
+            }
+            if (commandLine.hasOption("sw")) {
+                config.setSegmentWindowSize(Integer.parseInt(commandLine.getOptionValue("sw")));
+            }
+            if (commandLine.hasOption("sk")) {
+                config.setSegmenterSearchKillFile(Integer.parseInt(commandLine.getOptionValue("sk")));
+            }
+            if (commandLine.hasOption("dd")) {
+                config.setDestroySegmenterDelay(Integer.parseInt(commandLine.getOptionValue("dd")));
+            }
+            if (commandLine.hasOption("d")) {
+                config.setStartSegmenterDelay(Integer.parseInt(commandLine.getOptionValue("d")));
+            }
+            if (commandLine.hasOption("dt")) {
+                config.setSegmenterMaxtimeout(Integer.parseInt(commandLine.getOptionValue("dt")));
             }
         }
 
