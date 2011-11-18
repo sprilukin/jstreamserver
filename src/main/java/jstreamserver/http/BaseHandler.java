@@ -53,7 +53,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
 
     public static final String DEFAULT_ENCODING = "UTF-8";
 
-    public static final String DEFAULT_MIME_PROPERTIES = "jstreamserver/http/mime.properties";
+    public static final String DEFAULT_MIME_PROPERTIES = "mime.properties";
     public static final String DEFAULT_HTML_CONTENT_TYPE = "text/html; charset=" + DEFAULT_ENCODING;
 
     private Config config;
