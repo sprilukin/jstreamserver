@@ -11,8 +11,8 @@
 <body>
 
 <ul>
-#foreach ($key in  $map.keySet())
-    <li><a href="$key">${map.get($key)}</a></li>
+#foreach ($entry in  $map.entrySet())
+    <li><a href="$entry.key">$entry.value</a></li>
 #end
 </ul>
 </body>
