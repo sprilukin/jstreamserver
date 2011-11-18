@@ -28,7 +28,6 @@ import anhttpserver.SimpleHttpServer;
 import jstreamserver.http.LiveStreamHandler;
 import jstreamserver.http.StreamServerHandler;
 import jstreamserver.utils.Config;
-import jstreamserver.utils.EncodingUtil;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -273,8 +272,6 @@ public final class Runner {
 
     public static void main(String[] args) throws Exception {
         try {
-            System.setProperty("file.encoding", EncodingUtil.UTF8_ENCODING);
-
             Runner runner = new Runner();
             runner.start(getConfig(args));
 

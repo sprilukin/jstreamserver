@@ -20,13 +20,16 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils;
+package jstreamserver.utils.velocity;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
 import java.util.Properties;
@@ -55,6 +58,13 @@ public final class VelocityRenderer {
         template.merge(vc, output);
         output.flush();
         output.close();
+    }
+
+    public static byte[] renderTemplate(String pathToTemplate, Map<String, Object> model) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        renderTemplate(pathToTemplate, model, new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream)));
+
+        return byteArrayOutputStream.toByteArray();
     }
 
     private static VelocityEngine getVelocityEngine() throws IOException {

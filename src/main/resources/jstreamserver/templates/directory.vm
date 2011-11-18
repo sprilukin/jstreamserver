@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<style>
+    ul, p {
+        font-size: 32px;
+    }
+</style>
+</head>
+<body>
+
+<ul>
+#foreach ($key in  $map.keySet())
+    <li><a href="$key">${map.get($key)}</a></li>
+#end
+</ul>
+</body>
+</html>

@@ -25,9 +25,9 @@ package jstreamserver.http;
 import anhttpserver.HttpRequestContext;
 import anhttpserver.SimpleHttpHandlerAdapter;
 import jstreamserver.utils.Config;
-import jstreamserver.utils.EncodingUtil;
-import jstreamserver.utils.HtmlRenderer;
 import jstreamserver.utils.RandomAccessFileInputStream;
+import jstreamserver.utils.velocity.VelocityModel;
+import jstreamserver.utils.velocity.VelocityRenderer;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedInputStream;
@@ -52,8 +52,10 @@ import java.util.TimeZone;
  */
 public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
 
+    public static final String DEFAULT_ENCODING = "UTF-8";
+
     public static final String DEFAULT_MIME_PROPERTIES = "jstreamserver/http/mime.properties";
-    public static final String DEFAULT_HTML_CONTENT_TYPE = "text/html; charset=" + EncodingUtil.UTF8_ENCODING;
+    public static final String DEFAULT_HTML_CONTENT_TYPE = "text/html; charset=" + DEFAULT_ENCODING;
 
     private Config config;
     private Properties mimeProperties = new Properties();
@@ -117,9 +119,9 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
         setResponseHeader("Connection", "keep-alive", httpRequestContext);
     }
 
-    protected InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) {
+    protected InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) throws IOException {
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
-        byte[] response = HtmlRenderer.renderResourceNotFound(path).getBytes();
+        byte[] response = VelocityRenderer.renderTemplate("jstreamserver/templates/notfound.vm", new VelocityModel("path", path));
         setResponseSize(response.length, httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
         return new ByteArrayInputStream(response);

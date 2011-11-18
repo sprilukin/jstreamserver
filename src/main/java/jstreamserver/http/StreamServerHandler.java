@@ -24,8 +24,8 @@ package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
 import jstreamserver.utils.Config;
-import jstreamserver.utils.EncodingUtil;
-import jstreamserver.utils.HtmlRenderer;
+import jstreamserver.utils.velocity.VelocityModel;
+import jstreamserver.utils.velocity.VelocityRenderer;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.ByteArrayInputStream;
@@ -60,7 +60,7 @@ public final class StreamServerHandler extends BaseHandler {
     }
 
     public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
-        String path = URLDecoder.decode(httpRequestContext.getRequestURI().getPath(), EncodingUtil.UTF8_ENCODING);
+        String path = URLDecoder.decode(httpRequestContext.getRequestURI().getPath(), DEFAULT_ENCODING);
 
         if ("/".equals(path)) {
             return renderDirectory(path, getConfig().getRootDirs().keySet().toArray(new String[0]), httpRequestContext);
@@ -111,7 +111,7 @@ public final class StreamServerHandler extends BaseHandler {
 
             String href = null;
             try {
-                String encodedName = URLEncoder.encode(name, EncodingUtil.UTF8_ENCODING);
+                String encodedName = URLEncoder.encode(name, DEFAULT_ENCODING);
 
                 if (file.isFile()) {
                     String extension = FilenameUtils.getExtension(file.getName());
@@ -134,9 +134,9 @@ public final class StreamServerHandler extends BaseHandler {
         return hrefs;
     }
 
-    private InputStream renderDirectory(String path, String[] children, HttpRequestContext httpRequestContext) {
+    private InputStream renderDirectory(String path, String[] children, HttpRequestContext httpRequestContext) throws IOException {
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
-        byte[] response = HtmlRenderer.renderDirView(getHrefs(children, path)).getBytes();
+        byte[] response = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", new VelocityModel("map", getHrefs(children, path)));
         setResponseSize(response.length, httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
         return new ByteArrayInputStream(response);

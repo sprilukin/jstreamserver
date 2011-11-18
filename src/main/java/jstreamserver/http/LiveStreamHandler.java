@@ -24,8 +24,8 @@ package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
 import jstreamserver.utils.Config;
-import jstreamserver.utils.EncodingUtil;
-import jstreamserver.utils.HtmlRenderer;
+import jstreamserver.utils.velocity.VelocityModel;
+import jstreamserver.utils.velocity.VelocityRenderer;
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
 import jstreamserver.utils.ffmpeg.ProgressListener;
@@ -79,7 +79,7 @@ public final class LiveStreamHandler extends BaseHandler {
             String param = httpRequestContext.getRequestURI().getRawQuery();
 
             String fileString = param.split("=")[1];
-            File file = getFile(URLDecoder.decode(fileString, EncodingUtil.UTF8_ENCODING));
+            File file = getFile(URLDecoder.decode(fileString, DEFAULT_ENCODING));
             if (!file.exists() || !file.isFile() || file.isHidden()) {
                 return rendeResourceNotFound(fileString, httpRequestContext);
             } else {
@@ -149,7 +149,7 @@ public final class LiveStreamHandler extends BaseHandler {
             throw new RuntimeException(e);
         }
 
-        byte[] response = HtmlRenderer.renderLiveStreamPage(PLAYLIST_FULL_PATH).getBytes();
+        byte[] response = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("pathToPlayList", PLAYLIST_FULL_PATH));
 
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
         setResponseSize(response.length, httpRequestContext);

@@ -20,33 +20,35 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils;
+package jstreamserver.utils.velocity;
 
-import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Helper class which helps dealing with String encoding
+ * Utility class for building model for {@code Velocity} renderer
  *
  * @author Sergey Prilukin
  */
-public final class EncodingUtil {
+public class VelocityModel extends HashMap<String, Object> {
 
-    public static final String UTF8_ENCODING = "UTF-8";
-
-    public static String encodeString(String string, String sourceCharset, String targetCharset) {
-        try {
-            return new String(string.getBytes(sourceCharset), targetCharset);
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+    public VelocityModel(int initialCapacity, float loadFactor) {
+        super(initialCapacity, loadFactor);
     }
 
-    public static String encodeStringToUTF8(String string, String sourceCharset) {
-        return encodeString(string, sourceCharset, UTF8_ENCODING);
+    public VelocityModel(int initialCapacity) {
+        super(initialCapacity);
     }
 
-    public static String encodeStringFromUTF8(String string, String targetCharset) {
-        return encodeString(string, UTF8_ENCODING, targetCharset);
+    public VelocityModel() {
     }
 
+    public VelocityModel(Map<? extends String, ?> m) {
+        super(m);
+    }
+
+    public VelocityModel(String key, Object value) {
+        super();
+        put(key, value);
+    }
 }

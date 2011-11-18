@@ -22,13 +22,9 @@
 
 package jstreamserver.utils;
 
+import jstreamserver.utils.velocity.VelocityModel;
+import jstreamserver.utils.velocity.VelocityRenderer;
 import org.junit.Test;
-
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStreamWriter;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Tests for {@link VelocityRenderer}
@@ -39,20 +35,9 @@ public class VelocityRendererTest {
 
     @Test
     public void testVelocityRenderer() throws Exception {
-        Map<String, Object> model = new HashMap<String, Object>();
-        model.put("foo", "my");
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        BufferedWriter output = new BufferedWriter(new OutputStreamWriter(out));
-
-        VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", model, output);
-        System.out.println(out.toString());
-
-        model.put("foo", "your");
-        out = new ByteArrayOutputStream();
-        output = new BufferedWriter(new OutputStreamWriter(out));
-
-        VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", model, output);
-        System.out.println(out.toString());
+        String result = new String(VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", new VelocityModel("foo", "my")));
+        System.out.println(result);
+        result = new String(VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", new VelocityModel("foo", "your")));
+        System.out.println(result);
     }
 }
