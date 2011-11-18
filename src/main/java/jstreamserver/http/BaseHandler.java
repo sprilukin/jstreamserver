@@ -31,7 +31,6 @@ import jstreamserver.utils.velocity.VelocityRenderer;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -121,10 +120,10 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
 
     protected InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) throws IOException {
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
-        byte[] response = VelocityRenderer.renderTemplate("jstreamserver/templates/notfound.vm", new VelocityModel("path", path));
-        setResponseSize(response.length, httpRequestContext);
+        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/notfound.vm", new VelocityModel("path", path));
+        setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
-        return new ByteArrayInputStream(response);
+        return result;
     }
 
     protected InputStream getResource(File file, HttpRequestContext httpRequestContext) throws IOException {

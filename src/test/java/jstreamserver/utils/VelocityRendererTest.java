@@ -24,6 +24,7 @@ package jstreamserver.utils;
 
 import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 /**
@@ -35,9 +36,7 @@ public class VelocityRendererTest {
 
     @Test
     public void testVelocityRenderer() throws Exception {
-        String result = new String(VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", new VelocityModel("foo", "my")));
-        System.out.println(result);
-        result = new String(VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", new VelocityModel("foo", "your")));
-        System.out.println(result);
+        System.out.println(IOUtils.toString(VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", new VelocityModel("foo", "my"))));
+        System.out.println(IOUtils.toString(VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", new VelocityModel("foo", "your"))));
     }
 }

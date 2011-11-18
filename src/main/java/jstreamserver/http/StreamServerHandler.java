@@ -28,7 +28,6 @@ import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -136,9 +135,9 @@ public final class StreamServerHandler extends BaseHandler {
 
     private InputStream renderDirectory(String path, String[] children, HttpRequestContext httpRequestContext) throws IOException {
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
-        byte[] response = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", new VelocityModel("map", getHrefs(children, path)));
-        setResponseSize(response.length, httpRequestContext);
+        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", new VelocityModel("map", getHrefs(children, path)));
+        setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-        return new ByteArrayInputStream(response);
+        return result;
     }
 }

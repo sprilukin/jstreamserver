@@ -27,8 +27,10 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Map;
@@ -60,11 +62,11 @@ public final class VelocityRenderer {
         output.close();
     }
 
-    public static byte[] renderTemplate(String pathToTemplate, Map<String, Object> model) throws IOException {
+    public static InputStream renderTemplate(String pathToTemplate, Map<String, Object> model) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         renderTemplate(pathToTemplate, model, new BufferedWriter(new OutputStreamWriter(byteArrayOutputStream)));
 
-        return byteArrayOutputStream.toByteArray();
+        return (new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
     }
 
     private static VelocityEngine getVelocityEngine() throws IOException {

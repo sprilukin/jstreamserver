@@ -31,7 +31,6 @@ import jstreamserver.utils.ffmpeg.FrameMessage;
 import jstreamserver.utils.ffmpeg.ProgressListener;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -149,12 +148,12 @@ public final class LiveStreamHandler extends BaseHandler {
             throw new RuntimeException(e);
         }
 
-        byte[] response = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("pathToPlayList", PLAYLIST_FULL_PATH));
+        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("pathToPlayList", PLAYLIST_FULL_PATH));
 
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
-        setResponseSize(response.length, httpRequestContext);
+        setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-        return new ByteArrayInputStream(response);
+        return result;
     }
 
     private void updateSegmenterKiller() {
