@@ -57,8 +57,7 @@ public final class LiveStreamHandler extends BaseHandler {
     private final Object ffmpegSegmenterMonitor = new Object();
     private ProgressListener progressListener = new LiveStreamProgressListener();
 
-    private Thread segmenterKiller;
-    private int segmenterKillerIdleTime = 0;
+    private SegmenterKiller segmenterKiller;
 
     public LiveStreamHandler() {
         super();
@@ -157,28 +156,35 @@ public final class LiveStreamHandler extends BaseHandler {
     }
 
     private void updateSegmenterKiller() {
-        synchronized (ffmpegSegmenterMonitor) {
-            segmenterKillerIdleTime -= getConfig().getSegmentDurationInSec() * 1000;
-            if (segmenterKiller == null) {
-                segmenterKiller = new Thread(new SegmenterKiller());
-                segmenterKiller.start();
-            }
+        if (segmenterKiller == null) {
+            segmenterKiller = new SegmenterKiller();
+            segmenterKiller.start();
+        } else {
+            segmenterKiller.clearTimeout();
         }
     }
 
-    class SegmenterKiller implements Runnable {
+    class SegmenterKiller extends Thread {
+        private boolean timeoutFlag = false;
+
+        public void clearTimeout() {
+            synchronized (ffmpegSegmenterMonitor) {
+                timeoutFlag = false;
+                ffmpegSegmenterMonitor.notify();
+            }
+        }
+
         @Override
         public void run() {
             try {
                 synchronized (ffmpegSegmenterMonitor) {
                     while (true) {
+                        timeoutFlag = true;
                         ffmpegSegmenterMonitor.wait(getConfig().getSegmenterMaxtimeout());
-
-                        segmenterKillerIdleTime += getConfig().getSegmenterMaxtimeout();
-                        if (segmenterKillerIdleTime >= getConfig().getSegmenterMaxtimeout() && ffMpegSegmenter != null) {
+                        if (timeoutFlag && ffMpegSegmenter != null) {
                             System.out.println("Destroying idle ffmpeg segmenter...");
-                            ffMpegSegmenter.destroy();
-                            segmenterKillerIdleTime = 0;
+                            timeoutFlag = false;
+                            cleanResources();
                             ffmpegSegmenterMonitor.wait();
                         }
                     }

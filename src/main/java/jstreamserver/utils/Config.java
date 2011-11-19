@@ -51,7 +51,7 @@ public final class Config {
     private int segmenterSearchKillFile = 1;
     private int destroySegmenterDelay = 1000;
     private int startSegmenterDelay = 1000;
-    private int segmenterMaxtimeout = 20000;
+    private int segmenterMaxtimeout = Math.max(segmentDurationInSec * 100 * 3, 30000); //3 times of segment duration. should be enough
 
 
     private static List<String> iosSupportedVideoExtensions = new ArrayList<String>();
