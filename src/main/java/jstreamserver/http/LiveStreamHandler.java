@@ -37,6 +37,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * HTTP Live stream handler
@@ -52,6 +57,11 @@ public final class LiveStreamHandler extends BaseHandler {
     public static final String PLAYLIST_EXTENSION = "m3u8";
     public static final String LIVE_STREAM_FILE_PATH = HANDLE_PATH.substring(1) + "/" + LIVE_STREAM_FILE_PREFIX;
     public static final String PLAYLIST_FULL_PATH = HANDLE_PATH + "/" + LIVE_STREAM_FILE_PREFIX + "." + PLAYLIST_EXTENSION;
+
+    public static final SimpleDateFormat FFMPEG_SS_DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
+    static {
+        FFMPEG_SS_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
 
     private FFMpegSegmenter ffMpegSegmenter;
     private final Object ffmpegSegmenterMonitor = new Object();
@@ -74,13 +84,14 @@ public final class LiveStreamHandler extends BaseHandler {
             File playlist = new File(LIVE_STREAM_FILE_PATH + "." + PLAYLIST_EXTENSION);
             return getResource(playlist, httpRequestContext);
         } else if (HANDLE_PATH.equals(httpRequestContext.getRequestURI().getPath())) {
-            String param = httpRequestContext.getRequestURI().getRawQuery();
+            Map<String, String> params = getURLParams(httpRequestContext.getRequestURI().getRawQuery());
 
-            String fileString = param.split("=")[1];
+            String fileString = params.get("file");
             File file = getFile(URLDecoder.decode(fileString, DEFAULT_ENCODING));
             if (!file.exists() || !file.isFile() || file.isHidden()) {
                 return rendeResourceNotFound(fileString, httpRequestContext);
             } else {
+                //String startTime = params.containsKey("time") ? params.get("time") : FFMPEG_SS_DATE_FORMAT.format(new Date(0)); // start from the beginning by default
                 return getLiveStream(file, httpRequestContext);
             }
         } else {
@@ -93,6 +104,21 @@ public final class LiveStreamHandler extends BaseHandler {
                 return rendeResourceNotFound(path, httpRequestContext);
             }
         }
+    }
+
+    private Map<String, String> getURLParams(String query) {
+        if (query == null || query.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> params = new HashMap<String, String>();
+        String[] paramsArray = query.split("\\&");
+        for (String parameter: paramsArray) {
+            String[] paramValue = parameter.split("=");
+            params.put(paramValue[0], paramValue[1]);
+        }
+
+        return params;
     }
 
     private void cleanResources() {
