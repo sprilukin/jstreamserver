@@ -56,17 +56,29 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
     public static final String DEFAULT_MIME_PROPERTIES = "mime.properties";
     public static final String DEFAULT_HTML_CONTENT_TYPE = "text/html; charset=" + DEFAULT_ENCODING;
 
-    private Config config;
-    private Properties mimeProperties = new Properties();
+    public static final DateFormat HTML_EXPIRES_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+    static {
+        HTML_EXPIRES_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+
+
+    private static Config config;
+    private static Properties mimeProperties = new Properties();
 
     public BaseHandler() {
-        config = new Config();
-        loadMimeProperties();
+        synchronized (BaseHandler.class) {
+            config = new Config();
+            loadMimeProperties();
+        }
     }
 
     public BaseHandler(Config config) {
-        this.config = config;
-        loadMimeProperties();
+        synchronized (BaseHandler.class) {
+            if (BaseHandler.config == null) {
+                BaseHandler.config = config;
+                loadMimeProperties();
+            }
+        }
     }
 
     private void loadMimeProperties() {
@@ -97,7 +109,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
     }
 
     protected Config getConfig() {
-        return this.config;
+        return BaseHandler.config;
     }
 
     protected Properties getMimeProperties() {
@@ -111,7 +123,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
     protected void setCommonResourceHeaders(HttpRequestContext httpRequestContext, String mimeType) {
         //Set response headers
         setContentType(mimeType != null ? mimeType : "application/octet-stream", httpRequestContext);
-        setResponseHeader("Expires", htmlExpiresDateFormat().format(new Date(0)), httpRequestContext);
+        setResponseHeader("Expires", HTML_EXPIRES_DATE_FORMAT.format(new Date(0)), httpRequestContext);
         setResponseHeader("Pragma", "no-cache", httpRequestContext);
         setResponseHeader("Cache-Control", "no-store,private,no-cache", httpRequestContext);
         setResponseHeader("Accept-Ranges", "bytes", httpRequestContext);
@@ -175,11 +187,5 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
         rangeArray[1] = Math.max(start, end);
 
         return rangeArray;
-    }
-
-    private DateFormat htmlExpiresDateFormat() {
-        DateFormat httpDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-        httpDateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return httpDateFormat;
     }
 }

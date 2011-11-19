@@ -26,6 +26,7 @@ package jstreamserver;
 import anhttpserver.DefaultSimpleHttpServer;
 import anhttpserver.SimpleHttpServer;
 import jstreamserver.http.LiveStreamHandler;
+import jstreamserver.http.StaticContentHandler;
 import jstreamserver.http.StreamServerHandler;
 import jstreamserver.utils.Config;
 import org.apache.commons.cli.CommandLine;
@@ -181,6 +182,7 @@ public final class Runner {
 
         server.addHandler(StreamServerHandler.HANDLE_PATH, new StreamServerHandler(config));
         server.addHandler(LiveStreamHandler.HANDLE_PATH, new LiveStreamHandler(config));
+        server.addHandler(StaticContentHandler.HANDLE_PATH, new StaticContentHandler(config));
 
         server.start();
     }
