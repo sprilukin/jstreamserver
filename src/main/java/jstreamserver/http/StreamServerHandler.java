@@ -23,6 +23,7 @@
 package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
+import jstreamserver.dto.FileListEntry;
 import jstreamserver.utils.Config;
 import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
@@ -36,9 +37,12 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.List;
 
 /**
  * Main handler for the server.
@@ -49,6 +53,19 @@ import java.util.TreeMap;
 public final class StreamServerHandler extends BaseHandler {
 
     public static final String HANDLE_PATH = "/";
+
+    private static final Comparator<FileListEntry> FILE_LIST_COMPARATOR = new Comparator<FileListEntry>() {
+        @Override
+        public int compare(FileListEntry o1, FileListEntry o2) {
+            if (o1.getDirectory() && !o2.getDirectory()) {
+                return -1;
+            } else if (o2.getDirectory() && !o1.getDirectory()) {
+                return 1;
+            } else {
+                return o1.getName().compareTo(o2.getName());
+            }
+        }
+    };
 
     public StreamServerHandler() {
         super();
@@ -62,7 +79,7 @@ public final class StreamServerHandler extends BaseHandler {
         String path = URLDecoder.decode(httpRequestContext.getRequestURI().getPath(), DEFAULT_ENCODING);
 
         if ("/".equals(path)) {
-            return renderDirectory(path, getConfig().getRootDirs().keySet().toArray(new String[0]), httpRequestContext);
+            return renderDirectory(path, getFilesFromNamesList(getConfig().getRootDirs().keySet()), httpRequestContext);
         }
 
         File file = getFile(path);
@@ -75,7 +92,16 @@ public final class StreamServerHandler extends BaseHandler {
         }
     }
 
-    private String[] getDirectoryContent(File dir) {
+    private List<File> getFilesFromNamesList(Collection<String> names) {
+        List<File> files = new ArrayList<File>();
+        for (String name: names) {
+            files.add(new File(name));
+        }
+
+        return files;
+    }
+
+    private List<File> getDirectoryContent(File dir) {
         File[] files = dir.listFiles(new FileFilter() {
             @Override
             public boolean accept(File pathname) {
@@ -83,61 +109,65 @@ public final class StreamServerHandler extends BaseHandler {
             }
         });
 
-        String[] names = new String[files.length];
-        for (int i = 0; i < files.length; i++) {
-            names[i] = files[i].getName();
-        }
-
-        return names;
+        return Arrays.asList(files);
     }
 
-    private Map<String, String> getHrefs(String[] fileNames, String parentPath) {
-        Map<String, String> hrefs = new TreeMap<String, String>(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return "/".equals(o1) ? -1 : ("/".equals(o2) ? 1 : o1.compareTo(o2));
-            }
-        });
+    private List<FileListEntry> getFiles(List<File> files, String parentPath) {
+        List<FileListEntry> fileList = new ArrayList<FileListEntry>();
 
         if (!"/".equals(parentPath)) {
-            String parentDir = parentPath.replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
-            hrefs.put(parentDir.isEmpty() ? "/" : parentDir, "..");
+            String parentDirPath = parentPath.replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
+            FileListEntry parentDir = new FileListEntry();
+            parentDir.setDirectory(true);
+            parentDir.setName("..");
+            parentDir.setUrl(parentDirPath.isEmpty() ? "/" : parentDirPath);
+
+            fileList.add(parentDir);
         }
 
-        for (String name : fileNames) {
-            String parentDir = "/".equals(parentPath) ? "" : parentPath + "/";
-            File file = getFile(parentDir + name);
+        String parentDir = "/".equals(parentPath) ? "" : parentPath + "/";
 
-            String href = null;
-            try {
-                String encodedName = URLEncoder.encode(name, DEFAULT_ENCODING);
+        try {
+
+            for (File file : files) {
+                FileListEntry entry = new FileListEntry();
 
                 if (file.isFile()) {
                     String extension = FilenameUtils.getExtension(file.getName());
                     String mimeType = getMimeProperties().getProperty(extension.toLowerCase(), "application/octet-stream");
-                    if (getConfig().httpLiveStreamingSupported(extension, mimeType)) {
-                        href = LiveStreamHandler.HANDLE_PATH + "?file=" + parentDir + encodedName;
-                    } else {
-                        href = parentDir + encodedName;
-                    }
+
+                    entry.setDirectory(false);
+                    entry.setMimeType(mimeType);
+                    entry.setExtension(extension);
                 } else {
-                    href = parentDir + encodedName;
+                    entry.setDirectory(true);
                 }
 
-                hrefs.put(href, name);
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
+                String encodedName = URLEncoder.encode(file.getName(), DEFAULT_ENCODING);
+                entry.setName(file.getName());
+                entry.setUrl(parentDir + encodedName);
+
+                fileList.add(entry);
             }
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
 
-        return hrefs;
+        Collections.sort(fileList, FILE_LIST_COMPARATOR);
+
+        return fileList;
     }
 
-    private InputStream renderDirectory(String path, String[] children, HttpRequestContext httpRequestContext) throws IOException {
-        setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
-        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", new VelocityModel("map", getHrefs(children, path)));
+    private InputStream renderDirectory(String path, List<File> children, HttpRequestContext httpRequestContext) throws IOException {
+        VelocityModel model = new VelocityModel();
+        model.put("files", getFiles(children, path));
+        model.put("config", getConfig());
+
+        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", model);
+
         setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
+        setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
         return result;
     }
 }

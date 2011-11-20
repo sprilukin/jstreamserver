@@ -195,7 +195,8 @@ public final class Config {
     }
 
     public boolean httpLiveStreamingSupported(String extension, String mimeType) {
-        return mimeType.startsWith("video") && !iosSupportedVideoExtensions.contains(extension) &&
+        return mimeType != null && extension != null &&
+                mimeType.startsWith("video") && !iosSupportedVideoExtensions.contains(extension) &&
                 ffmpegLocation != null && segmenterLocation != null;
     }
 
