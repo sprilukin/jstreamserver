@@ -69,17 +69,21 @@ public final class StaticContentHandler extends BaseHandler {
         setContentType(type, httpRequestContext);
         InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
         if (mimeTypesToCompress.contains(type)) {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            OutputStream os = new GZIPOutputStream(byteArrayOutputStream);
-            IOUtils.copyLarge(resourceAsStream, os);
-            os.flush();
-            os.close();
-
-            resourceAsStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
             setResponseHeader("Content-Encoding", "gzip", httpRequestContext);
+            resourceAsStream = compressInputStream(resourceAsStream);
         }
 
         setResponseSize(resourceAsStream.available(), httpRequestContext);
         return resourceAsStream;
+    }
+
+    private InputStream compressInputStream(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        OutputStream os = new GZIPOutputStream(byteArrayOutputStream);
+        IOUtils.copyLarge(inputStream, os);
+        os.flush();
+        os.close();
+
+        return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     }
 }
