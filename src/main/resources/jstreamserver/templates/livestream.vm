@@ -10,6 +10,6 @@
 </style>
 </head>
 <body>
-<video src="$pathToPlayList" controls autoplay ></video>
+<video src="$sourceUrl" controls autoplay ></video>
 </body>
 </html>

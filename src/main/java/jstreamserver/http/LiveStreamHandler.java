@@ -173,7 +173,7 @@ public final class LiveStreamHandler extends BaseHandler {
             throw new RuntimeException(e);
         }
 
-        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("pathToPlayList", PLAYLIST_FULL_PATH));
+        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("sourceUrl", PLAYLIST_FULL_PATH));
 
         setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
         setResponseSize(result.available(), httpRequestContext);

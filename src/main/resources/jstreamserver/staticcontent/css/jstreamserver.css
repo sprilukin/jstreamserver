@@ -22,6 +22,7 @@
 
 ul.folderContent {
     list-style: none;
+    font-size: large;
 }
 
 .directory {
@@ -31,12 +32,13 @@ ul.folderContent {
 
 .folderContent .icon {
     background-image: url("/static/img/lists_sprite.png");
+    background-repeat: no-repeat;
     display: inline-block;
-    height: 20px;
+    height: 31px;
     margin-right: 3px;
     position: relative;
-    top: 6px;
-    width: 19px;
+    top: 10px;
+    width: 31px;
 }
 
 .directory .icon {
