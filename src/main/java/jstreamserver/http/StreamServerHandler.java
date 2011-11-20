@@ -53,11 +53,16 @@ import java.util.List;
 public final class StreamServerHandler extends BaseHandler {
 
     public static final String HANDLE_PATH = "/";
+    public static final String PARENT_FOLDER_NAME = "[..]";
 
     private static final Comparator<FileListEntry> FILE_LIST_COMPARATOR = new Comparator<FileListEntry>() {
         @Override
         public int compare(FileListEntry o1, FileListEntry o2) {
-            if (o1.getDirectory() && !o2.getDirectory()) {
+            if (PARENT_FOLDER_NAME.equals(o1.getName())) {
+                return -1;
+            } else if (PARENT_FOLDER_NAME.equals(o2.getName())) {
+                return 1;
+            } else if (o1.getDirectory() && !o2.getDirectory()) {
                 return -1;
             } else if (o2.getDirectory() && !o1.getDirectory()) {
                 return 1;
@@ -119,7 +124,7 @@ public final class StreamServerHandler extends BaseHandler {
             String parentDirPath = parentPath.replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
             FileListEntry parentDir = new FileListEntry();
             parentDir.setDirectory(true);
-            parentDir.setName("..");
+            parentDir.setName(PARENT_FOLDER_NAME);
             parentDir.setUrl(parentDirPath.isEmpty() ? "/" : parentDirPath);
 
             fileList.add(parentDir);

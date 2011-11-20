@@ -26,6 +26,7 @@ ul.folderContent {
 
 .directory {
     font-weight: bold;
+    text-transform: uppercase;
 }
 
 .folderContent .icon {
