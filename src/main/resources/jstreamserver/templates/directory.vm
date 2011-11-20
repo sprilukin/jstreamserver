@@ -1,30 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-<link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" media="screen" />
-<script src="/static/script/jquery-1.7.js" type="text/javascript"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" media="screen"/>
+    <link href="/static/css/jstreamserver.css" rel="stylesheet" type="text/css" media="screen"/>
+    <script src="/static/script/jquery-1.7.js" type="text/javascript"></script>
 </head>
 <body>
 <div class="container">
-    <ul>
-    #foreach ($file in  $files)
-        #if($config.httpLiveStreamingSupported($file.extension, $file.mimeType))
-            #set($url = "/livestream?file=$file.url")
-        #else
-            #set($url = "$file.url")
-        #end
+    <ul class="folderContent">
+        #foreach ($file in  $files)
+            #if($config.httpLiveStreamingSupported($file.extension, $file.mimeType))
+                #set($url = "/livestream?file=$file.url")
+            #else
+                #set($url = "$file.url")
+            #end
+            #if($file.directory)
+                #set($cssClass = "directory")
+            #else
+                #set($cssClass = "file")
+            #end
 
-        #if($file.directory)
-            #set($cssClass = "directory")
-        #else
-            #set($cssClass = "file")
+            <li>
+                <div class="$cssClass">
+                    <span class="icon"></span>
+                    <a href="$url" title="$file.name">$file.name</a>
+                </div>
+            </li>
         #end
-
-        <li><div class="$cssClass">
-            <a href="$url">$file.name</a>
-        </div></li>
-    #end
     </ul>
 </div>
 </body>
