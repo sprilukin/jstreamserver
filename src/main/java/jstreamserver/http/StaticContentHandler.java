@@ -25,9 +25,16 @@ package jstreamserver.http;
 import anhttpserver.HttpRequestContext;
 import jstreamserver.utils.Config;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * This handler serves static content like CSS, JavaScript and images
@@ -37,6 +44,12 @@ import java.io.InputStream;
 public final class StaticContentHandler extends BaseHandler {
     public static final String HANDLE_PATH = "/static";
     public static String RESOURCES_PATH_PREFIX = "jstreamserver/staticcontent";
+
+    public static final List<String> mimeTypesToCompress = new ArrayList<String>();
+    static {
+        mimeTypesToCompress.add("text/css");
+        mimeTypesToCompress.add("application/x-javascript");
+    }
 
     public StaticContentHandler() {
         super();
@@ -55,6 +68,17 @@ public final class StaticContentHandler extends BaseHandler {
 
         setContentType(type, httpRequestContext);
         InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+        if (mimeTypesToCompress.contains(type)) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            OutputStream os = new GZIPOutputStream(byteArrayOutputStream);
+            IOUtils.copyLarge(resourceAsStream, os);
+            os.flush();
+            os.close();
+
+            resourceAsStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+            setResponseHeader("Content-Encoding", "gzip", httpRequestContext);
+        }
+
         setResponseSize(resourceAsStream.available(), httpRequestContext);
         return resourceAsStream;
     }
