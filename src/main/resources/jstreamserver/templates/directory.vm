@@ -2,7 +2,6 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" media="screen"/>
     <link href="/static/css/jstreamserver.css" rel="stylesheet" type="text/css" media="screen"/>
     <script src="/static/script/jquery-1.7.js" type="text/javascript"></script>
 </head>
@@ -13,7 +12,7 @@
             #if($config.httpLiveStreamingSupported($file.extension, $file.mimeType))
                 #set($url = "/livestream?file=$file.url")
             #else
-                #set($url = "$file.url")
+                #set($url = "/?path=$file.url")
             #end
             #if($file.directory)
                 #set($cssClass = "directory")

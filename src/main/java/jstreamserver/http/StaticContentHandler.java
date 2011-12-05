@@ -24,6 +24,7 @@ package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
 import jstreamserver.utils.Config;
+import jstreamserver.utils.HttpUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -55,10 +56,6 @@ public final class StaticContentHandler extends BaseHandler {
         super();
     }
 
-    public StaticContentHandler(Config config) {
-        super(config);
-    }
-
     @Override
     public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
         String path = RESOURCES_PATH_PREFIX + httpRequestContext.getRequestURI().getPath().substring(HANDLE_PATH.length());
@@ -68,8 +65,12 @@ public final class StaticContentHandler extends BaseHandler {
 
         setContentType(type, httpRequestContext);
         InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+        if (resourceAsStream == null) {
+            return rendeResourceNotFound(httpRequestContext.getRequestURI().getPath(), httpRequestContext);
+        }
+
         if (mimeTypesToCompress.contains(type)) {
-            setResponseHeader("Content-Encoding", "gzip", httpRequestContext);
+            setResponseHeader(HttpUtils.CONTENT_ENCODING_HEADER, HttpUtils.GZIP_ENCODING, httpRequestContext);
             resourceAsStream = compressInputStream(resourceAsStream);
         }
 

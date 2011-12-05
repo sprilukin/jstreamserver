@@ -25,6 +25,7 @@ package jstreamserver.http;
 import anhttpserver.HttpRequestContext;
 import jstreamserver.dto.FileListEntry;
 import jstreamserver.utils.Config;
+import jstreamserver.utils.HttpUtils;
 import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
 import org.apache.commons.io.FilenameUtils;
@@ -52,7 +53,9 @@ import java.util.List;
  */
 public final class StreamServerHandler extends BaseHandler {
 
-    public static final String HANDLE_PATH = "/";
+    public static final String PATH_PARAM = "path";
+    public static final String DIRECTORY_SEPARATOR = "/";
+    public static final String ROOT_DIRECTORY = DIRECTORY_SEPARATOR;
     public static final String PARENT_FOLDER_NAME = "[..]";
 
     private static final Comparator<FileListEntry> FILE_LIST_COMPARATOR = new Comparator<FileListEntry>() {
@@ -76,15 +79,12 @@ public final class StreamServerHandler extends BaseHandler {
         super();
     }
 
-    public StreamServerHandler(Config config) {
-        super(config);
-    }
-
     public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
-        String path = URLDecoder.decode(httpRequestContext.getRequestURI().getPath(), DEFAULT_ENCODING);
-
-        if ("/".equals(path)) {
-            return renderDirectory(path, getFilesFromNamesList(getConfig().getRootDirs().keySet()), httpRequestContext);
+        String path = HttpUtils.getURLParams(httpRequestContext.getRequestURI().getRawQuery()).get(PATH_PARAM);
+        if (path == null || ROOT_DIRECTORY.equals(path)) {
+            return renderDirectory(ROOT_DIRECTORY, getFilesFromNamesList(getConfig().getRootDirs().values()), httpRequestContext);
+        } else {
+            path = URLDecoder.decode(path, HttpUtils.DEFAULT_ENCODING);
         }
 
         File file = getFile(path);
@@ -118,21 +118,23 @@ public final class StreamServerHandler extends BaseHandler {
     }
 
     private List<FileListEntry> getFiles(List<File> files, String parentPath) {
+
         List<FileListEntry> fileList = new ArrayList<FileListEntry>();
 
-        if (!"/".equals(parentPath)) {
-            String parentDirPath = parentPath.replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
-            FileListEntry parentDir = new FileListEntry();
-            parentDir.setDirectory(true);
-            parentDir.setName(PARENT_FOLDER_NAME);
-            parentDir.setUrl(parentDirPath.isEmpty() ? "/" : parentDirPath);
-
-            fileList.add(parentDir);
-        }
-
-        String parentDir = "/".equals(parentPath) ? "" : parentPath + "/";
-
         try {
+
+            if (!ROOT_DIRECTORY.equals(parentPath)) {
+                String parentDirPath = parentPath.replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
+                FileListEntry parentDir = new FileListEntry();
+                parentDir.setDirectory(true);
+                parentDir.setName(PARENT_FOLDER_NAME);
+                parentDir.setUrl(URLEncoder.encode(parentDirPath.isEmpty() ? ROOT_DIRECTORY : parentDirPath, HttpUtils.DEFAULT_ENCODING));
+
+                fileList.add(parentDir);
+            }
+
+            String parentDir = ROOT_DIRECTORY.equals(parentPath) ? ROOT_DIRECTORY : parentPath + DIRECTORY_SEPARATOR;
+
 
             for (File file : files) {
                 FileListEntry entry = new FileListEntry();
@@ -148,9 +150,13 @@ public final class StreamServerHandler extends BaseHandler {
                     entry.setDirectory(true);
                 }
 
-                String encodedName = URLEncoder.encode(file.getName(), DEFAULT_ENCODING);
-                entry.setName(file.getName());
-                entry.setUrl(parentDir + encodedName);
+                String name = file.getName();
+                if (name.isEmpty()) {
+                    name = file.getPath().replaceAll("[\\/\\\\\\:]", "");
+                }
+
+                entry.setName(name);
+                entry.setUrl(URLEncoder.encode(parentDir + name, HttpUtils.DEFAULT_ENCODING));
 
                 fileList.add(entry);
             }
@@ -172,7 +178,7 @@ public final class StreamServerHandler extends BaseHandler {
 
         setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-        setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
+        setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
         return result;
     }
 }

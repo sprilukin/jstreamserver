@@ -25,6 +25,7 @@ package jstreamserver;
 
 import anhttpserver.DefaultSimpleHttpServer;
 import anhttpserver.SimpleHttpServer;
+import jstreamserver.http.DispatcherHandler;
 import jstreamserver.http.LiveStreamHandler;
 import jstreamserver.http.StaticContentHandler;
 import jstreamserver.http.StreamServerHandler;
@@ -37,8 +38,10 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
 
 /**
@@ -172,18 +175,21 @@ public final class Runner {
         options.addOption(locations);
     }
 
-    private void start(Config config) {
+    private void start(Config config) throws IOException {
         System.out.print(config.toString());
+
+        Properties mapping = new Properties();
+        mapping.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(DispatcherHandler.MAPPING));
+
+        DispatcherHandler dispatcherHandler = new DispatcherHandler();
+        dispatcherHandler.setConfig(config);
+        dispatcherHandler.setMapping(mapping);
 
         SimpleHttpServer server = new DefaultSimpleHttpServer();
         server.setMaxThreads(config.getMaxThreads());
         server.setHost(config.getHost());
         server.setPort(config.getPort());
-
-        server.addHandler(StreamServerHandler.HANDLE_PATH, new StreamServerHandler(config));
-        server.addHandler(LiveStreamHandler.HANDLE_PATH, new LiveStreamHandler(config));
-        server.addHandler(StaticContentHandler.HANDLE_PATH, new StaticContentHandler(config));
-
+        server.addHandler("/", dispatcherHandler);
         server.start();
     }
 

@@ -50,7 +50,7 @@ public final class Config {
     private int segmentWindowSize = 2 * 60 * 60 / segmentDurationInSec;
     private int segmenterSearchKillFile = 1;
     private int destroySegmenterDelay = 1000;
-    private int startSegmenterDelay = 1000;
+    private int startSegmenterDelay = 2000;
     private int segmenterMaxtimeout = Math.max(segmentDurationInSec * 100 * 3, 30000); //3 times of segment duration. should be enough
 
 

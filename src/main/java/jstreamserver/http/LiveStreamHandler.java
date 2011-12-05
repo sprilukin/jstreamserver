@@ -24,6 +24,7 @@ package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
 import jstreamserver.utils.Config;
+import jstreamserver.utils.HttpUtils;
 import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
@@ -73,10 +74,6 @@ public final class LiveStreamHandler extends BaseHandler {
         super();
     }
 
-    public LiveStreamHandler(Config config) {
-        super(config);
-    }
-
     @Override
     public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
 
@@ -84,10 +81,10 @@ public final class LiveStreamHandler extends BaseHandler {
             File playlist = new File(LIVE_STREAM_FILE_PATH + "." + PLAYLIST_EXTENSION);
             return getResource(playlist, httpRequestContext);
         } else if (HANDLE_PATH.equals(httpRequestContext.getRequestURI().getPath())) {
-            Map<String, String> params = getURLParams(httpRequestContext.getRequestURI().getRawQuery());
+            Map<String, String> params = HttpUtils.getURLParams(httpRequestContext.getRequestURI().getRawQuery());
 
             String fileString = params.get("file");
-            File file = getFile(URLDecoder.decode(fileString, DEFAULT_ENCODING));
+            File file = getFile(URLDecoder.decode(fileString, HttpUtils.DEFAULT_ENCODING));
             if (!file.exists() || !file.isFile() || file.isHidden()) {
                 return rendeResourceNotFound(fileString, httpRequestContext);
             } else {
@@ -104,21 +101,6 @@ public final class LiveStreamHandler extends BaseHandler {
                 return rendeResourceNotFound(path, httpRequestContext);
             }
         }
-    }
-
-    private Map<String, String> getURLParams(String query) {
-        if (query == null || query.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Map<String, String> params = new HashMap<String, String>();
-        String[] paramsArray = query.split("\\&");
-        for (String parameter: paramsArray) {
-            String[] paramValue = parameter.split("=");
-            params.put(paramValue[0], paramValue[1]);
-        }
-
-        return params;
     }
 
     private void cleanResources() {
@@ -175,7 +157,7 @@ public final class LiveStreamHandler extends BaseHandler {
 
         InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("sourceUrl", PLAYLIST_FULL_PATH));
 
-        setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
+        setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
         setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
         return result;

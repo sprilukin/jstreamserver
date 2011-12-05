@@ -25,6 +25,7 @@ package jstreamserver.http;
 import anhttpserver.HttpRequestContext;
 import anhttpserver.SimpleHttpHandlerAdapter;
 import jstreamserver.utils.Config;
+import jstreamserver.utils.HttpUtils;
 import jstreamserver.utils.RandomAccessFileInputStream;
 import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
@@ -49,12 +50,9 @@ import java.util.TimeZone;
  *
  * @author Sergey Prilukin
  */
-public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
-
-    public static final String DEFAULT_ENCODING = "UTF-8";
+public abstract class BaseHandler extends ConfigAwareHttpHandler {
 
     public static final String DEFAULT_MIME_PROPERTIES = "mime.properties";
-    public static final String DEFAULT_HTML_CONTENT_TYPE = "text/html; charset=" + DEFAULT_ENCODING;
 
     public static final DateFormat HTML_EXPIRES_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
     static {
@@ -62,36 +60,28 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
     }
 
 
-    private static Config config;
-    private static Properties mimeProperties = new Properties();
+    private static Properties mimeProperties = null;
 
     public BaseHandler() {
-        synchronized (BaseHandler.class) {
-            config = new Config();
+        //Should be synchronized.
+        //In our case it is true since instances of BaseHandler are created sequentially by DispatcherHandler
+        if (BaseHandler.mimeProperties == null) {
             loadMimeProperties();
         }
     }
 
-    public BaseHandler(Config config) {
-        synchronized (BaseHandler.class) {
-            if (BaseHandler.config == null) {
-                BaseHandler.config = config;
-                loadMimeProperties();
-            }
-        }
-    }
-
-    private void loadMimeProperties() {
+    public void loadMimeProperties() {
         try {
             InputStream is = null;
 
-            String mimePropsPath = config.getMimeProperties();
-            if (mimePropsPath != null) {
-                is = new FileInputStream(mimePropsPath);
+            File mimePropertiesFile = new File(DEFAULT_MIME_PROPERTIES);
+            if (mimePropertiesFile.exists() && mimePropertiesFile.isFile()) {
+                is = new FileInputStream(mimePropertiesFile);
             } else {
                 is = Thread.currentThread().getContextClassLoader().getResourceAsStream(DEFAULT_MIME_PROPERTIES);
             }
 
+            mimeProperties = new Properties();
             Properties properties = new Properties();
             properties.load(is);
             is.close();
@@ -108,16 +98,12 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
         }
     }
 
-    protected Config getConfig() {
-        return BaseHandler.config;
-    }
-
     protected Properties getMimeProperties() {
         return mimeProperties;
     }
 
     protected void setContentType(String contentType, HttpRequestContext httpRequestContext) {
-        setResponseHeader("Content-Type", contentType, httpRequestContext);
+        setResponseHeader(HttpUtils.CONTENT_TYPE_HEADER, contentType, httpRequestContext);
     }
 
     protected void setCommonResourceHeaders(HttpRequestContext httpRequestContext, String mimeType) {
@@ -131,7 +117,7 @@ public abstract class BaseHandler extends SimpleHttpHandlerAdapter {
     }
 
     protected InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) throws IOException {
-        setContentType(DEFAULT_HTML_CONTENT_TYPE, httpRequestContext);
+        setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
         InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/notfound.vm", new VelocityModel("path", path));
         setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
