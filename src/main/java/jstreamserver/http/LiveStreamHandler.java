@@ -32,7 +32,10 @@ import jstreamserver.utils.ffmpeg.FrameMessage;
 import jstreamserver.utils.ffmpeg.ProgressListener;
 import org.apache.commons.io.FilenameUtils;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +43,7 @@ import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
@@ -78,8 +82,7 @@ public final class LiveStreamHandler extends BaseHandler {
     public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
 
         if (PLAYLIST_FULL_PATH.equals(httpRequestContext.getRequestURI().getPath())) {
-            File playlist = new File(LIVE_STREAM_FILE_PATH + "." + PLAYLIST_EXTENSION);
-            return getResource(playlist, httpRequestContext);
+            return getPlayList(LIVE_STREAM_FILE_PATH + "." + PLAYLIST_EXTENSION, httpRequestContext);
         } else if (HANDLE_PATH.equals(httpRequestContext.getRequestURI().getPath())) {
             Map<String, String> params = HttpUtils.getURLParams(httpRequestContext.getRequestURI().getRawQuery());
 
@@ -101,6 +104,53 @@ public final class LiveStreamHandler extends BaseHandler {
                 return rendeResourceNotFound(path, httpRequestContext);
             }
         }
+    }
+
+
+    /*
+     * Playlist file is written at the same time by another thread (by segmenter namely)
+     * and thus this thread can read non-completed version of the file.
+     * In this method we ensure that last line of playlist matches one of the possible formats
+     */
+    private InputStream getPlayList(String playlist, HttpRequestContext httpRequestContext) throws IOException {
+
+        boolean fileIsOk = false;
+        StringBuilder sb = null;
+
+        while (!fileIsOk) {
+            BufferedReader reader = new BufferedReader(new FileReader(playlist));
+            sb = new StringBuilder();
+
+            String line = "";
+
+            while (true) {
+                String temp = reader.readLine();
+
+                if (temp != null) {
+                    line = temp;
+                    sb.append(line).append("\n");
+                } else {
+                    fileIsOk = line.matches("^(.*\\.ts|#.*)$");
+                    break;
+                }
+            }
+        }
+
+        String extension = FilenameUtils.getExtension(new File(playlist).getName());
+        String mimeType = getMimeProperties().getProperty(extension.toLowerCase());
+
+        setContentType(mimeType != null ? mimeType : "application/octet-stream", httpRequestContext);
+        setResponseHeader("Expires", HTML_EXPIRES_DATE_FORMAT.format(new Date(0)), httpRequestContext);
+        setResponseHeader("Pragma", "no-cache", httpRequestContext);
+        setResponseHeader("Cache-Control", "no-store,private,no-cache", httpRequestContext);
+        setResponseHeader("Connection", "keep-alive", httpRequestContext);
+        setResponseHeader("Content-Disposition", "attachment", httpRequestContext);
+        setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
+
+        byte[] bytes = sb.toString().getBytes();
+        setResponseSize(bytes.length, httpRequestContext);
+
+        return new ByteArrayInputStream(bytes);
     }
 
     private void cleanResources() {

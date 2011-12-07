@@ -35,7 +35,7 @@ import java.util.TreeMap;
  */
 public final class Config {
     public static final String SEGMENTER_PARAMS_FORMAT = "- {0} %s %s / {1} {2}";
-    public static final String FFMPEG_PARAMS_FORMAT = "-i %s {0} -";
+    public static final String FFMPEG_PARAMS_FORMAT = "-i \"%s\" {0} -";
 
     private int port = 8888;
     private String host = "0.0.0.0";
@@ -50,7 +50,7 @@ public final class Config {
     private int segmentWindowSize = 2 * 60 * 60 / segmentDurationInSec;
     private int segmenterSearchKillFile = 1;
     private int destroySegmenterDelay = 1000;
-    private int startSegmenterDelay = 2000;
+    private int startSegmenterDelay = 5000;
     private int segmenterMaxtimeout = Math.max(segmentDurationInSec * 100 * 3, 30000); //3 times of segment duration. should be enough
 
 
