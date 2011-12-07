@@ -30,7 +30,7 @@
 
     #* HTML templates *#
     <script id="dirListTmpl" type="text/x-jquery-tmpl">
-        <li>
+        <li id="${id}">
             {{if directory == true}}
             <div class="directory">
             {{else}}
@@ -40,6 +40,7 @@
                 <span class="icon"></span>
                 {{if liveStreamSupported == true}}
                 <a href="/livestream?file=${url}" title="${name}">${name}</a>
+                <span class="ajax-loader hidden"></span>
                 {{else}}
                 <a href="/?path=${url}" title="${name}">${name}</a>
                 {{/if}}
@@ -50,6 +51,9 @@
         <span class="breadcrumb-item">
             <a href="/?path=${url}"><span class="slash">/</span>${name}</a>
         </span>
+    </script>
+    <script id="livestreamTmpl" type="text/x-jquery-tmpl">
+        <video class="${cssClass}" src="${url}" controls="controls" autoplay="autoplay"></video>
     </script>
 </head>
 <body>

@@ -31,6 +31,8 @@ import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
 import jstreamserver.utils.ffmpeg.ProgressListener;
 import org.apache.commons.io.FilenameUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -205,10 +207,20 @@ public final class LiveStreamHandler extends BaseHandler {
             throw new RuntimeException(e);
         }
 
-        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("sourceUrl", PLAYLIST_FULL_PATH));
+        //InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("sourceUrl", PLAYLIST_FULL_PATH));
+        byte[] result = null;
+        try {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("url", PLAYLIST_FULL_PATH);
+            jsonObject.put("cssClass", "livestream");
 
-        setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-        return renderCompressedView(result, httpRequestContext);
+            result = jsonObject.toString().getBytes();
+            setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
+            setContentType("text/x-json", httpRequestContext);
+            return renderCompressedView(new ByteArrayInputStream(result), httpRequestContext);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void updateSegmenterKiller() {

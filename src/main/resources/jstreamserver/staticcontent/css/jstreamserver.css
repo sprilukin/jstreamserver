@@ -58,3 +58,14 @@ ul.folderContent {
     color: black;
 }
 
+.ajax-loader {
+    background-image: url("/static/img/ajax-loader.gif");
+    background-repeat: no-repeat;
+    display: inline-block;
+    height: 19px;
+    width: 220px;
+}
+
+.hidden {
+    display: none;
+}

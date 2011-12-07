@@ -26,7 +26,6 @@ import anhttpserver.HttpRequestContext;
 import jstreamserver.dto.BreadCrumb;
 import jstreamserver.dto.FileListEntry;
 import jstreamserver.dto.Folder;
-import jstreamserver.utils.Config;
 import jstreamserver.utils.HttpUtils;
 import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
@@ -174,6 +173,11 @@ public final class StreamServerHandler extends BaseHandler {
         }
 
         Collections.sort(fileList, FILE_LIST_COMPARATOR);
+
+        Integer index = 0;
+        for (FileListEntry file: fileList) {
+            file.setId("fileList" + index++);
+        }
 
         return fileList;
     }

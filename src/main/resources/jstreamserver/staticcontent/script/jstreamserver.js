@@ -21,6 +21,7 @@
  */
 define([],
  function() {
+     var internalData = null;
 
      var findMeOrUp = function(elem, selector) {
          return $(elem).is(selector) ? elem : $(elem).parents(selector)[0];
@@ -31,14 +32,23 @@ define([],
          $('div.breadcrumb').bind("click", listeners.breadcrumbClick);
      };
 
-     var renderData = function(data) {
-         $('#directoryList').html($('#dirListTmpl').tmpl(data.files));
-         $('#breadcrumb').html($('#breadcumbTmpl').tmpl(data.breadcrumbs));
+     var renderData = function() {
+         $('#directoryList').html($('#dirListTmpl').tmpl(internalData.files));
+         $('#breadcrumb').html($('#breadcumbTmpl').tmpl(internalData.breadcrumbs));
+     };
+
+     var renderLivestream = function(data, id) {
+         $('ul.folderContent').find("video.livestream").remove();
+         $('#' + id).append($('#livestreamTmpl').tmpl(data));
      };
 
      var listeners = {
          dirlistClick: function(event) {
              event.stopPropagation();
+
+             if (!$(event.target).is("a")) {
+                 return;
+             }
 
              var li = $(findMeOrUp(event.target, "li"));
              if (li.find("div.directory").length > 0) {
@@ -47,12 +57,34 @@ define([],
                  $.ajax(url, {
                      dataType: "json",
                      success: function(data) {
-                         renderData(data);
+                         internalData = data;
+                         renderData();
                      }
                  });
 
                  return false;
              } else {
+                 var index = parseInt(li[0].id.substr(8));
+                 var dataElement = internalData.files[index];
+                 if (dataElement.liveStreamSupported) {
+                     var anchor = li.find("a")[0];
+                     url = anchor.href;
+
+                     $(anchor).hide();
+                     li.find(".ajax-loader").removeClass("hidden");
+
+                     $.ajax(url, {
+                         dataType: "json",
+                         success: function(data) {
+                             renderLivestream(data, li[0].id);
+                             $(anchor).show();
+                             li.find(".ajax-loader").addClass("hidden");
+                         }
+                     });
+
+                     return false;
+                 }
+
                  return true;
              }
          },
@@ -66,7 +98,8 @@ define([],
              $.ajax(url, {
                  dataType: "json",
                  success: function(data) {
-                     renderData(data);
+                     internalData = data;
+                     renderData();
                  }
              });
 
@@ -76,8 +109,9 @@ define([],
 
   return {
       init: function(data) {
+          internalData = data;
           attachListeners();
-          renderData(data);
+          renderData();
       }
   };
 });
