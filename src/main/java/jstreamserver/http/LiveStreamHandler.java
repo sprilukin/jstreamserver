@@ -157,10 +157,8 @@ public final class LiveStreamHandler extends BaseHandler {
 
         InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("sourceUrl", PLAYLIST_FULL_PATH));
 
-        setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
-        setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-        return result;
+        return renderCompressedView(result, httpRequestContext);
     }
 
     private void updateSegmenterKiller() {

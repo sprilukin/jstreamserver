@@ -29,7 +29,9 @@ import jstreamserver.utils.HttpUtils;
 import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
 import org.apache.commons.io.FilenameUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -58,6 +60,8 @@ public final class StreamServerHandler extends BaseHandler {
     public static final String ROOT_DIRECTORY = DIRECTORY_SEPARATOR;
     public static final String PARENT_FOLDER_NAME = "[..]";
 
+    private ObjectMapper jsonMapper = new ObjectMapper();
+
     private static final Comparator<FileListEntry> FILE_LIST_COMPARATOR = new Comparator<FileListEntry>() {
         @Override
         public int compare(FileListEntry o1, FileListEntry o2) {
@@ -81,10 +85,12 @@ public final class StreamServerHandler extends BaseHandler {
 
     public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
         String path = HttpUtils.getURLParams(httpRequestContext.getRequestURI().getRawQuery()).get(PATH_PARAM);
+        if (path != null) {
+            path = URLDecoder.decode(path, HttpUtils.DEFAULT_ENCODING);
+        }
+
         if (path == null || ROOT_DIRECTORY.equals(path)) {
             return renderDirectory(ROOT_DIRECTORY, getFilesFromNamesList(getConfig().getRootDirs().values()), httpRequestContext);
-        } else {
-            path = URLDecoder.decode(path, HttpUtils.DEFAULT_ENCODING);
         }
 
         File file = getFile(path);
@@ -146,6 +152,7 @@ public final class StreamServerHandler extends BaseHandler {
                     entry.setDirectory(false);
                     entry.setMimeType(mimeType);
                     entry.setExtension(extension);
+                    entry.setLiveStreamSupported(getConfig().httpLiveStreamingSupported(extension, mimeType));
                 } else {
                     entry.setDirectory(true);
                 }
@@ -170,15 +177,26 @@ public final class StreamServerHandler extends BaseHandler {
     }
 
     private InputStream renderDirectory(String path, List<File> children, HttpRequestContext httpRequestContext) throws IOException {
-        VelocityModel model = new VelocityModel();
-        model.put("files", getFiles(children, path));
-        model.put("config", getConfig());
+        List<FileListEntry> files = getFiles(children, path);
 
-        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", model);
+        InputStream result = null;
 
+        if (isAjaxRequest(httpRequestContext)) {
+            byte[] filesJson = jsonMapper.writeValueAsBytes(files);
+            result = new ByteArrayInputStream(filesJson);
+            setContentType("text/x-json", httpRequestContext);
+        } else {
+            VelocityModel model = new VelocityModel("files", jsonMapper.writeValueAsString(files));
+            result = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", model);
+            setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
+        }
+
+        result = compressInputStream(result);
+
+        setResponseHeader(HttpUtils.CONTENT_ENCODING_HEADER, HttpUtils.GZIP_ENCODING, httpRequestContext);
         setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
-        setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
+
         return result;
     }
 }

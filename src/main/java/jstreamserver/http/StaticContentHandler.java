@@ -77,14 +77,4 @@ public final class StaticContentHandler extends BaseHandler {
         setResponseSize(resourceAsStream.available(), httpRequestContext);
         return resourceAsStream;
     }
-
-    private InputStream compressInputStream(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        OutputStream os = new GZIPOutputStream(byteArrayOutputStream);
-        IOUtils.copyLarge(inputStream, os);
-        os.flush();
-        os.close();
-
-        return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-    }
 }

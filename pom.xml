@@ -95,9 +95,14 @@
             <version>1.7</version>
         </dependency>
         <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-lgpl</artifactId>
+            <version>1.9.2</version>
+        </dependency>
+        <dependency>
             <groupId>anhttpserver</groupId>
             <artifactId>anhttpserver</artifactId>
-            <version>0.2.4</version>
+            <version>0.2.5</version>
         </dependency>
     </dependencies>
 

@@ -3,30 +3,56 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link href="/static/css/jstreamserver.css" rel="stylesheet" type="text/css" media="screen"/>
-    <script src="/static/script/jquery-1.7.js" type="text/javascript"></script>
+
+    <script>
+        curl = {
+            baseUrl: '/static',
+            paths: {
+                jstreamserver: 'script/jstreamserver'
+                //"jquery": "script/jquery-1.7.1",
+                //"tmpl": "script/jquery.tmpl"
+            }
+        };
+    </script>
+    <script src="/static/script/curl.js" type="text/javascript"></script>
+    <script src="/static/script/jquery-1.7.1.js" type="text/javascript"></script>
+    <script src="/static/script/jquery.tmpl.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        curl(["jstreamserver", "domReady!"]).then(
+                function (jstreamserver) {
+                    jstreamserver.init($files);
+                },
+                function (ex) {
+                    alert(ex);
+                }
+        )
+    </script>
+
+    #* HTML templates *#
+    <script id="dirListTmpl" type="text/x-jquery-tmpl">
+        <li>
+            {{if directory == true}}
+            <div class="directory">
+            {{else}}
+            <div class="file">
+            {{/if}}
+
+                <span class="icon"></span>
+                {{if liveStreamSupported == true}}
+                <a href="/livestream?file=${url}" title="${name}">${name}</a>
+                {{else}}
+                <a href="/?path=${url}" title="${name}">${name}</a>
+                {{/if}}
+            </div>
+        </li>
+    </script>
 </head>
 <body>
-<div class="container">
-    <ul class="folderContent">
-        #foreach ($file in  $files)
-            #if($config.httpLiveStreamingSupported($file.extension, $file.mimeType))
-                #set($url = "/livestream?file=$file.url")
-            #else
-                #set($url = "/?path=$file.url")
-            #end
-            #if($file.directory)
-                #set($cssClass = "directory")
-            #else
-                #set($cssClass = "file")
-            #end
 
-            <li>
-                <div class="$cssClass">
-                    <span class="icon"></span>
-                    <a href="$url" title="$file.name">$file.name</a>
-                </div>
-            </li>
-        #end
+#* Main content *#
+
+<div class="container">
+    <ul id="directoryList" class="folderContent">
     </ul>
 </div>
 </body>

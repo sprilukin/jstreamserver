@@ -30,20 +30,26 @@ import jstreamserver.utils.RandomAccessFileInputStream;
 import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Base handler which holds common methods for other handlers
@@ -117,11 +123,32 @@ public abstract class BaseHandler extends ConfigAwareHttpHandler {
     }
 
     protected InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) throws IOException {
-        setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
         InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/notfound.vm", new VelocityModel("path", path));
-        setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
-        return result;
+        return renderCompressedView(result, httpRequestContext);
+    }
+
+    protected InputStream renderCompressedView(InputStream view, HttpRequestContext httpRequestContext) throws IOException {
+        setResponseHeader(HttpUtils.CONTENT_ENCODING_HEADER, HttpUtils.GZIP_ENCODING, httpRequestContext);
+        InputStream compressedView = compressInputStream(view);
+        setResponseSize(compressedView.available(), httpRequestContext);
+        setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
+        return compressedView;
+    }
+
+    protected boolean isAjaxRequest(HttpRequestContext httpRequestContext) throws IOException {
+        List<String> ajaxHeader = httpRequestContext.getRequestHeaders().get("X-Requested-With");
+        return ajaxHeader != null && ajaxHeader.size() > 0 && "XMLHttpRequest".equals(ajaxHeader.get(0));
+    }
+
+    protected InputStream compressInputStream(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        OutputStream os = new GZIPOutputStream(byteArrayOutputStream);
+        IOUtils.copyLarge(inputStream, os);
+        os.flush();
+        os.close();
+
+        return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     }
 
     protected InputStream getResource(File file, HttpRequestContext httpRequestContext) throws IOException {
