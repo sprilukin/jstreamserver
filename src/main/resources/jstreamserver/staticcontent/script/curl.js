@@ -1,25 +1,3 @@
-/*
- * Copyright (c) 2011 Sergey Prilukin
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 var r=!0,w=null,B=!1;
 (function(s,h,p){var l,g;function q(a,b){return 0==V.call(a).indexOf("[object "+b)}function E(a){function b(b){if(b in a)return b="."!=a[b].charAt(0)?(!a.path||x(a.path)?a.path:a.path+"/")+a[b]:F(a[b],a.path),k(b)}q(a,"String")&&(a=k(a),a={name:a,path:a,main:l,lib:g});a.path=a.path||"";a.h=b("lib");a.i=b("main");return a}function n(a){var b,f,e,j=[];G=a.baseUrl||"";if(a.debug)K=r,z.cache=t,z.cfg=a,z.undefine=function(a){delete t[a]};var i=a.paths;for(b in i)f=k(b.replace("!","!/")),e=H[f]={path:k(i[b])},
 e.f=(e.path.match(N)||[]).length,j.push(f);i=a.packages;for(b in i)f=k(i[b].name||b),e=H[f]=E(i[b]),e.f=(e.path.match(N)||[]).length,j.push(f);O=RegExp("^("+j.sort(function(a,b){return H[a].f<H[b].f}).join("|").replace(/\//g,"\\/")+")(?=\\/|$)");C=a.pluginPath||C}function A(){}function v(a){function b(a,b){return W(a,b||A,j)}function f(a){return m(o(F(a,e)),G)}var e=a.substr(0,a.lastIndexOf("/")),j={baseName:e},i={};j.d={exports:i,module:{id:F(a,e),uri:f(a),exports:i}};K&&(b.curl=z);j.e=j.d.require=
