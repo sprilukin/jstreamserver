@@ -20,41 +20,35 @@
  * SOFTWARE.
  */
 
-ul.folderContent {
-    list-style: none;
-    font-size: large;
-}
+package jstreamserver.dto;
 
-.directory {
-    font-weight: bold;
-    text-transform: uppercase;
-}
+/**
+ * DTO object which represents breadrumb entry
+ * 
+ * @author Sergey Prilukin
+ */
+public class BreadCrumb {
+    private String name;
+    private String url;
 
-.folderContent .icon {
-    background-image: url("/static/img/lists_sprite.png");
-    background-repeat: no-repeat;
-    display: inline-block;
-    height: 31px;
-    margin-right: 3px;
-    position: relative;
-    top: 10px;
-    width: 31px;
-}
+    public BreadCrumb(String name, String url) {
+        this.name = name;
+        this.url = url;
+    }
 
-.directory .icon {
-    background-position: 0 0px;
-}
+    public String getName() {
+        return name;
+    }
 
-.file .icon {
-    background-position: 0 -32px;
-}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-.breadcrumb-item {
-    font-size: large;
-}
+    public String getUrl() {
+        return url;
+    }
 
-.breadcrumb-item .slash {
-    text-decoration: none;
-    color: black;
+    public void setUrl(String url) {
+        this.url = url;
+    }
 }
-

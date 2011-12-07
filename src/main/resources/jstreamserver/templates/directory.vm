@@ -20,7 +20,7 @@
     <script type="text/javascript">
         curl(["jstreamserver", "domReady!"]).then(
                 function (jstreamserver) {
-                    jstreamserver.init($files);
+                    jstreamserver.init($folder);
                 },
                 function (ex) {
                     alert(ex);
@@ -46,12 +46,18 @@
             </div>
         </li>
     </script>
+    <script id="breadcumbTmpl" type="text/x-jquery-tmpl">
+        <span class="breadcrumb-item">
+            <a href="/?path=${url}"><span class="slash">/</span>${name}</a>
+        </span>
+    </script>
 </head>
 <body>
 
 #* Main content *#
 
 <div class="container">
+    <div id="breadcrumb" class="breadcrumb"></div>
     <ul id="directoryList" class="folderContent">
     </ul>
 </div>

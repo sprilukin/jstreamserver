@@ -27,15 +27,17 @@ define([],
      };
 
      var attachListeners = function() {
-         $('ul.folderContent').bind("click", listeners.click);
+         $('ul.folderContent').bind("click", listeners.dirlistClick);
+         $('div.breadcrumb').bind("click", listeners.breadcrumbClick);
      };
 
      var renderData = function(data) {
-         $('#directoryList').html($('#dirListTmpl').tmpl(data));
+         $('#directoryList').html($('#dirListTmpl').tmpl(data.files));
+         $('#breadcrumb').html($('#breadcumbTmpl').tmpl(data.breadcrumbs));
      };
 
      var listeners = {
-         click: function(event) {
+         dirlistClick: function(event) {
              event.stopPropagation();
 
              var li = $(findMeOrUp(event.target, "li"));
@@ -53,6 +55,22 @@ define([],
              } else {
                  return true;
              }
+         },
+
+         breadcrumbClick: function(event) {
+             event.stopPropagation();
+
+             var span = $(findMeOrUp(event.target, "span"));
+             var url = span.find("a")[0].href;
+
+             $.ajax(url, {
+                 dataType: "json",
+                 success: function(data) {
+                     renderData(data);
+                 }
+             });
+
+             return false;
          }
      };
 

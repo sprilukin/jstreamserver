@@ -23,7 +23,9 @@
 package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
+import jstreamserver.dto.BreadCrumb;
 import jstreamserver.dto.FileListEntry;
+import jstreamserver.dto.Folder;
 import jstreamserver.utils.Config;
 import jstreamserver.utils.HttpUtils;
 import jstreamserver.utils.velocity.VelocityModel;
@@ -176,17 +178,36 @@ public final class StreamServerHandler extends BaseHandler {
         return fileList;
     }
 
+    private List<BreadCrumb> generateBreadCrumbs(String path) {
+        StringBuilder sb = new StringBuilder();
+        List<BreadCrumb> breadCrumbs = new ArrayList<BreadCrumb>();
+
+        String[] pathPieces = path.split("\\/");
+        for (String dir: pathPieces) {
+            if (sb.length() > 1 || sb.length() == 0) {
+                sb.append("/");
+            }
+
+            sb.append(dir);
+            breadCrumbs.add(new BreadCrumb(dir, sb.toString()));
+        }
+
+        return breadCrumbs;
+    }
+
     private InputStream renderDirectory(String path, List<File> children, HttpRequestContext httpRequestContext) throws IOException {
         List<FileListEntry> files = getFiles(children, path);
+        List<BreadCrumb> breadCrumbs = generateBreadCrumbs(path);
+        Folder folder = new Folder(files, breadCrumbs);
 
         InputStream result = null;
 
         if (isAjaxRequest(httpRequestContext)) {
-            byte[] filesJson = jsonMapper.writeValueAsBytes(files);
+            byte[] filesJson = jsonMapper.writeValueAsBytes(folder);
             result = new ByteArrayInputStream(filesJson);
             setContentType("text/x-json", httpRequestContext);
         } else {
-            VelocityModel model = new VelocityModel("files", jsonMapper.writeValueAsString(files));
+            VelocityModel model = new VelocityModel("folder", jsonMapper.writeValueAsString(folder));
             result = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", model);
             setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
         }

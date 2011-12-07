@@ -20,41 +20,37 @@
  * SOFTWARE.
  */
 
-ul.folderContent {
-    list-style: none;
-    font-size: large;
-}
+package jstreamserver.dto;
 
-.directory {
-    font-weight: bold;
-    text-transform: uppercase;
-}
+import java.util.List;
 
-.folderContent .icon {
-    background-image: url("/static/img/lists_sprite.png");
-    background-repeat: no-repeat;
-    display: inline-block;
-    height: 31px;
-    margin-right: 3px;
-    position: relative;
-    top: 10px;
-    width: 31px;
-}
+/**
+ * DTO object which represents folder content
+ *
+ * @author Sergey Prilukin
+ */
+public class Folder {
+    private List<FileListEntry> files;
+    private List<BreadCrumb> breadcrumbs;
 
-.directory .icon {
-    background-position: 0 0px;
-}
+    public Folder(List<FileListEntry> files, List<BreadCrumb> breadcrumbs) {
+        this.files = files;
+        this.breadcrumbs = breadcrumbs;
+    }
 
-.file .icon {
-    background-position: 0 -32px;
-}
+    public List<FileListEntry> getFiles() {
+        return files;
+    }
 
-.breadcrumb-item {
-    font-size: large;
-}
+    public void setFiles(List<FileListEntry> files) {
+        this.files = files;
+    }
 
-.breadcrumb-item .slash {
-    text-decoration: none;
-    color: black;
-}
+    public List<BreadCrumb> getBreadcrumbs() {
+        return breadcrumbs;
+    }
 
+    public void setBreadcrumbs(List<BreadCrumb> breadcrumbs) {
+        this.breadcrumbs = breadcrumbs;
+    }
+}
