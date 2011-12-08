@@ -19,8 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-define([],
- function() {
+ (function(context, undefined) {
      var internalData = null;
 
      var findMeOrUp = function(elem, selector) {
@@ -38,14 +37,12 @@ define([],
      };
 
      var renderLivestream = function(data, id) {
-         $('ul.folderContent').find("video.livestream").remove();
+         $('ul.folderContent').find("video" + data.cssClass).remove();
          $('#' + id).append($('#livestreamTmpl').tmpl(data));
      };
 
      var listeners = {
          dirlistClick: function(event) {
-             event.stopPropagation();
-
              if (!$(event.target).is("a")) {
                  return;
              }
@@ -107,11 +104,10 @@ define([],
          }
      };
 
-  return {
-      init: function(data) {
-          internalData = data;
-          attachListeners();
-          renderData();
-      }
-  };
-});
+     context.jstreamserver = {
+         init:function (data) {
+             internalData = data;
+             renderData(data);
+         }
+     }
+ }(window));
