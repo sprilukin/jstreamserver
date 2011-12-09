@@ -24,7 +24,15 @@ describe('jstreamserver', function () {
 
     beforeEach(function() {
         $("body").append("<div id=\"testContext\"></div>");
-        $("#testContext").append("<div id=\"breadcrumb\" class=\"breadcrumb\"></div><ul id=\"directoryList\" class=\"folderContent\"></ul>");
+
+        $.ajax("/test/templates/directory.html", {
+            success: function(template) {
+                $("#testContext").append(template);
+            },
+            dataType: "html",
+            async: false
+        });
+
         $.ajax("/test/templates/jq-templates.html", {
             success: function(template) {
                 $("#testContext").append(template);

@@ -23,7 +23,7 @@
 package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
-import anhttpserver.SimpleHttpHandlerAdapter;
+import anhttpserver.ResponseSizeNeedlessHandlerAdapter;
 import jstreamserver.utils.Config;
 import jstreamserver.utils.HttpUtils;
 import jstreamserver.utils.RandomAccessFileInputStream;
@@ -56,7 +56,7 @@ import java.util.zip.GZIPOutputStream;
  *
  * @author Sergey Prilukin
  */
-public abstract class BaseHandler extends ConfigAwareHttpHandler {
+public abstract class BaseHandler extends ResponseSizeNeedlessHandlerAdapter implements ConfigAwareHttpHandler {
 
     public static final String DEFAULT_MIME_PROPERTIES = "mime.properties";
 
@@ -65,7 +65,7 @@ public abstract class BaseHandler extends ConfigAwareHttpHandler {
         HTML_EXPIRES_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
-
+    private Config config;
     private static Properties mimeProperties = null;
 
     public BaseHandler() {
@@ -74,6 +74,14 @@ public abstract class BaseHandler extends ConfigAwareHttpHandler {
         if (BaseHandler.mimeProperties == null) {
             loadMimeProperties();
         }
+    }
+
+    public Config getConfig() {
+        return config;
+    }
+
+    public void setConfig(Config config) {
+        this.config = config;
     }
 
     public void loadMimeProperties() {
@@ -130,10 +138,8 @@ public abstract class BaseHandler extends ConfigAwareHttpHandler {
 
     protected InputStream renderCompressedView(InputStream view, HttpRequestContext httpRequestContext) throws IOException {
         setResponseHeader(HttpUtils.CONTENT_ENCODING_HEADER, HttpUtils.GZIP_ENCODING, httpRequestContext);
-        InputStream compressedView = compressInputStream(view);
-        setResponseSize(compressedView.available(), httpRequestContext);
         setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
-        return compressedView;
+        return compressInputStream(view);
     }
 
     protected boolean isAjaxRequest(HttpRequestContext httpRequestContext) throws IOException {
@@ -180,7 +186,6 @@ public abstract class BaseHandler extends ConfigAwareHttpHandler {
         //Range should be an integer
         int rangeLength = (int)(rangeArray[1] - rangeArray[0] + 1);
 
-        setResponseSize(rangeLength, httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_PARTIAL, httpRequestContext);
 
         return new BufferedInputStream(new RandomAccessFileInputStream(file, rangeArray[0], rangeLength));

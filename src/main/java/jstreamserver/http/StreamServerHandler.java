@@ -84,7 +84,8 @@ public final class StreamServerHandler extends BaseHandler {
         super();
     }
 
-    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
+    @Override
+    public InputStream getResponseInternal(HttpRequestContext httpRequestContext) throws IOException {
         String path = HttpUtils.getURLParams(httpRequestContext.getRequestURI().getRawQuery()).get(PATH_PARAM);
         if (path != null) {
             path = URLDecoder.decode(path, HttpUtils.DEFAULT_ENCODING);
@@ -219,7 +220,6 @@ public final class StreamServerHandler extends BaseHandler {
         result = compressInputStream(result);
 
         setResponseHeader(HttpUtils.CONTENT_ENCODING_HEADER, HttpUtils.GZIP_ENCODING, httpRequestContext);
-        setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
 
         return result;

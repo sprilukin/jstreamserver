@@ -23,7 +23,7 @@
      var internalData = null;
 
      var findMeOrUp = function(elem, selector) {
-         return $(elem).is(selector) ? elem : $(elem).parents(selector)[0];
+         return $(elem).is(selector) ? elem : $(elem).parents(selector).get(0);
      };
 
      var attachListeners = function() {
@@ -37,19 +37,21 @@
      };
 
      var renderLivestream = function(data, id) {
-         $('ul.folderContent').find("video" + data.cssClass).remove();
+         $('ul.folderContent').find("video." + data.cssClass).remove();
          $('#' + id).append($('#livestreamTmpl').tmpl(data));
      };
 
      var listeners = {
          dirlistClick: function(event) {
-             if (!$(event.target).is("a")) {
+             if (!$(event.target).is("a") && !$(event.target).is("span")) {
                  return;
              }
 
              var li = $(findMeOrUp(event.target, "li"));
              if (li.find("div.directory").length > 0) {
-                 var url = li.find("a")[0].href;
+
+                 //Use default behaviour for dir links for now
+                 /*var url = li.find("a").get(0).href;
 
                  $.ajax(url, {
                      dataType: "json",
@@ -59,12 +61,14 @@
                      }
                  });
 
-                 return false;
+                 return false;*/
+
+                 return true;
              } else {
-                 var index = parseInt(li[0].id.substr(8));
+                 var index = parseInt(li.get(0).id.substr(8));
                  var dataElement = internalData.files[index];
                  if (dataElement.liveStreamSupported) {
-                     var anchor = li.find("a")[0];
+                     var anchor = li.find("a").get(0);
                      url = anchor.href;
 
                      $(anchor).hide();
@@ -73,7 +77,7 @@
                      $.ajax(url, {
                          dataType: "json",
                          success: function(data) {
-                             renderLivestream(data, li[0].id);
+                             renderLivestream(data, li.get(0).id);
                              $(anchor).show();
                              li.find(".ajax-loader").addClass("hidden");
                          }
@@ -87,10 +91,9 @@
          },
 
          breadcrumbClick: function(event) {
-             event.stopPropagation();
-
-             var span = $(findMeOrUp(event.target, "span"));
-             var url = span.find("a")[0].href;
+             //Use default behaviour for breadcrumb links for now
+             /*var span = $(findMeOrUp(event.target, "span"));
+             var url = span.find("a").get(0).href;
 
              $.ajax(url, {
                  dataType: "json",
@@ -100,12 +103,15 @@
                  }
              });
 
-             return false;
+             return false;*/
+
+             return true;
          }
      };
 
      context.jstreamserver = {
          init:function (data) {
+             attachListeners();
              internalData = data;
              renderData(data);
          }

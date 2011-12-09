@@ -22,22 +22,17 @@
 
 package jstreamserver.http;
 
-import anhttpserver.SimpleHttpHandlerAdapter;
+import anhttpserver.SimpleHttpHandler;
 import jstreamserver.utils.Config;
 
 /**
- * Version of {@link SimpleHttpHandlerAdapter} which is aware of {@link jstreamserver.utils.Config} instance
+ * Instances of this interface are aware of {@link jstreamserver.utils.Config} instance
  *
  * @author Sergey Prilukin
  */
-public abstract class ConfigAwareHttpHandler extends SimpleHttpHandlerAdapter {
-    private Config config;
+public interface ConfigAwareHttpHandler extends SimpleHttpHandler {
 
-    public Config getConfig() {
-        return config;
-    }
+    public Config getConfig();
 
-    public void setConfig(Config config) {
-        this.config = config;
-    }
+    public void setConfig(Config config);
 }

@@ -58,7 +58,7 @@ public final class DispatcherHandler extends SimpleHttpHandlerAdapter {
     }
 
     @Override
-    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
+    public InputStream getResponse(HttpRequestContext httpRequestContext) throws IOException {
         try {
             String path = httpRequestContext.getRequestURI().getPath();
             if (path.length() > 1) {
@@ -81,7 +81,7 @@ public final class DispatcherHandler extends SimpleHttpHandlerAdapter {
                 }
             }
 
-            return handlers.get(path).getResponseAsStream(httpRequestContext);
+            return handlers.get(path).getResponse(httpRequestContext);
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);

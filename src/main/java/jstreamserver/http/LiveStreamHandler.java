@@ -81,7 +81,7 @@ public final class LiveStreamHandler extends BaseHandler {
     }
 
     @Override
-    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
+    public InputStream getResponseInternal(HttpRequestContext httpRequestContext) throws IOException {
 
         if (PLAYLIST_FULL_PATH.equals(httpRequestContext.getRequestURI().getPath())) {
             return getPlayList(LIVE_STREAM_FILE_PATH + "." + PLAYLIST_EXTENSION, httpRequestContext);
@@ -149,10 +149,7 @@ public final class LiveStreamHandler extends BaseHandler {
         setResponseHeader("Content-Disposition", "attachment", httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
 
-        byte[] bytes = sb.toString().getBytes();
-        setResponseSize(bytes.length, httpRequestContext);
-
-        return new ByteArrayInputStream(bytes);
+        return new ByteArrayInputStream(sb.toString().getBytes());
     }
 
     private void cleanResources() {

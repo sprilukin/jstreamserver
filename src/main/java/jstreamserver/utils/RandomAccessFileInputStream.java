@@ -67,8 +67,13 @@ public final class RandomAccessFileInputStream extends InputStream {
     }
 
     @Override
+    public int available() throws IOException {
+        return maxBytesToRead - currentPos;
+    }
+
+    @Override
     public int read() throws IOException {
-        if (maxBytesToRead - currentPos > 0) {
+        if (available() > 0) {
             currentPos++;
             return raf.read();
         } else {
@@ -83,7 +88,7 @@ public final class RandomAccessFileInputStream extends InputStream {
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        int maxBytesLeftToRead = maxBytesToRead - currentPos;
+        int maxBytesLeftToRead = available();
         if (maxBytesLeftToRead > 0) {
             int readLength = Math.min(maxBytesLeftToRead, len);
             currentPos += readLength;

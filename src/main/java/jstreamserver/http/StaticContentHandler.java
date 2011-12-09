@@ -57,7 +57,7 @@ public final class StaticContentHandler extends BaseHandler {
     }
 
     @Override
-    public InputStream getResponseAsStream(HttpRequestContext httpRequestContext) throws IOException {
+    public InputStream getResponseInternal(HttpRequestContext httpRequestContext) throws IOException {
         String path = RESOURCES_PATH_PREFIX + httpRequestContext.getRequestURI().getPath().substring(HANDLE_PATH.length());
 
         String extension = FilenameUtils.getExtension(path);
@@ -74,7 +74,6 @@ public final class StaticContentHandler extends BaseHandler {
             resourceAsStream = compressInputStream(resourceAsStream);
         }
 
-        setResponseSize(resourceAsStream.available(), httpRequestContext);
         return resourceAsStream;
     }
 }
