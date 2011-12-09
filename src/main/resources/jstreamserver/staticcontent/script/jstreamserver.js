@@ -19,57 +19,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
- (function(context, undefined) {
+
+//Define jstreamserver context
+JStreamServer = {};
+
+JStreamServer.dirView = (function() {
+    var renderData = function(data) {
+        $('#directoryList').html($('#dirListTmpl').tmpl(data.files));
+        $('#breadcrumb').html($('#breadcumbTmpl').tmpl(data.breadcrumbs));
+    };
+
+    return {
+        render: function(data) {
+            renderData(data);
+        }
+    }
+}());
+
+JStreamServer.liveStreamView = (function() {
+    var renderLivestream = function(data, id) {
+        $('ul.folderContent').find("video." + data.cssClass).remove();
+        $('#' + id).append($('#livestreamTmpl').tmpl(data));
+    };
+
+    return {
+        render: function(data) {
+            renderLivestream(data.data, data.id);
+        }
+    }
+}());
+
+JStreamServer.controller = (function() {
      var internalData = null;
 
      var findMeOrUp = function(elem, selector) {
          return $(elem).is(selector) ? elem : $(elem).parents(selector).get(0);
      };
 
-     var attachListeners = function() {
-         $('ul.folderContent').bind("click", listeners.dirlistClick);
-         $('div.breadcrumb').bind("click", listeners.breadcrumbClick);
-     };
-
-     var renderData = function() {
-         $('#directoryList').html($('#dirListTmpl').tmpl(internalData.files));
-         $('#breadcrumb').html($('#breadcumbTmpl').tmpl(internalData.breadcrumbs));
-     };
-
-     var renderLivestream = function(data, id) {
-         $('ul.folderContent').find("video." + data.cssClass).remove();
-         $('#' + id).append($('#livestreamTmpl').tmpl(data));
-     };
-
-     var listeners = {
-         dirlistClick: function(event) {
+     var clickListeners = {
+         "ul.folderContent": function(event) {
              if (!$(event.target).is("a") && !$(event.target).is("span")) {
                  return;
              }
 
              var li = $(findMeOrUp(event.target, "li"));
-             if (li.find("div.directory").length > 0) {
-
-                 //Use default behaviour for dir links for now
-                 /*var url = li.find("a").get(0).href;
-
-                 $.ajax(url, {
-                     dataType: "json",
-                     success: function(data) {
-                         internalData = data;
-                         renderData();
-                     }
-                 });
-
-                 return false;*/
-
-                 return true;
-             } else {
+             if (li.find("div.file").length > 0) {
                  var index = parseInt(li.get(0).id.substr(8));
                  var dataElement = internalData.files[index];
                  if (dataElement.liveStreamSupported) {
                      var anchor = li.find("a").get(0);
-                     url = anchor.href;
+                     var url = anchor.href;
 
                      $(anchor).hide();
                      li.find(".ajax-loader").removeClass("hidden");
@@ -77,7 +76,7 @@
                      $.ajax(url, {
                          dataType: "json",
                          success: function(data) {
-                             renderLivestream(data, li.get(0).id);
+                             JStreamServer.liveStreamView.render({data:data, id: li.get(0).id});
                              $(anchor).show();
                              li.find(".ajax-loader").addClass("hidden");
                          }
@@ -85,35 +84,26 @@
 
                      return false;
                  }
-
-                 return true;
              }
+
+             return true;
          },
 
-         breadcrumbClick: function(event) {
-             //Use default behaviour for breadcrumb links for now
-             /*var span = $(findMeOrUp(event.target, "span"));
-             var url = span.find("a").get(0).href;
-
-             $.ajax(url, {
-                 dataType: "json",
-                 success: function(data) {
-                     internalData = data;
-                     renderData();
-                 }
-             });
-
-             return false;*/
-
+         "div.breadcrumb": function(event) {
              return true;
          }
      };
 
-     context.jstreamserver = {
+    var attachListeners = function() {
+        $('ul.folderContent').bind("click", clickListeners['ul.folderContent']);
+        $('div.breadcrumb').bind("click", clickListeners['div.breadcrumb']);
+    };
+
+     return {
          init:function (data) {
              attachListeners();
              internalData = data;
-             renderData(data);
+             JStreamServer.dirView.render(data);
          }
      }
- }(window));
+ }());
