@@ -190,11 +190,11 @@ public final class StreamServerHandler extends BaseHandler {
         String[] pathPieces = path.split("\\/");
         for (String dir: pathPieces) {
             if (sb.length() > 1 || sb.length() == 0) {
-                sb.append("/");
+                sb.append(DIRECTORY_SEPARATOR);
             }
 
             sb.append(dir);
-            breadCrumbs.add(new BreadCrumb(dir, sb.toString()));
+            breadCrumbs.add(new BreadCrumb(dir.isEmpty() ? "HOME" : dir, sb.toString()));
         }
 
         return breadCrumbs;

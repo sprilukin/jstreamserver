@@ -22,7 +22,7 @@
 
 ul.folderContent {
     list-style: none;
-    font-size: large;
+    font-size: 1.5em;
 }
 
 .directory {
@@ -49,12 +49,8 @@ ul.folderContent {
 }
 
 .breadcrumb-item {
-    font-size: large;
-}
-
-.breadcrumb-item .slash {
-    text-decoration: none;
-    color: black;
+    font-size: 1.5em;
+    font-weight: bold;
 }
 
 .ajax-loader {
@@ -67,4 +63,9 @@ ul.folderContent {
 
 .hidden {
     display: none;
+}
+
+video.livestream {
+    margin-top: 10px;
+    margin-bottom: 15px
 }
