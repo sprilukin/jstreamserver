@@ -46,8 +46,8 @@ describe('jstreamserver', function () {
         $("#testContext").remove();
     });
 
-    it('can add a number', function () {
-        jstreamserver.init(
+    it('should render directoryList and breadcrumbs after page load', function () {
+        JStreamServer.controller.init(
             {
                 "files":[
                     {"id":"fileList0","name":"c","url":"%2Fc","mimeType":null,"extension":null,"liveStreamSupported":null,"directory":true},
