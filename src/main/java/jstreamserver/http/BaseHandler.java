@@ -131,7 +131,7 @@ public abstract class BaseHandler extends ResponseSizeNeedlessHandlerAdapter imp
     }
 
     protected InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) throws IOException {
-        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/notfound.vm", new VelocityModel("path", path));
+        InputStream result = VelocityRenderer.renderTemplate("templates/notfound.vm", new VelocityModel("path", path));
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
         return renderCompressedView(result, httpRequestContext);
     }

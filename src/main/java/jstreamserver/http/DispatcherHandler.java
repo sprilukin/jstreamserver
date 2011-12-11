@@ -94,7 +94,7 @@ public final class DispatcherHandler extends SimpleHttpHandlerAdapter {
 
     protected InputStream renderException(String exception, HttpRequestContext httpRequestContext) throws IOException {
         setResponseHeader(HttpUtils.CONTENT_TYPE_HEADER, HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
-        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/exception.vm", new VelocityModel("exception", exception));
+        InputStream result = VelocityRenderer.renderTemplate("templates/exception.vm", new VelocityModel("exception", exception));
         setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_INTERNAL_ERROR, httpRequestContext);
         return result;
@@ -102,7 +102,7 @@ public final class DispatcherHandler extends SimpleHttpHandlerAdapter {
 
     protected InputStream rendeResourceNotFound(String path, HttpRequestContext httpRequestContext) throws IOException {
         setResponseHeader(HttpUtils.CONTENT_TYPE_HEADER, HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
-        InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/notmapped.vm", new VelocityModel("path", path));
+        InputStream result = VelocityRenderer.renderTemplate("templates/notmapped.vm", new VelocityModel("path", path));
         setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
         return result;

@@ -113,6 +113,18 @@
 
     <build>
         <defaultGoal>install</defaultGoal>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/java</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+            </resource>
+            <resource>
+                <targetPath>${basedir}/target/static</targetPath>
+                <directory>${basedir}/src/main/static</directory>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -174,5 +186,32 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <build>
+                <resources>
+                    <resource>
+                        <directory>${basedir}/src/main/static</directory>
+                    </resource>
+                </resources>
+            </build>
+            <activation>
+                <property>
+                    <name>dev</name>
+                </property>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>production</id>
+            <activation>
+                <property>
+                    <name>production</name>
+                </property>
+            </activation>
+        </profile>
+    </profiles>
 
 </project>

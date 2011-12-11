@@ -20,6 +20,10 @@
  * SOFTWARE.
  */
 
+body {
+    font-family: Arial,Helvetica,sans-serif;
+}
+
 ul.folderContent {
     list-style: none;
     font-size: 1.5em;
@@ -41,11 +45,11 @@ ul.folderContent {
 }
 
 .directory .icon {
-    background-image: url("/static/img/folder.png");
+    background-image: url("/img/folder.png");
 }
 
 .file .icon {
-    background-image: url("/static/img/file.png");
+    background-image: url("/img/file.png");
 }
 
 .breadcrumb-item {
@@ -54,7 +58,7 @@ ul.folderContent {
 }
 
 .ajax-loader {
-    background-image: url("/static/img/ajax-loader.gif");
+    background-image: url("/img/ajax-loader.gif");
     background-repeat: no-repeat;
     display: inline-block;
     height: 19px;

@@ -43,8 +43,6 @@ import java.util.zip.GZIPOutputStream;
  * @author Sergey Prilukin
  */
 public final class StaticContentHandler extends BaseHandler {
-    public static final String HANDLE_PATH = "/static";
-    public static String RESOURCES_PATH_PREFIX = "jstreamserver/staticcontent";
 
     public static final List<String> mimeTypesToCompress = new ArrayList<String>();
     static {
@@ -58,13 +56,13 @@ public final class StaticContentHandler extends BaseHandler {
 
     @Override
     public InputStream getResponseInternal(HttpRequestContext httpRequestContext) throws IOException {
-        String path = RESOURCES_PATH_PREFIX + httpRequestContext.getRequestURI().getPath().substring(HANDLE_PATH.length());
+        String path = httpRequestContext.getRequestURI().getPath();
 
         String extension = FilenameUtils.getExtension(path);
         String type = getMimeProperties().getProperty(extension);
 
         setContentType(type, httpRequestContext);
-        InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+        InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path.replaceFirst("/", ""));
         if (resourceAsStream == null) {
             return rendeResourceNotFound(httpRequestContext.getRequestURI().getPath(), httpRequestContext);
         }

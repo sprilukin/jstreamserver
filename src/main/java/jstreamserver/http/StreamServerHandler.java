@@ -216,7 +216,7 @@ public final class StreamServerHandler extends BaseHandler {
             model.put("files", jsonMapper.writeValueAsString(files));
             model.put("breadCrumbs", jsonMapper.writeValueAsString(breadCrumbs));
 
-            result = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", model);
+            result = VelocityRenderer.renderTemplate("templates/directory.vm", model);
             setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
         }
 

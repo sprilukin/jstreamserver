@@ -204,7 +204,6 @@ public final class LiveStreamHandler extends BaseHandler {
             throw new RuntimeException(e);
         }
 
-        //InputStream result = VelocityRenderer.renderTemplate("jstreamserver/templates/livestream.vm", new VelocityModel("sourceUrl", PLAYLIST_FULL_PATH));
         byte[] result = null;
         try {
             JSONObject jsonObject = new JSONObject();
