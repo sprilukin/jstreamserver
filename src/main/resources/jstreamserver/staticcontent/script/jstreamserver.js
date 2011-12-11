@@ -50,7 +50,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     attachListeners: function() {
-        $('ul.folderContent').bind("click", this.eventListeners['click'].bind(this));
+        this.el.bind("click", this.eventListeners['click'].bind(this));
     },
 
     render: function() {
@@ -58,7 +58,8 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     renderLiveStream: function(element, data) {
-        $(element).html(this.liveStreamTemplate(data));
+        this.el.find("video." + data.cssClass).remove();
+        $(element).append(this.liveStreamTemplate(data));
     },
 
     findMeOrUp: function(elem, selector) {
