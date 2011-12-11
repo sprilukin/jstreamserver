@@ -58,13 +58,13 @@ public final class StaticContentHandler extends BaseHandler {
     }
 
     private boolean isResourceModified(long resourceLastModifiedDate, HttpRequestContext httpRequestContext) {
-        if (httpRequestContext.getRequestHeaders().containsKey("If-Modified-Since")) {
+        List<String> header = httpRequestContext.getRequestHeaders().get("If-Modified-Since");
+        if (header != null) {
             try {
-                Date browserCacheModifiedDate = HTTP_HEADER_DATE_FORMAT.parse(httpRequestContext.getRequestHeaders().get("If-Modified-Since").get(0));
-
+                Date browserCacheModifiedDate = HTTP_HEADER_DATE_FORMAT.parse(header.get(0));
                 return resourceLastModifiedDate - browserCacheModifiedDate.getTime() > 0;
             } catch (ParseException e) {
-                throw new RuntimeException(e);
+                return true;
             }
         } else {
             return true;
