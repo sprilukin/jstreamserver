@@ -23,19 +23,17 @@
 package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
-import jstreamserver.utils.Config;
 import jstreamserver.utils.HttpUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * This handler serves static content like CSS, JavaScript and images
@@ -54,24 +52,54 @@ public final class StaticContentHandler extends BaseHandler {
         super();
     }
 
+    private long getResourceLastModifiedTime(String path) {
+        File file = new File(getConfig().getResourcesFolder() + "/" + path);
+        return file.exists() ? (file.lastModified() / 1000) * 1000 : Long.MAX_VALUE;
+    }
+
+    private boolean isResourceModified(long resourceLastModifiedDate, HttpRequestContext httpRequestContext) {
+        if (httpRequestContext.getRequestHeaders().containsKey("If-Modified-Since")) {
+            try {
+                Date browserCacheModifiedDate = HTTP_HEADER_DATE_FORMAT.parse(httpRequestContext.getRequestHeaders().get("If-Modified-Since").get(0));
+
+                return resourceLastModifiedDate - browserCacheModifiedDate.getTime() > 0;
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return true;
+        }
+    }
+
     @Override
     public InputStream getResponseInternal(HttpRequestContext httpRequestContext) throws IOException {
-        String path = httpRequestContext.getRequestURI().getPath();
+        String path = httpRequestContext.getRequestURI().getPath().replaceFirst("/", "");
 
-        String extension = FilenameUtils.getExtension(path);
-        String type = getMimeProperties().getProperty(extension);
+        long resourceLastModifiedTime = getResourceLastModifiedTime(path);
+        if (isResourceModified(resourceLastModifiedTime, httpRequestContext)) {
+            String extension = FilenameUtils.getExtension(path);
+            String type = getMimeProperties().getProperty(extension);
 
-        setContentType(type, httpRequestContext);
-        InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path.replaceFirst("/", ""));
-        if (resourceAsStream == null) {
-            return rendeResourceNotFound(httpRequestContext.getRequestURI().getPath(), httpRequestContext);
+            InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+            if (resourceAsStream == null) {
+                return rendeResourceNotFound(path, httpRequestContext);
+            }
+
+            if (mimeTypesToCompress.contains(type)) {
+                setResponseHeader(HttpUtils.CONTENT_ENCODING_HEADER, HttpUtils.GZIP_ENCODING, httpRequestContext);
+                resourceAsStream = compressInputStream(resourceAsStream);
+            }
+
+            setContentType(type, httpRequestContext);
+            setResponseHeader("Last-Modified", HTTP_HEADER_DATE_FORMAT.format(new Date(resourceLastModifiedTime)), httpRequestContext);
+            setResponseHeader("Expires", HTTP_HEADER_DATE_FORMAT.format(new Date(resourceLastModifiedTime)), httpRequestContext);
+            setResponseHeader("Cache-Control", "private, max-age=31536000", httpRequestContext);
+
+            return resourceAsStream;
+        } else {
+            setResponseCode(HttpURLConnection.HTTP_NOT_MODIFIED, httpRequestContext);
+            setResponseSize(0, httpRequestContext);
+            return null;
         }
-
-        if (mimeTypesToCompress.contains(type)) {
-            setResponseHeader(HttpUtils.CONTENT_ENCODING_HEADER, HttpUtils.GZIP_ENCODING, httpRequestContext);
-            resourceAsStream = compressInputStream(resourceAsStream);
-        }
-
-        return resourceAsStream;
     }
 }

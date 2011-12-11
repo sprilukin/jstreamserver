@@ -23,10 +23,7 @@
 package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
-import jstreamserver.utils.Config;
 import jstreamserver.utils.HttpUtils;
-import jstreamserver.utils.velocity.VelocityModel;
-import jstreamserver.utils.velocity.VelocityRenderer;
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
 import jstreamserver.utils.ffmpeg.ProgressListener;
@@ -44,9 +41,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -142,7 +137,7 @@ public final class LiveStreamHandler extends BaseHandler {
         String mimeType = getMimeProperties().getProperty(extension.toLowerCase());
 
         setContentType(mimeType != null ? mimeType : "application/octet-stream", httpRequestContext);
-        setResponseHeader("Expires", HTML_EXPIRES_DATE_FORMAT.format(new Date(0)), httpRequestContext);
+        setResponseHeader("Expires", HTTP_HEADER_DATE_FORMAT.format(new Date(0)), httpRequestContext);
         setResponseHeader("Pragma", "no-cache", httpRequestContext);
         setResponseHeader("Cache-Control", "no-store,private,no-cache", httpRequestContext);
         setResponseHeader("Connection", "keep-alive", httpRequestContext);

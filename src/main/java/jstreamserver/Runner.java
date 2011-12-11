@@ -26,9 +26,6 @@ package jstreamserver;
 import anhttpserver.DefaultSimpleHttpServer;
 import anhttpserver.SimpleHttpServer;
 import jstreamserver.http.DispatcherHandler;
-import jstreamserver.http.LiveStreamHandler;
-import jstreamserver.http.StaticContentHandler;
-import jstreamserver.http.StreamServerHandler;
 import jstreamserver.utils.Config;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -86,6 +83,13 @@ public final class Runner {
         mime.setOptionalArg(false);
         mime.setArgName("pathToFile");
         mime.setRequired(false);
+
+        //Path to mime config
+        Option resources = new Option("r", "resources", true, "Path to folder with static content");
+        resources.setArgs(1);
+        resources.setOptionalArg(false);
+        resources.setArgName("folderName");
+        resources.setRequired(false);
 
         //FFmppeg executble location
         Option ffmpegLocation = new Option("ff", "ffmpeg", true, "Full path to ffmpeg executable. By default not set");
@@ -163,6 +167,7 @@ public final class Runner {
         options.addOption(host);
         options.addOption(threads);
         options.addOption(mime);
+        options.addOption(resources);
         options.addOption(ffmpegLocation);
         options.addOption(ffmpegParams);
         options.addOption(segmenterocation);
@@ -216,6 +221,10 @@ public final class Runner {
 
         if (commandLine.hasOption("m")) {
             config.setMimeProperties(commandLine.getOptionValue("m"));
+        }
+
+        if (commandLine.hasOption("r")) {
+            config.setResourcesFolder(commandLine.getOptionValue("r"));
         }
 
         if (commandLine.hasOption("ff")) {

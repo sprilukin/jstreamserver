@@ -41,6 +41,7 @@ public final class Config {
     private String host = "0.0.0.0";
     private int maxThreads = 10;
     private String charset = "windows-1251";
+    private String resourcesFolder = "static";
     private Map<String, String> rootDirs = new TreeMap<String, String>();
     private String mimeProperties = null;
     private String ffmpegLocation = null; //ffmpeg not available by default
@@ -186,6 +187,14 @@ public final class Config {
         this.segmenterMaxtimeout = segmenterMaxtimeout;
     }
 
+    public String getResourcesFolder() {
+        return resourcesFolder;
+    }
+
+    public void setResourcesFolder(String resourcesFolder) {
+        this.resourcesFolder = resourcesFolder;
+    }
+
     public String getSegmenterParams() {
         return MessageFormat.format(
                 SEGMENTER_PARAMS_FORMAT,
@@ -206,6 +215,7 @@ public final class Config {
         sb.append("Jstreamserver config:\r\n");
         sb.append("listening on: ").append(host).append(":").append(port).append("\r\n");
         sb.append("max threads count: ").append(maxThreads).append("\r\n");
+        sb.append("resources folder: ").append(resourcesFolder).append("\r\n");
         if (mimeProperties != null) {
             sb.append("mimeProperties: ").append(mimeProperties).append("\r\n");
         }
