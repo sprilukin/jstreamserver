@@ -124,6 +124,10 @@
                 <targetPath>${basedir}/target/static</targetPath>
                 <directory>${basedir}/src/main/static</directory>
             </resource>
+            <resource>
+                <directory>${basedir}/src/test/javascript</directory>
+                <targetPath>${basedir}/target/test-classes/script</targetPath>
+            </resource>
         </resources>
         <pluginManagement>
             <plugins>
@@ -194,6 +198,10 @@
                 <resources>
                     <resource>
                         <directory>${basedir}/src/main/static</directory>
+                    </resource>
+                    <resource>
+                        <directory>${basedir}/src/main/static</directory>
+                        <targetPath>${basedir}/target/test-classes</targetPath>
                     </resource>
                 </resources>
             </build>
