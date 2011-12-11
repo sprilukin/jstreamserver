@@ -46,17 +46,18 @@ describe('jstreamserver', function () {
         $("#testContext").remove();
     });
 
-    it('should render directoryList and breadcrumbs after page load', function () {
-        JStreamServer.controller.init(
-            {
-                "files":[
-                    {"id":"fileList0","name":"c","url":"%2Fc","mimeType":null,"extension":null,"liveStreamSupported":null,"directory":true},
-                    {"id":"fileList1","name":"d","url":"%2Fd","mimeType":null,"extension":null,"liveStreamSupported":null,"directory":true}],
-                "breadcrumbs":[{"name":"","url":"/"},{"name":"d","url":"/d"},{"name":"download","url":"/d/download"}]
-            }
-        );
+    it('should render directoryList after page load', function () {
+        new JStreamServer.DirectoryView({json: [
+            {"id":"fileList0","name":"c","url":"%2Fc","mimeType":null,"extension":null,"liveStreamSupported":null,"directory":true},
+            {"id":"fileList1","name":"d","url":"%2Fd","mimeType":null,"extension":null,"liveStreamSupported":null,"directory":true}]
+        });
 
         expect($("#directoryList").find("li").length).toEqual(2);
+    });
+
+    it('should render breadcrumbs after page load', function () {
+        new JStreamServer.BreadCrumbView({json: [{"name":"","url":"/"},{"name":"d","url":"/d"},{"name":"download","url":"/d/download"}]});
+
         expect($("#breadcrumb").find("span.breadcrumb-item").length).toEqual(3);
     });
 });

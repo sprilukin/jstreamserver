@@ -23,87 +23,96 @@
 //Define jstreamserver context
 JStreamServer = {};
 
-JStreamServer.dirView = (function() {
-    var renderData = function(data) {
-        $('#directoryList').html($('#dirListTmpl').tmpl(data.files));
-        $('#breadcrumb').html($('#breadcumbTmpl').tmpl(data.breadcrumbs));
-    };
+//Define model for directory list
+JStreamServer.Directory = Backbone.Model.extend({});
+JStreamServer.DirectoryList = Backbone.Collection.extend({
+    model: JStreamServer.Directory
+});
 
-    return {
-        render: function(data) {
-            renderData(data);
+//Define model for breadcrumbs
+JStreamServer.BreadCrumb = Backbone.Model.extend({});
+JStreamServer.BreadCrumbs = Backbone.Collection.extend({
+    model: JStreamServer.BreadCrumb
+});
+
+//Define view for directory list
+JStreamServer.DirectoryView = Backbone.View.extend({
+
+    initialize: function(args) {
+        this.el = $("#directoryList");
+
+        this.template = _.template($("#dirListTmpl").html());
+        this.liveStreamTemplate = _.template($("#livestreamTmpl").html());
+
+        this.model = new JStreamServer.DirectoryList(args.json);
+        this.attachListeners();
+        this.render();
+    },
+
+    attachListeners: function() {
+        $('ul.folderContent').bind("click", this.eventListeners['click'].bind(this));
+    },
+
+    render: function() {
+        $(this.el).html(this.template({files: this.model.toJSON()}));
+    },
+
+    renderLiveStream: function(element, data) {
+        $(element).html(this.liveStreamTemplate(data));
+    },
+
+    findMeOrUp: function(elem, selector) {
+        return $(elem).is(selector) ? elem : $(elem).parents(selector).get(0);
+    },
+
+    eventListeners: {
+        "click":function (event) {
+            if (!$(event.target).is("a") && !$(event.target).is("span")) {
+                return;
+            }
+
+            var li = $(this.findMeOrUp(event.target, "li"));
+
+            if (li.find("div.file").length > 0) {
+                var file = this.model.get(li.get(0).id);
+
+                if (file.get('liveStreamSupported')) {
+                    var anchor = li.find("a").get(0);
+
+                    $(anchor).hide();
+                    li.find(".ajax-loader").removeClass("hidden");
+
+                    $.ajax(anchor.href, {
+                        dataType:"json",
+                        success:function (data) {
+                            this.renderLiveStream("#" + file.id, data);
+
+                            $(anchor).show();
+                            li.find(".ajax-loader").addClass("hidden");
+                        }.bind(this)
+                    });
+
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
-}());
+});
 
-JStreamServer.liveStreamView = (function() {
-    var renderLivestream = function(data, id) {
-        $('ul.folderContent').find("video." + data.cssClass).remove();
-        $('#' + id).append($('#livestreamTmpl').tmpl(data));
-    };
+//Define view for breadcrumbs
+JStreamServer.BreadCrumbView = Backbone.View.extend({
+    initialize: function(args) {
+        this.el = $("#breadcrumb");
+        this.template = _.template($("#breadcumbTmpl").html());
 
-    return {
-        render: function(data) {
-            renderLivestream(data.data, data.id);
-        }
+        this.model = new JStreamServer.BreadCrumbs(args.json);
+        this.render();
+    },
+
+    render: function() {
+        $(this.el).html(this.template({breadCrumbs: this.model.toJSON()}));
     }
-}());
+});
 
-JStreamServer.controller = (function() {
-     var internalData = null;
-
-     var findMeOrUp = function(elem, selector) {
-         return $(elem).is(selector) ? elem : $(elem).parents(selector).get(0);
-     };
-
-     var clickListeners = {
-         "ul.folderContent": function(event) {
-             if (!$(event.target).is("a") && !$(event.target).is("span")) {
-                 return;
-             }
-
-             var li = $(findMeOrUp(event.target, "li"));
-             if (li.find("div.file").length > 0) {
-                 var index = parseInt(li.get(0).id.substr(8));
-                 var dataElement = internalData.files[index];
-                 if (dataElement.liveStreamSupported) {
-                     var anchor = li.find("a").get(0);
-                     var url = anchor.href;
-
-                     $(anchor).hide();
-                     li.find(".ajax-loader").removeClass("hidden");
-
-                     $.ajax(url, {
-                         dataType: "json",
-                         success: function(data) {
-                             JStreamServer.liveStreamView.render({data:data, id: li.get(0).id});
-                             $(anchor).show();
-                             li.find(".ajax-loader").addClass("hidden");
-                         }
-                     });
-
-                     return false;
-                 }
-             }
-
-             return true;
-         },
-
-         "div.breadcrumb": function(event) {
-             return true;
-         }
-     };
-
-    var attachListeners = function() {
-        $('ul.folderContent').bind("click", clickListeners['ul.folderContent']);
-        $('div.breadcrumb').bind("click", clickListeners['div.breadcrumb']);
-    };
-
-     return {
-         init:function (data) {
-             attachListeners();
-             internalData = data;
-             JStreamServer.dirView.render(data);
-         }
-     }
- }());

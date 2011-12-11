@@ -203,16 +203,19 @@ public final class StreamServerHandler extends BaseHandler {
     private InputStream renderDirectory(String path, List<File> children, HttpRequestContext httpRequestContext) throws IOException {
         List<FileListEntry> files = getFiles(children, path);
         List<BreadCrumb> breadCrumbs = generateBreadCrumbs(path);
-        Folder folder = new Folder(files, breadCrumbs);
 
         InputStream result = null;
 
         if (isAjaxRequest(httpRequestContext)) {
+            Folder folder = new Folder(files, breadCrumbs);
             byte[] filesJson = jsonMapper.writeValueAsBytes(folder);
             result = new ByteArrayInputStream(filesJson);
             setContentType("text/x-json", httpRequestContext);
         } else {
-            VelocityModel model = new VelocityModel("folder", jsonMapper.writeValueAsString(folder));
+            VelocityModel model = new VelocityModel();
+            model.put("files", jsonMapper.writeValueAsString(files));
+            model.put("breadCrumbs", jsonMapper.writeValueAsString(breadCrumbs));
+
             result = VelocityRenderer.renderTemplate("jstreamserver/templates/directory.vm", model);
             setContentType(HttpUtils.DEFAULT_TEXT_CONTENT_TYPE, httpRequestContext);
         }
