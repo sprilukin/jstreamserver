@@ -45,7 +45,7 @@ ul.folderContent {
 }
 
 .file .icon {
-    background-image: url("/static/img/folder.png");
+    background-image: url("/static/img/file.png");
 }
 
 .breadcrumb-item {

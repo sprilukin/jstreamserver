@@ -50,7 +50,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     attachListeners: function() {
-        this.el.bind("click", this.eventListeners['click'].bind(this));
+        this.el.bind("click", _.bind(this.eventListeners['click'], this));
     },
 
     render: function() {
@@ -75,6 +75,8 @@ JStreamServer.DirectoryView = Backbone.View.extend({
             var li = $(this.findMeOrUp(event.target, "li"));
 
             if (li.find("div.file").length > 0) {
+                event.preventDefault();
+
                 var file = this.model.get(li.get(0).id);
 
                 if (file.get('liveStreamSupported')) {
@@ -85,12 +87,12 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
                     $.ajax(anchor.href, {
                         dataType:"json",
-                        success:function (data) {
+                        success:_.bind(function (data) {
                             this.renderLiveStream("#" + file.id, data);
 
                             $(anchor).show();
                             li.find(".ajax-loader").addClass("hidden");
-                        }.bind(this)
+                        }, this)
                     });
 
                     return false;
