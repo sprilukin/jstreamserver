@@ -207,7 +207,6 @@ public final class LiveStreamHandler extends BaseHandler {
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("url", PLAYLIST_FULL_PATH);
-            jsonObject.put("cssClass", "livestream");
 
             result = jsonObject.toString().getBytes();
             setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);

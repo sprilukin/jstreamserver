@@ -58,7 +58,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     renderLiveStream: function(element, data) {
-        this.el.find("video." + data.cssClass).remove();
+        this.el.find("video.livestream").remove();
         $(element).append(this.liveStreamTemplate(data));
     },
 
@@ -75,11 +75,12 @@ JStreamServer.DirectoryView = Backbone.View.extend({
             var li = $(this.findMeOrUp(event.target, "li"));
 
             if (li.find("div.file").length > 0) {
-                event.preventDefault();
 
                 var file = this.model.get(li.get(0).id);
 
                 if (file.get('liveStreamSupported')) {
+                    event.preventDefault();
+
                     var anchor = li.find("a").get(0);
 
                     $(anchor).hide();
