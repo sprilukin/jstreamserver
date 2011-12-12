@@ -61,7 +61,7 @@ public final class StaticContentHandler extends BaseHandler {
         List<String> header = httpRequestContext.getRequestHeaders().get("If-Modified-Since");
         if (header != null) {
             try {
-                Date browserCacheModifiedDate = HTTP_HEADER_DATE_FORMAT.parse(header.get(0));
+                Date browserCacheModifiedDate = HTTP_HEADER_DATE_FORMAT.get().parse(header.get(0));
                 return resourceLastModifiedDate - browserCacheModifiedDate.getTime() > 0;
             } catch (ParseException e) {
                 return true;
@@ -91,8 +91,8 @@ public final class StaticContentHandler extends BaseHandler {
             }
 
             setContentType(type, httpRequestContext);
-            setResponseHeader("Last-Modified", HTTP_HEADER_DATE_FORMAT.format(new Date(resourceLastModifiedTime)), httpRequestContext);
-            setResponseHeader("Expires", HTTP_HEADER_DATE_FORMAT.format(new Date(resourceLastModifiedTime)), httpRequestContext);
+            setResponseHeader("Last-Modified", HTTP_HEADER_DATE_FORMAT.get().format(new Date(resourceLastModifiedTime)), httpRequestContext);
+            setResponseHeader("Expires", HTTP_HEADER_DATE_FORMAT.get().format(new Date(resourceLastModifiedTime)), httpRequestContext);
             setResponseHeader("Cache-Control", "private, max-age=31536000", httpRequestContext);
 
             return resourceAsStream;

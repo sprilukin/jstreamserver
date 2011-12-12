@@ -60,10 +60,15 @@ public abstract class BaseHandler extends ResponseSizeNeedlessHandlerAdapter imp
 
     public static final String DEFAULT_MIME_PROPERTIES = "mime.properties";
 
-    public static final DateFormat HTTP_HEADER_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-    static {
-        HTTP_HEADER_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
-    }
+    public static final ThreadLocal<DateFormat> HTTP_HEADER_DATE_FORMAT =
+            new ThreadLocal<DateFormat> () {
+                @Override
+                protected synchronized DateFormat initialValue() {
+                    DateFormat df = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+                    df.setTimeZone(TimeZone.getTimeZone("GMT"));
+                    return df;
+                }
+            };
 
     private Config config;
     private static Properties mimeProperties = null;
@@ -123,7 +128,7 @@ public abstract class BaseHandler extends ResponseSizeNeedlessHandlerAdapter imp
     protected void setCommonResourceHeaders(HttpRequestContext httpRequestContext, String mimeType) {
         //Set response headers
         setContentType(mimeType != null ? mimeType : "application/octet-stream", httpRequestContext);
-        setResponseHeader("Expires", HTTP_HEADER_DATE_FORMAT.format(new Date(0)), httpRequestContext);
+        setResponseHeader("Expires", HTTP_HEADER_DATE_FORMAT.get().format(new Date(0)), httpRequestContext);
         setResponseHeader("Pragma", "no-cache", httpRequestContext);
         setResponseHeader("Cache-Control", "no-store,private,no-cache", httpRequestContext);
         setResponseHeader("Accept-Ranges", "bytes", httpRequestContext);

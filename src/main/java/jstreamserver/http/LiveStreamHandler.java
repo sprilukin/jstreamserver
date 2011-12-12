@@ -137,7 +137,7 @@ public final class LiveStreamHandler extends BaseHandler {
         String mimeType = getMimeProperties().getProperty(extension.toLowerCase());
 
         setContentType(mimeType != null ? mimeType : "application/octet-stream", httpRequestContext);
-        setResponseHeader("Expires", HTTP_HEADER_DATE_FORMAT.format(new Date(0)), httpRequestContext);
+        setResponseHeader("Expires", HTTP_HEADER_DATE_FORMAT.get().format(new Date(0)), httpRequestContext);
         setResponseHeader("Pragma", "no-cache", httpRequestContext);
         setResponseHeader("Cache-Control", "no-store,private,no-cache", httpRequestContext);
         setResponseHeader("Connection", "keep-alive", httpRequestContext);
@@ -156,6 +156,10 @@ public final class LiveStreamHandler extends BaseHandler {
         }
 
         File streamDir = new File(HANDLE_PATH.substring(1));
+        if (!streamDir.exists()) {
+            streamDir.mkdirs();
+        }
+
         String[] files = streamDir.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
