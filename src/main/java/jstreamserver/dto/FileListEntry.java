@@ -22,6 +22,8 @@
 
 package jstreamserver.dto;
 
+import jstreamserver.utils.ffmpeg.MediaInfo;
+
 /**
  * Data Transfer Object for a file
  *
@@ -35,6 +37,7 @@ public class FileListEntry {
     private String mimeType;
     private String extension;
     private Boolean liveStreamSupported;
+    private MediaInfo mediaInfo;
 
     public String getId() {
         return id;
@@ -90,5 +93,13 @@ public class FileListEntry {
 
     public void setLiveStreamSupported(Boolean liveStreamSupported) {
         this.liveStreamSupported = liveStreamSupported;
+    }
+
+    public MediaInfo getMediaInfo() {
+        return mediaInfo;
+    }
+
+    public void setMediaInfo(MediaInfo mediaInfo) {
+        this.mediaInfo = mediaInfo;
     }
 }

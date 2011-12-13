@@ -27,6 +27,8 @@ import jstreamserver.dto.BreadCrumb;
 import jstreamserver.dto.FileListEntry;
 import jstreamserver.dto.Folder;
 import jstreamserver.utils.HttpUtils;
+import jstreamserver.utils.ffmpeg.FFMpegInformer;
+import jstreamserver.utils.ffmpeg.MediaInfo;
 import jstreamserver.utils.velocity.VelocityModel;
 import jstreamserver.utils.velocity.VelocityRenderer;
 import org.apache.commons.io.FilenameUtils;
@@ -62,6 +64,7 @@ public final class StreamServerHandler extends BaseHandler {
     public static final String PARENT_FOLDER_NAME = "[..]";
 
     private ObjectMapper jsonMapper = new ObjectMapper();
+    private FFMpegInformer ffMpegInformer = new FFMpegInformer();
 
     private static final Comparator<FileListEntry> FILE_LIST_COMPARATOR = new Comparator<FileListEntry>() {
         @Override
@@ -128,6 +131,8 @@ public final class StreamServerHandler extends BaseHandler {
     private List<FileListEntry> getFiles(List<File> files, String parentPath) {
 
         List<FileListEntry> fileList = new ArrayList<FileListEntry>();
+        List<FileListEntry> mediaFileList = new ArrayList<FileListEntry>();
+        List<String> mediaFileNames = new ArrayList<String>();
 
         try {
 
@@ -155,6 +160,11 @@ public final class StreamServerHandler extends BaseHandler {
                     entry.setMimeType(mimeType);
                     entry.setExtension(extension);
                     entry.setLiveStreamSupported(getConfig().httpLiveStreamingSupported(extension, mimeType));
+
+                    if (mimeType.startsWith("video") || mimeType.startsWith("audio")) {
+                        mediaFileList.add(entry);
+                        mediaFileNames.add(file.getPath());
+                    }
                 } else {
                     entry.setDirectory(true);
                 }
@@ -169,7 +179,15 @@ public final class StreamServerHandler extends BaseHandler {
 
                 fileList.add(entry);
             }
-        } catch (UnsupportedEncodingException e) {
+
+            //Adding mediainfo to FileEnries
+            if (!mediaFileNames.isEmpty()) {
+                List<MediaInfo> mediaInfos = ffMpegInformer.getInfo(mediaFileNames, getConfig().getFfmpegLocation());
+                for (int i = 0; i < mediaInfos.size(); i++) {
+                    mediaFileList.get(i).setMediaInfo(mediaInfos.get(i));
+                }
+            }
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
