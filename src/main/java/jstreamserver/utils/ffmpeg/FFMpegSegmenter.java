@@ -44,18 +44,37 @@ import java.util.regex.Pattern;
  * @author Sergey Prilukin
  */
 public final class FFMpegSegmenter {
-    private final RuntimeExecutor ffmpegExecutor = new RuntimeExecutor();
-    private final RuntimeExecutor segmenterExecutor = new RuntimeExecutor();
+    private RuntimeExecutor ffmpegExecutor = new RuntimeExecutor();
+    private RuntimeExecutor segmenterExecutor = new RuntimeExecutor();
+    private Thread streamCopier;
+    private Thread segmenterInputStreamReader;
+    private Thread segmenterErrorStreamReader;
+    private Thread ffmpegErrorStreamReader;
+    private Thread finishWaiter;
+
+    public void setFfmpegExecutor(RuntimeExecutor ffmpegExecutor) {
+        this.ffmpegExecutor = ffmpegExecutor;
+    }
+
+    public void setSegmenterExecutor(RuntimeExecutor segmenterExecutor) {
+        this.segmenterExecutor = segmenterExecutor;
+    }
 
     public void start(String ffmpegPath, String segmenterPath, String ffmpegParams, String segmenterParams, ProgressListener progressListener) throws IOException {
         ffmpegExecutor.execute(ffmpegPath, ffmpegParams.split("[\\s]+"));
         segmenterExecutor.execute(segmenterPath, segmenterParams.split("[\\s]+"));
 
-        new Thread(new StreamCopier(ffmpegExecutor.getInputStream(), segmenterExecutor.getOutputStream()), "StreamCopier").start();
-        new Thread(new InputReader(segmenterExecutor.getInputStream(), progressListener), "SegmenterInputReader").start();
-        new Thread(new InputReader(segmenterExecutor.getErrorStream(), progressListener), "SegmenterErrorReader").start();
-        new Thread(new InputReader(ffmpegExecutor.getErrorStream(), progressListener), "FFMpegInputReader").start();
-        new Thread(new FinishWaiter(progressListener)).start();
+        streamCopier = new Thread(new StreamCopier(ffmpegExecutor.getInputStream(), segmenterExecutor.getOutputStream()), "StreamCopier");
+        segmenterInputStreamReader = new Thread(new InputReader(segmenterExecutor.getInputStream(), progressListener), "SegmenterInputReader");
+        segmenterErrorStreamReader = new Thread(new InputReader(segmenterExecutor.getErrorStream(), progressListener), "SegmenterErrorReader");
+        ffmpegErrorStreamReader = new Thread(new InputReader(ffmpegExecutor.getErrorStream(), progressListener), "FFMpegInputReader");
+        finishWaiter = new Thread(new FinishWaiter(progressListener));
+
+        streamCopier.start();
+        segmenterInputStreamReader.start();
+        segmenterErrorStreamReader.start();
+        ffmpegErrorStreamReader.start();
+        finishWaiter.start();
     }
 
     public void destroy() {
@@ -65,6 +84,11 @@ public final class FFMpegSegmenter {
 
     public void waitFor() throws InterruptedException {
         segmenterExecutor.waitFor();
+        streamCopier.join();
+        segmenterInputStreamReader.join();
+        segmenterErrorStreamReader.join();
+        ffmpegErrorStreamReader.join();
+        finishWaiter.join();
     }
 
     class StreamCopier implements Runnable {
