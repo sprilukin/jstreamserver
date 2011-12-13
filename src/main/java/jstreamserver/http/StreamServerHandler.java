@@ -64,7 +64,7 @@ public final class StreamServerHandler extends BaseHandler {
     public static final String PARENT_FOLDER_NAME = "[..]";
 
     private ObjectMapper jsonMapper = new ObjectMapper();
-    private FFMpegInformer ffMpegInformer = new FFMpegInformer();
+    private FFMpegInformer ffMpegInformer;
 
     private static final Comparator<FileListEntry> FILE_LIST_COMPARATOR = new Comparator<FileListEntry>() {
         @Override
@@ -182,7 +182,9 @@ public final class StreamServerHandler extends BaseHandler {
 
             //Adding mediainfo to FileEnries
             if (!mediaFileNames.isEmpty()) {
+                ffMpegInformer = new FFMpegInformer();
                 List<MediaInfo> mediaInfos = ffMpegInformer.getInfo(mediaFileNames, getConfig().getFfmpegLocation());
+
                 for (int i = 0; i < mediaInfos.size(); i++) {
                     mediaFileList.get(i).setMediaInfo(mediaInfos.get(i));
                 }

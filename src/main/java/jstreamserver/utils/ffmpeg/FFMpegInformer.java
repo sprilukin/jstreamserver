@@ -65,10 +65,11 @@ public final class FFMpegInformer {
             throw new RuntimeException(e);
         }
 
+        ffmpegExecutor.destroy();
         return mediaInfos;
     }
     
-    private String[] getFFMpegParams(List<String> files) {
+    private static String[] getFFMpegParams(List<String> files) {
 
         String[] params = new String[files.size() * 2];
 
@@ -87,7 +88,7 @@ public final class FFMpegInformer {
      * Utility class which reads text lines from passed {@link InputStream}
      * And reports progress to passed {@link ProgressListener}
      */
-    class InputReader implements Runnable {
+    static class InputReader implements Runnable {
         private BufferedReader reader;
         private List<MediaInfo> mediaInfos;
         private MediaInfo currentMediaInfo;

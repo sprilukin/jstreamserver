@@ -4,15 +4,48 @@
         <% if (file.directory) { %>
         <div class="directory">
         <% } else { %>
-        <div class="file">
+        <div class="file <% if (file.mediaInfo) { %>media<%}%>">
         <% } %>
-
-            <span class="icon"></span>
-            <% if (file.liveStreamSupported) { %>
-            <a href="/livestream?file=<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
-            <span class="ajax-loader hidden"></span>
-            <% } else { %>
-            <a href="/?path=<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
+            <div>
+                <span class="icon"></span>
+                <% if (file.liveStreamSupported) { %>
+                <a href="/livestream?file=<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
+                <span class="ajax-loader hidden"></span>
+                <% } else { %>
+                <a href="/?path=<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
+                <% } %>
+            </div>
+            <% if (file.mediaInfo) { %>
+            <div class="mediaInfo">
+                <div class="common">
+                    <span class="label">bitrate: </span><span><%=file.mediaInfo.bitrate%></span>
+                    <span class="label">duration: </span><span><%=file.mediaInfo.duration%></span>
+                <div class="common">
+                <% if (file.mediaInfo.videoStreams.length > 0) { %>
+                <div class="video">
+                    <span class="label">video: </span>
+                    <span><%=file.mediaInfo.videoStreams[0].encoder%></span>
+                    <span>, <%=file.mediaInfo.videoStreams[0].resolution%></span>
+                    <% if (file.mediaInfo.videoStreams[0].language) { %>
+                    <span>, (<%=file.mediaInfo.videoStreams[0].language%>)</span>
+                    <% } %>
+                </div>
+                <% } %>
+                <% if (file.mediaInfo.audioStreams.length > 0) { %>
+                <div class="audio">
+                    <span class="label">audio: </span>
+                    <% _.each(file.mediaInfo.audioStreams, function(stream, index) { %>
+                    <span class="label">[</span>
+                    <span>
+                        <%=stream.encoder%>, <%=stream.frequency%>, <%=stream.channels%>
+                        <% if (stream.language) { %>, (<%=stream.language%>)<% } %>
+                        <% if (stream.defaultStream) { %>, (default)<% } %>
+                    </span>
+                    <span class="label">] </span>
+                    <% }) %>
+                </div>
+                <% } %>
+            </div>
             <% } %>
         </div>
     </li>

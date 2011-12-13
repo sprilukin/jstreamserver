@@ -52,6 +52,19 @@ ul.folderContent {
     background-image: url("/img/file.png");
 }
 
+.file.media {
+    margin-bottom: 5px;
+}
+
+.file .mediaInfo {
+    font-size: 0.5em;
+    margin-left: 35px;
+}
+
+.file .mediaInfo .label {
+    font-weight: bold;
+}
+
 .breadcrumb-item {
     font-size: 1.5em;
     font-weight: bold;
