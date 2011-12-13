@@ -23,9 +23,7 @@
 #* Main content *#
 
 <div class="container">
-    <div id="breadcrumb" class="breadcrumb"></div>
-    <ul id="directoryList" class="folderContent">
-    </ul>
+    #include("templates/directory.html")
 </div>
 </body>
 </html>
