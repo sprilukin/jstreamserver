@@ -68,7 +68,7 @@ public final class FFMpegSegmenter {
         segmenterInputStreamReader = new Thread(new InputReader(segmenterExecutor.getInputStream(), progressListener), "SegmenterInputReader");
         segmenterErrorStreamReader = new Thread(new InputReader(segmenterExecutor.getErrorStream(), progressListener), "SegmenterErrorReader");
         ffmpegErrorStreamReader = new Thread(new InputReader(ffmpegExecutor.getErrorStream(), progressListener), "FFMpegInputReader");
-        finishWaiter = new Thread(new FinishWaiter(progressListener));
+        finishWaiter = new Thread(new FinishWaiter(progressListener, ffmpegExecutor, segmenterExecutor));
 
         streamCopier.start();
         segmenterInputStreamReader.start();
@@ -91,7 +91,7 @@ public final class FFMpegSegmenter {
         finishWaiter.join();
     }
 
-    class StreamCopier implements Runnable {
+    static class StreamCopier implements Runnable {
         private InputStream inputStream;
         private OutputStream outputStream;
 
@@ -121,7 +121,7 @@ public final class FFMpegSegmenter {
      * Utility class which reads text lines from passed {@link InputStream}
      * And reports progress to passed {@link ProgressListener}
      */
-    class InputReader implements Runnable {
+    static class InputReader implements Runnable {
         private BufferedReader reader;
         private ProgressListener progressListener;
 
@@ -168,11 +168,15 @@ public final class FFMpegSegmenter {
      * Utility class which wait untill process is finished and
      * then calls {@code onFinish} method of passed {@link ProgressListener}
      */
-    class FinishWaiter implements Runnable {
+    static class FinishWaiter implements Runnable {
         private ProgressListener progressListener;
+        private RuntimeExecutor ffmpegExecutor;
+        private RuntimeExecutor segmenterExecutor;
 
-        public FinishWaiter(ProgressListener progressListener) {
+        FinishWaiter(ProgressListener progressListener, RuntimeExecutor ffmpegExecutor, RuntimeExecutor segmenterExecutor) {
             this.progressListener = progressListener;
+            this.ffmpegExecutor = ffmpegExecutor;
+            this.segmenterExecutor = segmenterExecutor;
         }
 
         @Override
