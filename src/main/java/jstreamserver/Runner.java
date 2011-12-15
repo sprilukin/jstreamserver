@@ -134,20 +134,6 @@ public final class Runner {
         segmenterSearchKillFile.setRequired(false);
 
         //FFmppeg executble location
-        Option segmenterDestroydelay = new Option("dd", "destroydelay", true, "Destroy segmenter delay in msec for HTTP Live streaming");
-        segmenterDestroydelay.setArgs(1);
-        segmenterDestroydelay.setOptionalArg(false);
-        segmenterDestroydelay.setArgName("delay");
-        segmenterDestroydelay.setRequired(false);
-
-        //FFmppeg executble location
-        Option segmenterStartDelay = new Option("d", "startdelay", true, "Start segmenter delay in msec for HTTP Live streaming");
-        segmenterStartDelay.setArgs(1);
-        segmenterStartDelay.setOptionalArg(false);
-        segmenterStartDelay.setArgName("delay");
-        segmenterStartDelay.setRequired(false);
-
-        //FFmppeg executble location
         Option segmenterMaxTimeout = new Option("dt", "timeout", true, "Max segmenter timeout in msec for HTTP Live streaming");
         segmenterMaxTimeout.setArgs(1);
         segmenterMaxTimeout.setOptionalArg(false);
@@ -174,8 +160,6 @@ public final class Runner {
         options.addOption(segmenterDuration);
         options.addOption(segmenterWindowSize);
         options.addOption(segmenterSearchKillFile);
-        options.addOption(segmenterDestroydelay);
-        options.addOption(segmenterStartDelay);
         options.addOption(segmenterMaxTimeout);
         options.addOption(locations);
     }
@@ -244,12 +228,6 @@ public final class Runner {
             }
             if (commandLine.hasOption("sk")) {
                 config.setSegmenterSearchKillFile(Integer.parseInt(commandLine.getOptionValue("sk")));
-            }
-            if (commandLine.hasOption("dd")) {
-                config.setDestroySegmenterDelay(Integer.parseInt(commandLine.getOptionValue("dd")));
-            }
-            if (commandLine.hasOption("d")) {
-                config.setStartSegmenterDelay(Integer.parseInt(commandLine.getOptionValue("d")));
             }
             if (commandLine.hasOption("dt")) {
                 config.setSegmenterMaxtimeout(Integer.parseInt(commandLine.getOptionValue("dt")));

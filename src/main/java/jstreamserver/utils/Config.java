@@ -51,8 +51,6 @@ public final class Config {
     private int segmentDurationInSec = 10;
     private int segmentWindowSize = 2 * 60 * 60 / segmentDurationInSec;
     private int segmenterSearchKillFile = 1;
-    private int destroySegmenterDelay = 1000;
-    private int startSegmenterDelay = 5000;
     private int segmenterMaxtimeout = Math.max(segmentDurationInSec * 100 * 3, 30000); //3 times of segment duration. should be enough
 
 
@@ -164,22 +162,6 @@ public final class Config {
         this.segmenterSearchKillFile = segmenterSearchKillFile;
     }
 
-    public int getDestroySegmenterDelay() {
-        return destroySegmenterDelay;
-    }
-
-    public void setDestroySegmenterDelay(int destroySegmenterDelay) {
-        this.destroySegmenterDelay = destroySegmenterDelay;
-    }
-
-    public int getStartSegmenterDelay() {
-        return startSegmenterDelay;
-    }
-
-    public void setStartSegmenterDelay(int startSegmenterDelay) {
-        this.startSegmenterDelay = startSegmenterDelay;
-    }
-
     public int getSegmenterMaxtimeout() {
         return segmenterMaxtimeout;
     }
@@ -233,8 +215,6 @@ public final class Config {
             sb.append("segmentDurationInSec: ").append(segmentDurationInSec).append("\r\n");
             sb.append("segmentWindowSize: ").append(segmentWindowSize).append("\r\n");
             sb.append("segmenterSearchKillFile: ").append(segmenterSearchKillFile).append("\r\n");
-            sb.append("destroySegmenterDelay: ").append(destroySegmenterDelay).append("\r\n");
-            sb.append("startSegmenterDelay: ").append(startSegmenterDelay).append("\r\n");
             sb.append("segmenterMaxtimeout: ").append(segmenterMaxtimeout).append("\r\n");
         } else {
             sb.append("segmenterLocation not set - HTTP Live Streaming is not available\r\n");
