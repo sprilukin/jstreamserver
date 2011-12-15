@@ -37,9 +37,15 @@
                     <% _.each(file.mediaInfo.audioStreams, function(stream, index) { %>
                     <span class="label">[</span>
                     <span>
+                        <% if (file.liveStreamSupported) { %>
+                        <a href="/livestream?file=<%=file.url%>&stream=<%=stream.id%>" title="Play <%=file.name%> with audio stream <%=index%>">
+                        <% } %>
                         <%=stream.encoder%>, <%=stream.frequency%>, <%=stream.channels%>
                         <% if (stream.language) { %>, (<%=stream.language%>)<% } %>
                         <% if (stream.defaultStream) { %>, (default)<% } %>
+                        <% if (file.liveStreamSupported) { %>
+                        </a>
+                        <% } %>
                     </span>
                     <span class="label">] </span>
                     <% }) %>

@@ -58,6 +58,9 @@ import java.util.zip.GZIPOutputStream;
  */
 public abstract class BaseHandler extends ResponseSizeNeedlessHandlerAdapter implements ConfigAwareHttpHandler {
 
+    public static final String DIRECTORY_SEPARATOR = "/";
+    public static final String ROOT_DIRECTORY = DIRECTORY_SEPARATOR;
+
     public static final String DEFAULT_MIME_PROPERTIES = "mime.properties";
 
     public static final ThreadLocal<DateFormat> HTTP_HEADER_DATE_FORMAT =

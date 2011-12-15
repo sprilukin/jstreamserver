@@ -32,4 +32,5 @@ public interface ProgressListener {
     public void onFrameMessage(FrameMessage frameMessage);
     public void onProgress(String progressString);
     public void onFinish(int exitCode);
+    public void onPlayListCreated();
 }

@@ -142,6 +142,11 @@ public class FFMpegSegmenterTest extends UnitilsJUnit4 {
 
             finishCounter.incrementAndGet();
         }
+
+        @Override
+        public void onPlayListCreated() {
+            //do nothing
+        }
     };
 
     @Test

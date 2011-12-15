@@ -23,6 +23,7 @@
 package jstreamserver.http;
 
 import anhttpserver.HttpRequestContext;
+import jstreamserver.utils.Config;
 import jstreamserver.utils.HttpUtils;
 import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
@@ -67,6 +68,7 @@ public final class LiveStreamHandler extends BaseHandler {
 
     private FFMpegSegmenter ffMpegSegmenter;
     private final Object ffmpegSegmenterMonitor = new Object();
+    private final Object playListCreatedMonitor = new Object();
     private ProgressListener progressListener = new LiveStreamProgressListener();
 
     private SegmenterKiller segmenterKiller;
@@ -84,12 +86,13 @@ public final class LiveStreamHandler extends BaseHandler {
             Map<String, String> params = HttpUtils.getURLParams(httpRequestContext.getRequestURI().getRawQuery());
 
             String fileString = params.get("file");
+            String audioStreamId = params.get("stream");
             File file = getFile(URLDecoder.decode(fileString, HttpUtils.DEFAULT_ENCODING));
             if (!file.exists() || !file.isFile() || file.isHidden()) {
                 return rendeResourceNotFound(fileString, httpRequestContext);
             } else {
                 //String startTime = params.containsKey("time") ? params.get("time") : FFMPEG_SS_DATE_FORMAT.format(new Date(0)); // start from the beginning by default
-                return getLiveStream(file, httpRequestContext);
+                return getLiveStream(file, audioStreamId, httpRequestContext);
             }
         } else {
             String path = httpRequestContext.getRequestURI().getPath();
@@ -128,6 +131,7 @@ public final class LiveStreamHandler extends BaseHandler {
                     sb.append(line).append("\n");
                 } else {
                     fileIsOk = line.matches("^(.*\\.ts|#.*)$");
+                    reader.close();
                     break;
                 }
             }
@@ -160,6 +164,7 @@ public final class LiveStreamHandler extends BaseHandler {
             streamDir.mkdirs();
         }
 
+        //Remove all .ts and .m3u8 files
         String[] files = streamDir.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
@@ -176,15 +181,11 @@ public final class LiveStreamHandler extends BaseHandler {
         }
     }
 
-    private InputStream getLiveStream(File file, HttpRequestContext httpRequestContext) throws IOException {
+    private InputStream getLiveStream(File file, String audioStreamId, HttpRequestContext httpRequestContext) throws IOException {
 
         cleanResources();
 
-        try {
-            Thread.sleep(getConfig().getDestroySegmenterDelay());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        String ffmpegMapStreamParams = audioStreamId != null ? String.format(Config.FFMPEG_AUDIO_STREAM_SELECTION_FORMAT, audioStreamId) : "";
 
         synchronized (ffmpegSegmenterMonitor) {
             ffMpegSegmenter = new FFMpegSegmenter();
@@ -192,15 +193,17 @@ public final class LiveStreamHandler extends BaseHandler {
             ffMpegSegmenter.start(
                     getConfig().getFfmpegLocation(),
                     getConfig().getSegmenterLocation(),
-                    String.format(getConfig().getFfmpegParams(), file.getAbsolutePath()),
+                    String.format(getConfig().getFfmpegParams(), file.getAbsolutePath(), ffmpegMapStreamParams),
                     String.format(getConfig().getSegmenterParams(), LIVE_STREAM_FILE_PATH, PLAYLIST_FULL_PATH.substring(1)),
                     progressListener);
-        }
 
-        try {
-            Thread.sleep(getConfig().getStartSegmenterDelay());
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            try {
+                synchronized (playListCreatedMonitor) {
+                    playListCreatedMonitor.wait();
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         byte[] result = null;
@@ -260,12 +263,17 @@ public final class LiveStreamHandler extends BaseHandler {
     class LiveStreamProgressListener implements ProgressListener {
         @Override
         public void onFrameMessage(FrameMessage frameMessage) {
-            //System.out.println(frameMessage.toString());
         }
 
         @Override
         public void onProgress(String progressString) {
-            //System.out.println(progressString);
+        }
+
+        @Override
+        public void onPlayListCreated() {
+            synchronized (playListCreatedMonitor) {
+                playListCreatedMonitor.notify();
+            }
         }
 
         @Override

@@ -26,6 +26,7 @@ import jstreamserver.utils.RuntimeExecutor;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -62,12 +63,13 @@ public final class FFMpegSegmenter {
 
     public void start(String ffmpegPath, String segmenterPath, String ffmpegParams, String segmenterParams, ProgressListener progressListener) throws IOException {
         ffmpegExecutor.execute(ffmpegPath, ffmpegParams.split("[\\s]+"));
-        segmenterExecutor.execute(segmenterPath, segmenterParams.split("[\\s]+"));
+        String[] segmenterParamsArray = segmenterParams.split("[\\s]+");
+        segmenterExecutor.execute(segmenterPath, segmenterParamsArray);
 
         streamCopier = new Thread(new StreamCopier(ffmpegExecutor.getInputStream(), segmenterExecutor.getOutputStream()), "StreamCopier");
         segmenterInputStreamReader = new Thread(new InputReader(segmenterExecutor.getInputStream(), progressListener), "SegmenterInputReader");
         segmenterErrorStreamReader = new Thread(new InputReader(segmenterExecutor.getErrorStream(), progressListener), "SegmenterErrorReader");
-        ffmpegErrorStreamReader = new Thread(new InputReader(ffmpegExecutor.getErrorStream(), progressListener), "FFMpegInputReader");
+        ffmpegErrorStreamReader = new Thread(new InputReader(ffmpegExecutor.getErrorStream(), progressListener, getPlayListPath(segmenterParamsArray)), "FFMpegInputReader");
         finishWaiter = new Thread(new FinishWaiter(progressListener, ffmpegExecutor, segmenterExecutor));
 
         streamCopier.start();
@@ -124,10 +126,28 @@ public final class FFMpegSegmenter {
     static class InputReader implements Runnable {
         private BufferedReader reader;
         private ProgressListener progressListener;
+        private String playListPath;
+        private boolean playListCreated = false;
+
+        public InputReader(InputStream inputStream, ProgressListener progressListener, String playListPath) {
+            this.reader = new BufferedReader(new InputStreamReader(inputStream));
+            this.progressListener = progressListener;
+            this.playListPath = playListPath;
+        }
 
         public InputReader(InputStream inputStream, ProgressListener progressListener) {
             this.reader = new BufferedReader(new InputStreamReader(inputStream));
             this.progressListener = progressListener;
+        }
+
+        private void checkIfPlayListCreated() {
+            if (playListPath != null && !playListCreated) {
+                File playList = new File(playListPath);
+                if (playList.exists()) {
+                    playListCreated = true;
+                    progressListener.onPlayListCreated();
+                }
+            }
         }
 
         @Override
@@ -135,6 +155,8 @@ public final class FFMpegSegmenter {
             try {
                 String line;
                 while ((line = reader.readLine()) != null) {
+                    checkIfPlayListCreated();
+
                     Matcher matcher = Pattern.compile(FrameMessage.FRAME_PATTERN).matcher(line);
                     if (matcher.find()) {
                         FrameMessage frameMessage = new FrameMessage();
@@ -189,5 +211,9 @@ public final class FFMpegSegmenter {
                 this.progressListener.onFinish(segmenterExecutor.getExitCode());
             }
         }
+    }
+    
+    private String getPlayListPath(String[] streamSegmenterParams) {
+        return streamSegmenterParams[3];
     }
 }

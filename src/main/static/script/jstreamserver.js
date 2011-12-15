@@ -58,17 +58,34 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     renderLiveStream: function(element, data) {
-        this.el.find("video.livestream").remove();
         $(element).append(this.liveStreamTemplate(data));
+    },
+
+    removeLiveStream: function() {
+        var liveStreeamVideos = this.el.find("video.livestream");
+        _.each(liveStreeamVideos, function(video) {video.pause()});
+        liveStreeamVideos.remove();
     },
 
     findMeOrUp: function(elem, selector) {
         return $(elem).is(selector) ? elem : $(elem).parents(selector).get(0);
     },
 
+    getPlayListSuccess: function (li, data) {
+        var file = this.model.get(li.get(0).id);
+        var anchor = li.find("a").get(0);
+
+        //Render html5 video tag
+        this.renderLiveStream("#" + file.id, data);
+
+        //Hide ajax loader
+        $(anchor).show();
+        li.find(".ajax-loader").addClass("hidden");
+    },
+
     eventListeners: {
         "click":function (event) {
-            if (!$(event.target).is("a") && !$(event.target).is("span")) {
+            if (!$(event.target).is("a")) {
                 return;
             }
 
@@ -79,23 +96,20 @@ JStreamServer.DirectoryView = Backbone.View.extend({
                 var file = this.model.get(li.get(0).id);
 
                 if (file.get('liveStreamSupported')) {
-                    event.preventDefault();
 
                     var anchor = li.find("a").get(0);
 
                     $(anchor).hide();
                     li.find(".ajax-loader").removeClass("hidden");
 
-                    $.ajax(anchor.href, {
-                        dataType:"json",
-                        success:_.bind(function (data) {
-                            this.renderLiveStream("#" + file.id, data);
+                    //Pause and remove all video elements
+                    this.removeLiveStream();
 
-                            $(anchor).show();
-                            li.find(".ajax-loader").addClass("hidden");
-                        }, this)
-                    });
+                    //request .m3u8 playlist for specified video
+                    $.getJSON($(event.target)[0].href, null, _.bind(this.getPlayListSuccess, this, li));
 
+                    //Prevent default click behaviour and return false so click on href will not trigger default behaviour
+                    event.preventDefault();
                     return false;
                 }
             }

@@ -59,8 +59,6 @@ import java.util.List;
 public final class StreamServerHandler extends BaseHandler {
 
     public static final String PATH_PARAM = "path";
-    public static final String DIRECTORY_SEPARATOR = "/";
-    public static final String ROOT_DIRECTORY = DIRECTORY_SEPARATOR;
     public static final String PARENT_FOLDER_NAME = "[..]";
 
     private ObjectMapper jsonMapper = new ObjectMapper();

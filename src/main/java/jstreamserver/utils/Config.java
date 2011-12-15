@@ -35,7 +35,8 @@ import java.util.TreeMap;
  */
 public final class Config {
     public static final String SEGMENTER_PARAMS_FORMAT = "- {0} %s %s / {1} {2}";
-    public static final String FFMPEG_PARAMS_FORMAT = "-i \"%s\" {0} -";
+    public static final String FFMPEG_PARAMS_FORMAT = "-i \"%s\" %s {0} -";
+    public static final String FFMPEG_AUDIO_STREAM_SELECTION_FORMAT = "-map 0:0 -map 0:%s";
 
     private int port = 8888;
     private String host = "0.0.0.0";
