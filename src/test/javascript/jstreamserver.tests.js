@@ -22,6 +22,33 @@
 
 describe('jstreamserver', function () {
 
+    var data =
+        {
+            "id":"fileList0",
+            "name":"Net (1995) AVC.mkv",
+            "url":"%2Fd%2Fmovies%2FNet+%281995%29+AVC.mkv",
+            "mimeType":"video/x-matroska",
+            "extension":"mkv",
+            "liveStreamSupported":true,
+            "mediaInfo":{
+                "bitrate":"2769 kb/s",
+                "duration":"01:49:43.00",
+                "audioStreams":[
+                    {"id":"1", "language":"rus", "encoder":"aac", "frequency":"48000", "channels":"5.1", "bitrate":null, "defaultStream":true},
+                    {"id":"2", "language":"rus", "encoder":"aac", "frequency":"48000", "channels":"stereo", "bitrate":null, "defaultStream":false},
+                    {"id":"3", "language":"rus", "encoder":"aac", "frequency":"48000", "channels":"5.1", "bitrate":null, "defaultStream":false},
+                    {"id":"4", "language":"eng", "encoder":"aac", "frequency":"48000", "channels":"5.1", "bitrate":null, "defaultStream":false}
+                ],
+                "videoStreams":[
+                    {"id":"0", "language":"eng", "encoder":"h264", "resolution":"720x560", "fps":null, "defaultStream":true}
+                ],
+                "metadata":{}
+            },
+            "directory":false
+        };
+
+    var getPlayListCallback = {url: "/test/templates/stream.m3u8"};
+
     beforeEach(function() {
         $("body").append("<div id=\"testContext\"></div>");
 
@@ -47,44 +74,16 @@ describe('jstreamserver', function () {
     });
 
     it('should render directoryList after page load', function () {
-        new JStreamServer.DirectoryView({json: [
-            {"id":"fileList0","name":"c","url":"%2Fc","mimeType":null,"extension":null,"liveStreamSupported":null,"directory":true},
-            {"id":"fileList1","name":"d","url":"%2Fd","mimeType":null,"extension":null,"liveStreamSupported":null,"directory":true}]
-        });
+        new JStreamServer.DirectoryView([
+            {"id":"fileList0","name":"c","url":"%2Fc","mimeType":null,"extension":null,"liveStreamSupported":null,"directory":true,"mediaInfo": null},
+            {"id":"fileList1","name":"d","url":"%2Fd","mimeType":null,"extension":null,"liveStreamSupported":null,"directory":true,"mediaInfo": null}]
+        );
 
         expect($("#directoryList").find("li").length).toEqual(2);
     });
 
     it('should send request to getPlayList and render video tag when clicked on link for media file', function () {
-
-        var data =
-            {
-                "id":"fileList0",
-                "name":"Net (1995) AVC.mkv",
-                "url":"%2Fd%2Fmovies%2FNet+%281995%29+AVC.mkv",
-                "mimeType":"video/x-matroska",
-                "extension":"mkv",
-                "liveStreamSupported":true,
-                "mediaInfo":{
-                    "bitrate":"2769 kb/s",
-                    "duration":"01:49:43.00",
-                    "audioStreams":[
-                        {"id":"1", "language":"rus", "encoder":"aac", "frequency":"48000", "channels":"5.1", "bitrate":null, "defaultStream":true},
-                        {"id":"2", "language":"rus", "encoder":"aac", "frequency":"48000", "channels":"stereo", "bitrate":null, "defaultStream":false},
-                        {"id":"3", "language":"rus", "encoder":"aac", "frequency":"48000", "channels":"5.1", "bitrate":null, "defaultStream":false},
-                        {"id":"4", "language":"eng", "encoder":"aac", "frequency":"48000", "channels":"5.1", "bitrate":null, "defaultStream":false}
-                    ],
-                    "videoStreams":[
-                        {"id":"0", "language":"eng", "encoder":"h264", "resolution":"720x560", "fps":null, "defaultStream":true}
-                    ],
-                    "metadata":{}
-                },
-                "directory":false
-            };
-
-        var getPlayListCallback = {url: "/test/templates/stream.m3u8"};
-
-        new JStreamServer.DirectoryView({json: [data]});
+        new JStreamServer.DirectoryView([data]);
 
         spyOn($, "getJSON").andCallFake(function(url, getData, callback) {
             expect(url.substr(url.indexOf("?") + "file=".length + 1)).toEqual(data.url);
@@ -101,8 +100,12 @@ describe('jstreamserver', function () {
         expect(video.src.substr(video.src.indexOf("/test"))).toEqual(getPlayListCallback.url);
     });
 
+    it('should send request to getPlayList and render video tag when clicked on link for audio stream link of media file', function () {
+        throw new Error("Not implemented");
+    });
+
     it('should render breadcrumbs after page load', function () {
-        new JStreamServer.BreadCrumbView({json: [{"name":"","url":"/"},{"name":"d","url":"/d"},{"name":"download","url":"/d/download"}]});
+        new JStreamServer.BreadCrumbView([{"name":"","url":"/"},{"name":"d","url":"/d"},{"name":"download","url":"/d/download"}]);
 
         expect($("#breadcrumb").find("span.breadcrumb-item").length).toEqual(3);
     });

@@ -38,13 +38,13 @@ JStreamServer.BreadCrumbs = Backbone.Collection.extend({
 //Define view for directory list
 JStreamServer.DirectoryView = Backbone.View.extend({
 
-    initialize: function(args) {
+    initialize: function(json) {
         this.el = $("#directoryList");
 
         this.template = _.template($("#dirListTmpl").html());
         this.liveStreamTemplate = _.template($("#livestreamTmpl").html());
 
-        this.model = new JStreamServer.DirectoryList(args.json);
+        this.model = new JStreamServer.DirectoryList(json);
         this.attachListeners();
         this.render();
     },
@@ -121,11 +121,11 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
 //Define view for breadcrumbs
 JStreamServer.BreadCrumbView = Backbone.View.extend({
-    initialize: function(args) {
+    initialize: function(json) {
         this.el = $("#breadcrumb");
         this.template = _.template($("#breadcumbTmpl").html());
 
-        this.model = new JStreamServer.BreadCrumbs(args.json);
+        this.model = new JStreamServer.BreadCrumbs(json);
         this.render();
     },
 
