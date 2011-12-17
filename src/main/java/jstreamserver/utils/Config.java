@@ -41,7 +41,6 @@ public final class Config {
     private int port = 8888;
     private String host = "0.0.0.0";
     private int maxThreads = 10;
-    private String charset = "windows-1251";
     private String resourcesFolder = "static";
     private Map<String, String> rootDirs = new TreeMap<String, String>();
     private String mimeProperties = null;
@@ -52,6 +51,7 @@ public final class Config {
     private int segmentWindowSize = 2 * 60 * 60 / segmentDurationInSec;
     private int segmenterSearchKillFile = 1;
     private int segmenterMaxtimeout = Math.max(segmentDurationInSec * 100 * 3, 30000); //3 times of segment duration. should be enough
+    private String defaultTextCharset = "UTF-8";
 
 
     private static List<String> iosSupportedVideoExtensions = new ArrayList<String>();
@@ -96,14 +96,6 @@ public final class Config {
 
     public void setRootDirs(Map<String, String> rootDirs) {
         this.rootDirs = rootDirs;
-    }
-
-    public String getCharset() {
-        return charset;
-    }
-
-    public void setCharset(String charset) {
-        this.charset = charset;
     }
 
     public String getMimeProperties() {
@@ -178,6 +170,14 @@ public final class Config {
         this.resourcesFolder = resourcesFolder;
     }
 
+    public String getDefaultTextCharset() {
+        return defaultTextCharset;
+    }
+
+    public void setDefaultTextCharset(String defaultTextCharset) {
+        this.defaultTextCharset = defaultTextCharset;
+    }
+
     public String getSegmenterParams() {
         return MessageFormat.format(
                 SEGMENTER_PARAMS_FORMAT,
@@ -199,6 +199,7 @@ public final class Config {
         sb.append("listening on: ").append(host).append(":").append(port).append("\r\n");
         sb.append("max threads count: ").append(maxThreads).append("\r\n");
         sb.append("resources folder: ").append(resourcesFolder).append("\r\n");
+        sb.append("default text charset: ").append(defaultTextCharset).append("\r\n");
         if (mimeProperties != null) {
             sb.append("mimeProperties: ").append(mimeProperties).append("\r\n");
         }

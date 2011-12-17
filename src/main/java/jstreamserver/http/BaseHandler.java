@@ -130,7 +130,12 @@ public abstract class BaseHandler extends ResponseSizeNeedlessHandlerAdapter imp
 
     protected void setCommonResourceHeaders(HttpRequestContext httpRequestContext, String mimeType) {
         //Set response headers
-        setContentType(mimeType != null ? mimeType : "application/octet-stream", httpRequestContext);
+        String contentType = mimeType != null ? mimeType : "application/octet-stream";
+        if (contentType.startsWith("text")) {
+            contentType = contentType + "; charset=" + getConfig().getDefaultTextCharset();
+        }
+
+        setContentType(contentType, httpRequestContext);
         setResponseHeader("Expires", HTTP_HEADER_DATE_FORMAT.get().format(new Date(0)), httpRequestContext);
         setResponseHeader("Pragma", "no-cache", httpRequestContext);
         setResponseHeader("Cache-Control", "no-store,private,no-cache", httpRequestContext);

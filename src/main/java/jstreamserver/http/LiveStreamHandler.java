@@ -29,6 +29,7 @@ import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
 import jstreamserver.utils.ffmpeg.ProgressListener;
 import org.apache.commons.io.FilenameUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -92,7 +93,7 @@ public final class LiveStreamHandler extends BaseHandler {
                 return rendeResourceNotFound(fileString, httpRequestContext);
             } else {
                 //String startTime = params.containsKey("time") ? params.get("time") : FFMPEG_SS_DATE_FORMAT.format(new Date(0)); // start from the beginning by default
-                return getLiveStream(file, audioStreamId, httpRequestContext);
+                return getLiveStream(file, fileString, audioStreamId, httpRequestContext);
             }
         } else {
             String path = httpRequestContext.getRequestURI().getPath();
@@ -181,7 +182,7 @@ public final class LiveStreamHandler extends BaseHandler {
         }
     }
 
-    private InputStream getLiveStream(File file, String audioStreamId, HttpRequestContext httpRequestContext) throws IOException {
+    private InputStream getLiveStream(File file, String fileString, String audioStreamId, HttpRequestContext httpRequestContext) throws IOException {
 
         cleanResources();
 
@@ -209,7 +210,28 @@ public final class LiveStreamHandler extends BaseHandler {
         byte[] result = null;
         try {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("url", PLAYLIST_FULL_PATH);
+            JSONObject liveStreamSource = new JSONObject();
+            liveStreamSource.put("url", PLAYLIST_FULL_PATH);
+            liveStreamSource.put("type", getMimeProperties().getProperty(PLAYLIST_EXTENSION));
+
+            String extension = FilenameUtils.getExtension(file.getPath());
+            JSONObject originalSource = new JSONObject();
+            originalSource.put("url", "/?path=" + fileString);
+            originalSource.put("type", getMimeProperties().getProperty(extension));
+
+            JSONArray sources = new JSONArray();
+            sources.put(liveStreamSource);
+            sources.put(originalSource);
+
+            jsonObject.put("sources", sources);
+
+            //getFile
+            String subtitlesString = fileString.substring(0, fileString.length() - extension.length() - 1) + ".srt";
+            File subtitles = getFile(URLDecoder.decode(subtitlesString, HttpUtils.DEFAULT_ENCODING));
+
+            if (subtitles.exists()) {
+                jsonObject.put("subtitle", subtitlesString);
+            }
 
             result = jsonObject.toString().getBytes();
             setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);

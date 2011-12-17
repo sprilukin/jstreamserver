@@ -86,3 +86,27 @@ video.livestream {
     margin-top: 10px;
     margin-bottom: 15px
 }
+
+.subtitles-video-wrapper {
+    position: relative
+}
+
+.subtitles-panel {
+    position: absolute;
+    bottom: 34px;
+    width: 250px;
+    padding: 0 25px 0 25px;
+    text-align: center;
+    background-color: transparent;
+    color: #ffffff;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: #000000 1px 1px 0px
+}
+
+video {
+    width: 1020px;
+    height: 660px;
+    margin-left: -48px
+}

@@ -62,9 +62,12 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     removeLiveStream: function() {
-        var liveStreeamVideos = this.el.find("video.livestream");
-        _.each(liveStreeamVideos, function(video) {video.pause()});
+        var liveStreeamVideos = this.el.find("video");
+        $(liveStreeamVideos).each(function(video) {
+            video.pause()
+        });
         liveStreeamVideos.remove();
+        this.el.find("div.subtitles").remove();
     },
 
     findMeOrUp: function(elem, selector) {
@@ -77,6 +80,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
         //Render html5 video tag
         this.renderLiveStream("#" + file.id, data);
+        $("div.subtitles").showSubtitles();
 
         //Hide ajax loader
         $(anchor).show();
@@ -97,9 +101,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
                 if (file.get('liveStreamSupported')) {
 
-                    var anchor = li.find("a").get(0);
-
-                    $(anchor).hide();
+                    $(li.find("a").get(0)).hide();
                     li.find(".ajax-loader").removeClass("hidden");
 
                     //Pause and remove all video elements

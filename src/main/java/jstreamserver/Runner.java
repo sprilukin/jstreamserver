@@ -140,6 +140,12 @@ public final class Runner {
         segmenterMaxTimeout.setArgName("timeout");
         segmenterMaxTimeout.setRequired(false);
 
+        Option defaultCharset = new Option("c", "charset", true, "Default text files encoding");
+        defaultCharset.setArgs(1);
+        defaultCharset.setOptionalArg(false);
+        defaultCharset.setArgName("charset");
+        defaultCharset.setRequired(false);
+
         //Root locations
         Option locations = new Option("f", "folders", true, "List of folders which will be shown in root.");
         locations.setArgs(Option.UNLIMITED_VALUES);
@@ -162,6 +168,7 @@ public final class Runner {
         options.addOption(segmenterSearchKillFile);
         options.addOption(segmenterMaxTimeout);
         options.addOption(locations);
+        options.addOption(defaultCharset);
     }
 
     private void start(Config config) throws IOException {
@@ -209,6 +216,10 @@ public final class Runner {
 
         if (commandLine.hasOption("r")) {
             config.setResourcesFolder(commandLine.getOptionValue("r"));
+        }
+
+        if (commandLine.hasOption("c")) {
+            config.setDefaultTextCharset(commandLine.getOptionValue("charset"));
         }
 
         if (commandLine.hasOption("ff")) {

@@ -67,5 +67,16 @@
 </script>
 
 <script id="livestreamTmpl" type="text/template">
-    <video class="livestream" src="<%=url%>" controls="controls" autoplay="autoplay"></video>
+    <div class="subtitles-video-wrapper">
+        <video controls="controls" autoplay="autoplay" id="streamVideo">
+            <% _.each(sources, function(source) { %>
+            <source src="<%=source.url%>" type="<%=source.type%>" />
+            <% }) %>
+            Your browser does not support the video tag.
+        </video>
+        <div class="subtitles-panel"></div>
+    </div>
+    <% if (subtitle) { %>
+    <div class="hidden subtitles" data-src="/?path=<%=subtitle%>" data-video="streamVideo"></div>
+    <% } %>
 </script>
