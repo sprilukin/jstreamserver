@@ -85,8 +85,8 @@ describe('jstreamserver', function () {
         });
 
         var anchor = $("#" + data.id).find("a")[0];
-        //$(anchor).simulate('click', {bubbles: false}); //somewhy doesnt simulate click...
-        $(anchor).click();
+        $(anchor).simulate('click'); //somewhy doesn't always fires click event, maybe because of subsequent eqceptions
+        //$(anchor).click();
 
         var video = $("#" + data.id).find("video")[0];
         expect(video).toBeDefined();
