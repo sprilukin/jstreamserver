@@ -64,7 +64,7 @@
         var videoWrapper = $(metadata.video).parents(".subtitles-video-wrapper").get(0);
         var subtitlesPanel = $(videoWrapper).find(".subtitles-panel");
         subtitlesPanel.css({
-            'width': (videowidth-50)+'px',
+            'width': (videowidth - 50)+'px', //50 is sum of paddings from css: 25 + 25
             'font-size': fontSize +'px'
         });
 
@@ -129,6 +129,7 @@
     };
 
     var hideSubtitle = function(element) {
+        //TODO: remove listeners
         console.log("hideSubtitle: " + element);
     };
 
@@ -176,7 +177,7 @@
         showSubtitles:function (opts) {
 
             var defaults = {
-                fontSize:12,
+                fontSize:20,
                 fontFamily:"Arial",
                 fontColor:'#ccc'
             };

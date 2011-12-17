@@ -122,8 +122,8 @@ describe('jstreamserver', function () {
     });
 
     it('should send request to getPlayList and render video tag when clicked on link for audio stream link of media file', function () {
-        //throw new Error("Not implemented");
-        expect(true).toBeTruthy();
+        //TODO: Not implemented;
+        expect(true).toBeFalsy();
     });
 
     it('should render breadcrumbs after page load', function () {

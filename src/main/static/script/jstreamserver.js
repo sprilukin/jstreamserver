@@ -41,9 +41,6 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     initialize: function(json) {
         this.el = $("#directoryList");
 
-        console.log("dirListTmpl: "+ $("#dirListTmpl")[0]);
-        console.log("videotagTmpl: "+ $("#videotagTmpl")[0]);
-
         this.template = _.template($("#dirListTmpl").html());
         this.videoTemplate = _.template($("#videotagTmpl").html());
 
