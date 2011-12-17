@@ -34,6 +34,8 @@ public class FileListEntry {
     private String name;
     private String url;
     private Boolean isDirectory;
+    private Boolean video;
+    private Boolean audio;
     private String mimeType;
     private String extension;
     private MediaInfo mediaInfo;
@@ -68,6 +70,22 @@ public class FileListEntry {
 
     public void setDirectory(Boolean directory) {
         isDirectory = directory;
+    }
+
+    public Boolean getVideo() {
+        return video;
+    }
+
+    public void setVideo(Boolean video) {
+        this.video = video;
+    }
+
+    public Boolean getAudio() {
+        return audio;
+    }
+
+    public void setAudio(Boolean audio) {
+        this.audio = audio;
     }
 
     public String getMimeType() {

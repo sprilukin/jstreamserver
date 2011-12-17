@@ -55,13 +55,13 @@
                     <% _.each(file.mediaInfo.audioStreams, function(stream, index) { %>
                     <span class="label">[</span>
                     <span>
-                        <% if (file.mimeType && file.mimeType.indexOf('video') == 0) { %>
+                        <% if (file.video) { %>
                         <a href="<%=file.url%>&stream=<%=stream.id%>" title="Play <%=file.name%> with audio stream <%=index%>">
                         <% } %>
                         <%=stream.encoder%>, <%=stream.frequency%>, <%=stream.channels%>
                         <% if (stream.language) { %>, (<%=stream.language%>)<% } %>
                         <% if (stream.defaultStream) { %>, (default)<% } %>
-                        <% if (file.mimeType && file.mimeType.indexOf('video') == 0) { %>
+                        <% if (file.video) { %>
                         </a>
                         <% } %>
                     </span>

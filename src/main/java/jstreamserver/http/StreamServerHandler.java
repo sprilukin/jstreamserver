@@ -133,19 +133,19 @@ public final class StreamServerHandler extends BaseHandler {
         List<String> mediaFileNames = new ArrayList<String>();
 
         try {
+            String prefix = "/?path=";
 
             if (!ROOT_DIRECTORY.equals(parentPath)) {
                 String parentDirPath = parentPath.replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
                 FileListEntry parentDir = new FileListEntry();
                 parentDir.setDirectory(true);
                 parentDir.setName(PARENT_FOLDER_NAME);
-                parentDir.setUrl(URLEncoder.encode(parentDirPath.isEmpty() ? ROOT_DIRECTORY : parentDirPath, HttpUtils.DEFAULT_ENCODING));
+                parentDir.setUrl(prefix + URLEncoder.encode(parentDirPath.isEmpty() ? ROOT_DIRECTORY : parentDirPath, HttpUtils.DEFAULT_ENCODING));
 
                 fileList.add(parentDir);
             }
 
             String parentDir = ROOT_DIRECTORY.equals(parentPath) ? ROOT_DIRECTORY : parentPath + DIRECTORY_SEPARATOR;
-            String prefix = "/?path=";
 
 
             for (File file : files) {
@@ -158,9 +158,13 @@ public final class StreamServerHandler extends BaseHandler {
                     entry.setDirectory(false);
                     entry.setMimeType(mimeType);
                     entry.setExtension(extension);
+                    entry.setVideo(mimeType.startsWith("video"));
+                    entry.setAudio(mimeType.startsWith("audio"));
+                    if (mimeType.startsWith("video")) {
+                        prefix = "/livestream?file="; //Only video for now supports livestreaming
+                    }
 
-                    if (mimeType.startsWith("video") || mimeType.startsWith("audio")) {
-                        prefix = "/livestream?file=";
+                    if (entry.getVideo() || entry.getAudio()) {
                         mediaFileList.add(entry);
                         mediaFileNames.add(file.getPath());
                     }
