@@ -41,8 +41,11 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     initialize: function(json) {
         this.el = $("#directoryList");
 
+        console.log("dirListTmpl: "+ $("#dirListTmpl")[0]);
+        console.log("videotagTmpl: "+ $("#videotagTmpl")[0]);
+
         this.template = _.template($("#dirListTmpl").html());
-        this.liveStreamTemplate = _.template($("#livestreamTmpl").html());
+        this.videoTemplate = _.template($("#videotagTmpl").html());
 
         this.model = new JStreamServer.DirectoryList(json);
         this.attachListeners();
@@ -58,7 +61,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     renderLiveStream: function(element, data) {
-        $(element).append(this.liveStreamTemplate(data));
+        $(element).append(this.videoTemplate(data));
     },
 
     removeLiveStream: function() {

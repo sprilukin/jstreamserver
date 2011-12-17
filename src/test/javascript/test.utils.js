@@ -54,7 +54,7 @@ var TestUtils = {};
             };
 
             $.each(templates, function () {
-                loadTemplate(container || $("body"), this, callback);
+                loadTemplate(container, this, callback);
             })
         }
     }

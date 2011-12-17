@@ -56,9 +56,6 @@ describe('jstreamserver', function () {
 
     beforeEach(function() {
         $("body").append("<div id=\"testContext\"></div>");
-
-        TestUtils.loadTemplates($("#testContext"), "directory", "dirlisttmpl", "breadcrumbtmpl", "videotagtmpl");
-        waitsFor(TestUtils.templatesLoaded, "Timeout reached while loading templates", 500);
     });
 
     afterEach(function() {
@@ -66,42 +63,62 @@ describe('jstreamserver', function () {
     });
 
     it('should render directoryList after page load', function () {
-        new JStreamServer.DirectoryView([
-            {"id":"fileList0","name":"c","url":"/?path=%2Fc","mimeType":null,"extension":null,"directory":true,"mediaInfo": null},
-            {"id":"fileList1","name":"d","url":"/?path=%2Fd","mimeType":null,"extension":null,"directory":true,"mediaInfo": null}]
-        );
+        runs(function () {
+            TestUtils.loadTemplates($("#testContext"), "directory", "dirlisttmpl", "videotagtmpl");
+        });
 
-        expect($("#directoryList").find("li").length).toEqual(2);
+        waitsFor(TestUtils.templatesLoaded, "Timeout reached while loading templates", 500);
+
+        runs(function () {
+            expect($("#dirListTmpl")).toBeDefined();
+            expect($("#videotagTmpl")).toBeDefined();
+
+            new JStreamServer.DirectoryView([
+                {"id":"fileList0", "name":"c", "url":"/?path=%2Fc", "mimeType":null, "extension":null, "directory":true, "mediaInfo":null},
+                {"id":"fileList1", "name":"d", "url":"/?path=%2Fd", "mimeType":null, "extension":null, "directory":true, "mediaInfo":null}
+            ]
+            );
+
+            expect($("#directoryList").find("li").length).toEqual(2);
+        });
     });
 
     it('should send request to getPlayList and render video tag when clicked on link for media file', function () {
-        new JStreamServer.DirectoryView([data]);
-
-        spyOn($, "getJSON").andCallFake(function(url, getData, callback) {
-            expect(url.indexOf(data.url) >=0).toBeTruthy();
-            expect(callback).toBeDefined();
-
-            callback(getPlayListCallback);
+        runs(function () {
+            TestUtils.loadTemplates($("#testContext"), "directory", "dirlisttmpl", "videotagtmpl");
         });
 
-        var anchor = $("#" + data.id).find("a")[0];
-        $(anchor).simulate('click'); //somewhy doesn't always fires click event, maybe because of subsequent eqceptions
-        //$(anchor).click();
+        waitsFor(TestUtils.templatesLoaded, "Timeout reached while loading templates", 500);
 
-        var video = $("#" + data.id).find("video")[0];
-        expect(video).toBeDefined();
+        runs(function () {
+            new JStreamServer.DirectoryView([data]);
 
-        var sources = $(video).find("source");
-        expect(sources.length).toEqual(2);
-        $.each([0, 1], function (index) {
-            expect(sources[index].src.indexOf(getPlayListCallback.sources[index].url) >= 0).toBeTruthy();
-            expect(sources[index].type).toEqual(getPlayListCallback.sources[index].type);
+            spyOn($, "getJSON").andCallFake(function (url, getData, callback) {
+                expect(url.indexOf(data.url) >= 0).toBeTruthy();
+                expect(callback).toBeDefined();
+
+                callback(getPlayListCallback);
+            });
+
+            var anchor = $("#" + data.id).find("a")[0];
+            $(anchor).simulate('click'); //somewhy doesn't always fires click event, maybe because of subsequent eqceptions
+            //$(anchor).click();
+
+            var video = $("#" + data.id).find("video")[0];
+            expect(video).toBeDefined();
+
+            var sources = $(video).find("source");
+            expect(sources.length).toEqual(2);
+            $.each([0, 1], function (index) {
+                expect(sources[index].src.indexOf(getPlayListCallback.sources[index].url) >= 0).toBeTruthy();
+                expect(sources[index].type).toEqual(getPlayListCallback.sources[index].type);
+            });
+
+            var subtitles = $("#" + data.id).find("div.subtitles")[0];
+            expect(subtitles).toBeDefined();
+            expect($(subtitles).attr("data-video")).toEqual(video.id);
+            expect($(subtitles).text().replace(/[\r\n\s]+/g, "")).toEqual(getPlayListCallback.subtitle.replace(/[\r\n\s]+/g, ""));
         });
-
-        var subtitles = $("#" + data.id).find("div.subtitles")[0];
-        expect(subtitles).toBeDefined();
-        expect($(subtitles).attr("data-video")).toEqual(video.id);
-        expect($(subtitles).text().replace(/[\r\n\s]+/g, "")).toEqual(getPlayListCallback.subtitle.replace(/[\r\n\s]+/g, ""));
     });
 
     it('should send request to getPlayList and render video tag when clicked on link for audio stream link of media file', function () {
@@ -110,8 +127,20 @@ describe('jstreamserver', function () {
     });
 
     it('should render breadcrumbs after page load', function () {
-        new JStreamServer.BreadCrumbView([{"name":"","url":"/"},{"name":"d","url":"/d"},{"name":"download","url":"/d/download"}]);
+        runs(function () {
+            TestUtils.loadTemplates($("#testContext"), "directory", "breadcrumbtmpl");
+        });
 
-        expect($("#breadcrumb").find("span.breadcrumb-item").length).toEqual(3);
+        waitsFor(TestUtils.templatesLoaded, "Timeout reached while loading templates", 500);
+
+        runs(function () {
+            new JStreamServer.BreadCrumbView([
+                {"name":"", "url":"/"},
+                {"name":"d", "url":"/d"},
+                {"name":"download", "url":"/d/download"}
+            ]);
+
+            expect($("#breadcrumb").find("span.breadcrumb-item").length).toEqual(3);
+        })
     });
 });
