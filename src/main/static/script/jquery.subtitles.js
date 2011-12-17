@@ -21,6 +21,7 @@
  */
 
 (function ($) {
+    var REMOVE_FIRST_ZERO_REGEXP = /^0/g;
 
     var loadSubtitlesText = function(metadata, callback) {
         var text = $.trim(metadata.text);
@@ -40,21 +41,19 @@
             return;
         }
 
-        if ((typeof metadata.video.addtrack !== "function") || !metadata.video.find("track[kind='subtitle']").first()) {
-            loadSubtitlesText(metadata, function(text) {
-                metadata.subtitles = convertTextToSubtitlesModel(text);
-                metadata.text = null; //free memory;
-                metadata.currentSubtitleIndex = 0; //start showing subtitles from the beginning
-                createSubtitlesMarkup(metadata);
-                $.each(eventListeners, function(eventName, handler) {
-                    metadata.video.bind(eventName, $.proxy(handler, metadata));
-                })
+        loadSubtitlesText(metadata, function(text) {
+            metadata.subtitles = convertTextToSubtitlesModel(text);
+            metadata.text = null; //free memory;
+            metadata.currentSubtitleIndex = 0; //start showing subtitles from the beginning
+            createSubtitlesMarkup(metadata);
+            $.each(eventListeners, function(eventName, handler) {
+                $(metadata.video).bind(eventName, $.proxy(handler, metadata));
             })
-        }
+        })
     };
 
     var createSubtitlesMarkup = function (metadata) {
-        var videowidth = metadata.video.width();
+        var videowidth = $(metadata.video).width();
 
         var fontSize = metadata.fontSize;
         if (videowidth > 400) {
@@ -86,46 +85,44 @@
             subtitlesModel.push({
                 startTime: getTimeInMillis(time[0]),
                 endTime: getTimeInMillis(time[1]),
-                text: $.trim(entry[2])
+                text: $.trim(entry.splice(2).join(" "))
             });
         }
 
         return subtitlesModel;
     };
 
+    var convertTimePartToInt = function(timePartAsString) {
+        return parseInt(timePartAsString.replace(REMOVE_FIRST_ZERO_REGEXP, ""));
+    };
+
     var getTimeInMillis = function(timeAsString) {
         var timePartsWithMillis = timeAsString.split(',');
         var timePartsNoMillis = timePartsWithMillis[0].split(':');
-        return (parseInt(timePartsNoMillis[0]) * 60 * 60 + parseInt(timePartsNoMillis[1]) * 60 + parseInt(timePartsNoMillis[2])) * 1000 + parseInt(timePartsWithMillis[1]);
+        return (convertTimePartToInt(timePartsNoMillis[0]) * 60 * 60 + convertTimePartToInt(timePartsNoMillis[1]) * 60 + convertTimePartToInt(timePartsNoMillis[2])) * 1000 + convertTimePartToInt(timePartsWithMillis[1]);
     };
 
     var getSubtitleMetadata = function(element) {
-        return $(element).is("video") ? $(element).find("track[kind='subtitle']").map(function () {
-            return {
-                video: $(element),
-                url:$(this).attr('src'),
-                text: undefined //<track> tag can not contain inner text
-            };
-        }).first() : {
-            video: $(document.getElementById($(element).attr('data-video'))),
+        return {
+            video: document.getElementById($(element).attr('data-video')),
             url:$(element).attr('data-src'),
             text:$(element).text()
         };
     };
 
     var getVideoPosInMsec = function(video) {
-        return ($(video)[0].currentTime * 1000).toFixed()
+        return Math.floor(video.currentTime * 1000);
     };
 
     var findNextSuitableSubtitle = function(currentTime, currentIndex, subtitles) {
         for (var i = currentIndex; i < subtitles.length; i++) {
             var nextSubtitle = subtitles[i];
-            if (currentTime <= nextSubtitle.endTime) {
+            if (currentTime < nextSubtitle.endTime) {
                 return i;
             }
         }
 
-        return -1; //Index not found
+        return 0; //Index not found
     };
 
     var hideSubtitle = function(element) {
@@ -135,24 +132,20 @@
 
     var eventListeners = {
         'play': function(event) {
-            console.log("play: " + this.video[0].currentTime);
-            this.currentSubtitleIndex = 0;
+            var currentTime = getVideoPosInMsec(this.video);
+            this.currentSubtitleIndex = findNextSuitableSubtitle(currentTime, 0, this.subtitles);
         },
 
         'ended': function(event) {
-            console.log("ended: " + this.video[0].currentTime);
-            this.currentSubtitleIndex = 0;
+            /* do nothing */
         },
 
         'seeked': function(event) {
-            console.log("seeked: " + this.video[0].currentTime);
             var currentTime = getVideoPosInMsec(this.video);
             this.currentSubtitleIndex = findNextSuitableSubtitle(currentTime, 0, this.subtitles);
         },
 
         'timeupdate': function(event) {
-            console.log("timeupdate: " + this.video[0].currentTime);
-
             var currentSubtitle = this.subtitles[this.currentSubtitleIndex];
             var currentTime = getVideoPosInMsec(this.video);
             var text = "";
@@ -161,6 +154,10 @@
                 //Need to find next suitable subtitle to show
                 this.currentSubtitleIndex = findNextSuitableSubtitle(currentTime, this.currentSubtitleIndex + 1, this.subtitles);
                 currentSubtitle = this.subtitles[this.currentSubtitleIndex];
+            } else if (currentTime < currentSubtitle.startTime) {
+                //backward seeking was applied
+                this.currentSubtitleIndex = findNextSuitableSubtitle(currentTime, 0, this.subtitles);
+                currentSubtitle = this.subtitles[this.currentSubtitleIndex];
             }
 
             //Current subtitle is suitable to show
@@ -168,8 +165,8 @@
                 text = currentSubtitle.text;
             }
 
+            //console.log("timeupdate: " + currentSubtitle.startTime + " | " + this.video.currentTime + " " + this.video.startTime + " | " + currentSubtitle.endTime + " | " + text);
             this.subtitlesPanel.text(text);
-
         }
     };
 

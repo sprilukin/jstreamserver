@@ -21,18 +21,20 @@
   -->
 
 <script id="videotagTmpl" type="text/template">
-    <div class="subtitles-video-wrapper">
-        <video controls="controls" autoplay="autoplay" id="streamVideo">
-            <% _.each(sources, function(source) { %>
-            <source src="<%=source.url%>" type="<%=source.type%>" />
-            <% }) %>
-            Your browser does not support the video tag.
-        </video>
-        <div class="subtitles-panel"></div>
+    <div class="video-container">
+        <div class="subtitles-video-wrapper">
+            <video controls="controls" autoplay="autoplay" id="streamVideo">
+                <% _.each(sources, function(source) { %>
+                <source src="<%=source.url%>" type="<%=source.type%>" />
+                <% }) %>
+                Your browser does not support the video tag.
+            </video>
+            <div class="subtitles-panel"></div>
+        </div>
+        <% if (subtitle) { %>
+        <div class="hidden subtitles" data-video="streamVideo">
+            <%=subtitle%>
+        </div>
+        <% } %>
     </div>
-    <% if (subtitle) { %>
-    <div class="hidden subtitles" data-video="streamVideo">
-        <%=subtitle%>
-    </div>
-    <% } %>
 </script>

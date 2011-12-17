@@ -63,11 +63,11 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
     removeLiveStream: function() {
         var liveStreeamVideos = this.el.find("video");
-        $(liveStreeamVideos).each(function(video) {
-            video.pause()
+        $(liveStreeamVideos).each(function() {
+            this.pause();
         });
         liveStreeamVideos.remove();
-        this.el.find("div.subtitles").remove();
+        this.el.find("div.video-container").remove();
     },
 
     findMeOrUp: function(elem, selector) {
