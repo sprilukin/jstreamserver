@@ -238,7 +238,7 @@ public final class LiveStreamHandler extends BaseHandler {
                 IOUtils.copy(fis, baos);
                 jsonObject.put("subtitle", baos.toString(getConfig().getDefaultTextCharset()));
             } else {
-                jsonObject.put("subtitle", null);
+                jsonObject.put("subtitle", "");
             }
 
             result = jsonObject.toString().getBytes();
