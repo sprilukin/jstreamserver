@@ -29,13 +29,16 @@ import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
 import jstreamserver.utils.ffmpeg.FrameMessage;
 import jstreamserver.utils.ffmpeg.ProgressListener;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -230,7 +233,10 @@ public final class LiveStreamHandler extends BaseHandler {
             File subtitles = getFile(URLDecoder.decode(subtitlesString, HttpUtils.DEFAULT_ENCODING));
 
             if (subtitles.exists()) {
-                jsonObject.put("subtitle", subtitlesString);
+                FileInputStream fis = new FileInputStream(subtitles);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                IOUtils.copy(fis, baos);
+                jsonObject.put("subtitle", baos.toString(getConfig().getDefaultTextCharset()));
             }
 
             result = jsonObject.toString().getBytes();

@@ -37,9 +37,9 @@ import org.apache.commons.cli.PosixParser;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeMap;
 
 /**
  * entry point for <b>jstreamserver</b>
@@ -246,7 +246,7 @@ public final class Runner {
         }
 
         if (commandLine.hasOption("f")) {
-            Map<String, String> rotDirs = new TreeMap<String, String>();
+            Map<String, String> rotDirs = new LinkedHashMap<String, String>();
 
             try {
                 for (String path: commandLine.getOptionValues("f")) {

@@ -23,9 +23,9 @@
 package jstreamserver.utils.ffmpeg;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * DTO with info about media streams
@@ -38,7 +38,7 @@ public class MediaInfo {
     private String duration;
     private List<AudioStreamInfo> audioStreams = new ArrayList<AudioStreamInfo>();
     private List<VideoStreamInfo> videoStreams = new ArrayList<VideoStreamInfo>();
-    private Map<String, String> metadata = new TreeMap<String, String>();
+    private Map<String, String> metadata = new LinkedHashMap<String, String>();
 
     public String getBitrate() {
         return bitrate;

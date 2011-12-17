@@ -145,6 +145,7 @@ public final class StreamServerHandler extends BaseHandler {
             }
 
             String parentDir = ROOT_DIRECTORY.equals(parentPath) ? ROOT_DIRECTORY : parentPath + DIRECTORY_SEPARATOR;
+            String prefix = "/?path=";
 
 
             for (File file : files) {
@@ -157,9 +158,9 @@ public final class StreamServerHandler extends BaseHandler {
                     entry.setDirectory(false);
                     entry.setMimeType(mimeType);
                     entry.setExtension(extension);
-                    entry.setLiveStreamSupported(getConfig().httpLiveStreamingSupported(extension, mimeType));
 
                     if (mimeType.startsWith("video") || mimeType.startsWith("audio")) {
+                        prefix = "/livestream?file=";
                         mediaFileList.add(entry);
                         mediaFileNames.add(file.getPath());
                     }
@@ -173,7 +174,7 @@ public final class StreamServerHandler extends BaseHandler {
                 }
 
                 entry.setName(name);
-                entry.setUrl(URLEncoder.encode(parentDir + name, HttpUtils.DEFAULT_ENCODING));
+                entry.setUrl(prefix + URLEncoder.encode(parentDir + name, HttpUtils.DEFAULT_ENCODING));
 
                 fileList.add(entry);
             }

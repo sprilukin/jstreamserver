@@ -17,7 +17,9 @@
     </script>
 
     #* HTML templates *#
-    #include("templates/jq-templates.html")
+    #include("templates/dirlisttmpl.html")
+    #include("templates/breadcrumbtmpl.html")
+    #include("templates/videotagtmpl.html")
 </head>
 <body>
 

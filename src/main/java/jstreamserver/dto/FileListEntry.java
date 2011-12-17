@@ -36,7 +36,6 @@ public class FileListEntry {
     private Boolean isDirectory;
     private String mimeType;
     private String extension;
-    private Boolean liveStreamSupported;
     private MediaInfo mediaInfo;
 
     public String getId() {
@@ -85,14 +84,6 @@ public class FileListEntry {
 
     public void setExtension(String extension) {
         this.extension = extension;
-    }
-
-    public Boolean getLiveStreamSupported() {
-        return liveStreamSupported;
-    }
-
-    public void setLiveStreamSupported(Boolean liveStreamSupported) {
-        this.liveStreamSupported = liveStreamSupported;
     }
 
     public MediaInfo getMediaInfo() {

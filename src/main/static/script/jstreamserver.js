@@ -99,7 +99,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
                 var file = this.model.get(li.get(0).id);
 
-                if (file.get('liveStreamSupported')) {
+                if (file.get('mimeType').indexOf('video') == 0) {
 
                     $(li.find("a").get(0)).hide();
                     li.find(".ajax-loader").removeClass("hidden");

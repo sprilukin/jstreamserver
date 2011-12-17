@@ -1,3 +1,25 @@
+<!--
+  ~ Copyright (c) 2011 Sergey Prilukin
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ of this software and associated documentation files (the "Software"), to deal
+  ~ in the Software without restriction, including without limitation the rights
+  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is
+  ~ furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in
+  ~ all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  ~ SOFTWARE.
+  -->
+
 <script id="dirListTmpl" type="text/template">
     <% _.each(files, function(file) { %>
     <li id="<%= file.id %>">
@@ -8,12 +30,8 @@
         <% } %>
             <div>
                 <span class="icon"></span>
-                <% if (file.liveStreamSupported) { %>
-                <a href="/livestream?file=<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
+                <a href="<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
                 <span class="ajax-loader hidden"></span>
-                <% } else { %>
-                <a href="/?path=<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
-                <% } %>
             </div>
             <% if (file.mediaInfo) { %>
             <div class="mediaInfo">
@@ -37,13 +55,13 @@
                     <% _.each(file.mediaInfo.audioStreams, function(stream, index) { %>
                     <span class="label">[</span>
                     <span>
-                        <% if (file.liveStreamSupported) { %>
-                        <a href="/livestream?file=<%=file.url%>&stream=<%=stream.id%>" title="Play <%=file.name%> with audio stream <%=index%>">
+                        <% if (file.mimeType && file.mimeType.indexOf('video') == 0) { %>
+                        <a href="<%=file.url%>&stream=<%=stream.id%>" title="Play <%=file.name%> with audio stream <%=index%>">
                         <% } %>
                         <%=stream.encoder%>, <%=stream.frequency%>, <%=stream.channels%>
                         <% if (stream.language) { %>, (<%=stream.language%>)<% } %>
                         <% if (stream.defaultStream) { %>, (default)<% } %>
-                        <% if (file.liveStreamSupported) { %>
+                        <% if (file.mimeType && file.mimeType.indexOf('video') == 0) { %>
                         </a>
                         <% } %>
                     </span>
@@ -56,27 +74,4 @@
         </div>
     </li>
     <% }) %>
-</script>
-
-<script id="breadcumbTmpl" type="text/template">
-    <% _.each(breadCrumbs, function(breadCrumb) { %>
-    <span class="breadcrumb-item">
-        <span>[</span><a href="/?path=<%=breadCrumb.url%>"><%=breadCrumb.name%></a><span>]</span>
-    </span>
-    <% }) %>
-</script>
-
-<script id="livestreamTmpl" type="text/template">
-    <div class="subtitles-video-wrapper">
-        <video controls="controls" autoplay="autoplay" id="streamVideo">
-            <% _.each(sources, function(source) { %>
-            <source src="<%=source.url%>" type="<%=source.type%>" />
-            <% }) %>
-            Your browser does not support the video tag.
-        </video>
-        <div class="subtitles-panel"></div>
-    </div>
-    <% if (subtitle) { %>
-    <div class="hidden subtitles" data-src="/?path=<%=subtitle%>" data-video="streamVideo"></div>
-    <% } %>
 </script>
