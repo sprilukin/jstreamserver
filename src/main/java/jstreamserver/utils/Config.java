@@ -54,15 +54,6 @@ public final class Config {
     private String defaultTextCharset = "UTF-8";
 
 
-    private static List<String> iosSupportedVideoExtensions = new ArrayList<String>();
-    static {
-        iosSupportedVideoExtensions.add("qt");
-        iosSupportedVideoExtensions.add("mov");
-        iosSupportedVideoExtensions.add("mp4");
-        iosSupportedVideoExtensions.add("m4v");
-        iosSupportedVideoExtensions.add("ts");
-    }
-
     public Config() {
     }
 
@@ -184,12 +175,6 @@ public final class Config {
                 String.valueOf(segmentDurationInSec),
                 String.valueOf(segmentWindowSize),
                 String.valueOf(segmenterSearchKillFile));
-    }
-
-    public boolean httpLiveStreamingSupported(String extension, String mimeType) {
-        return mimeType != null && extension != null &&
-                mimeType.startsWith("video") && !iosSupportedVideoExtensions.contains(extension) &&
-                ffmpegLocation != null && segmenterLocation != null;
     }
 
     @Override

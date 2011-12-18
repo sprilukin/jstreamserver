@@ -47,7 +47,9 @@ import java.net.HttpURLConnection;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 /**
@@ -68,6 +70,17 @@ public final class LiveStreamHandler extends BaseHandler {
     public static final SimpleDateFormat FFMPEG_SS_DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
     static {
         FFMPEG_SS_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
+
+    private static Set<String> html5SupportedVideoExtensions = new HashSet<String>();
+
+    static {
+        html5SupportedVideoExtensions.add("qt"); //IOS only?
+        html5SupportedVideoExtensions.add("mov"); //IOS only?
+        html5SupportedVideoExtensions.add("mp4");
+        html5SupportedVideoExtensions.add("m4v");
+        html5SupportedVideoExtensions.add("3gp");
+        html5SupportedVideoExtensions.add("3gpp");
     }
 
     private FFMpegSegmenter ffMpegSegmenter;
@@ -189,41 +202,47 @@ public final class LiveStreamHandler extends BaseHandler {
 
         cleanResources();
 
-        String ffmpegMapStreamParams = audioStreamId != null ? String.format(Config.FFMPEG_AUDIO_STREAM_SELECTION_FORMAT, audioStreamId) : "";
+        String extension = FilenameUtils.getExtension(file.getPath());
 
-        synchronized (ffmpegSegmenterMonitor) {
-            ffMpegSegmenter = new FFMpegSegmenter();
+        if (!html5SupportedVideoExtensions.contains(extension)) {
+            //Need to use HHP Live Streaming
+            String ffmpegMapStreamParams = audioStreamId != null ? String.format(Config.FFMPEG_AUDIO_STREAM_SELECTION_FORMAT, audioStreamId) : "";
 
-            ffMpegSegmenter.start(
-                    getConfig().getFfmpegLocation(),
-                    getConfig().getSegmenterLocation(),
-                    String.format(getConfig().getFfmpegParams(), file.getAbsolutePath(), ffmpegMapStreamParams),
-                    String.format(getConfig().getSegmenterParams(), LIVE_STREAM_FILE_PATH, PLAYLIST_FULL_PATH.substring(1)),
-                    progressListener);
+            synchronized (ffmpegSegmenterMonitor) {
+                ffMpegSegmenter = new FFMpegSegmenter();
 
-            try {
-                synchronized (playListCreatedMonitor) {
-                    playListCreatedMonitor.wait();
+                ffMpegSegmenter.start(
+                        getConfig().getFfmpegLocation(),
+                        getConfig().getSegmenterLocation(),
+                        String.format(getConfig().getFfmpegParams(), file.getAbsolutePath(), ffmpegMapStreamParams),
+                        String.format(getConfig().getSegmenterParams(), LIVE_STREAM_FILE_PATH, PLAYLIST_FULL_PATH.substring(1)),
+                        progressListener);
+
+                try {
+                    synchronized (playListCreatedMonitor) {
+                        playListCreatedMonitor.wait();
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
         }
 
         byte[] result = null;
         try {
             JSONObject jsonObject = new JSONObject();
-            JSONObject liveStreamSource = new JSONObject();
-            liveStreamSource.put("url", PLAYLIST_FULL_PATH);
-            liveStreamSource.put("type", getMimeProperties().getProperty(PLAYLIST_EXTENSION));
+            JSONArray sources = new JSONArray();
 
-            String extension = FilenameUtils.getExtension(file.getPath());
+            if (!html5SupportedVideoExtensions.contains(extension)) {
+                JSONObject liveStreamSource = new JSONObject();
+                liveStreamSource.put("url", PLAYLIST_FULL_PATH);
+                liveStreamSource.put("type", getMimeProperties().getProperty(PLAYLIST_EXTENSION));
+                sources.put(liveStreamSource);
+            }
+
             JSONObject originalSource = new JSONObject();
             originalSource.put("url", "/?path=" + fileString);
             originalSource.put("type", getMimeProperties().getProperty(extension));
-
-            JSONArray sources = new JSONArray();
-            sources.put(liveStreamSource);
             sources.put(originalSource);
 
             jsonObject.put("sources", sources);
