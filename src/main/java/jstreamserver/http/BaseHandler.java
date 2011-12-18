@@ -176,7 +176,7 @@ public abstract class BaseHandler extends ResponseSizeNeedlessHandlerAdapter imp
 
         setCommonResourceHeaders(httpRequestContext, mimeType);
 
-        String range = "bytes=0-";
+        String range = null;
         if (httpRequestContext.getRequestHeaders().get("Range") != null) {
             range = httpRequestContext.getRequestHeaders().get("Range").get(0);
         }
@@ -191,17 +191,23 @@ public abstract class BaseHandler extends ResponseSizeNeedlessHandlerAdapter imp
     }
 
     protected InputStream getResourceRange(File file, String range, HttpRequestContext httpRequestContext) throws IOException {
-        long[] rangeArray = parseRange(range, file.length());
 
-        String contentRange = String.format("bytes %s-%s/%s", rangeArray[0], rangeArray[1], file.length());
-        setResponseHeader("Content-Range", contentRange, httpRequestContext);
+        if (range != null) {
+            long[] rangeArray = parseRange(range, file.length());
 
-        //Range should be an integer
-        int rangeLength = (int)(rangeArray[1] - rangeArray[0] + 1);
+            String contentRange = String.format("bytes %s-%s/%s", rangeArray[0], rangeArray[1], file.length());
+            setResponseHeader("Content-Range", contentRange, httpRequestContext);
 
-        setResponseCode(HttpURLConnection.HTTP_PARTIAL, httpRequestContext);
+            //Range should be an integer
+            int rangeLength = (int)(rangeArray[1] - rangeArray[0] + 1);
 
-        return new BufferedInputStream(new RandomAccessFileInputStream(file, rangeArray[0], rangeLength));
+            setResponseCode(HttpURLConnection.HTTP_PARTIAL, httpRequestContext);
+
+            return new BufferedInputStream(new RandomAccessFileInputStream(file, rangeArray[0], rangeLength));
+        } else {
+            setResponseCode(HttpURLConnection.HTTP_OK, httpRequestContext);
+            return new FileInputStream(file);
+        }
     }
 
     private long[] parseRange(String range, long fileLength) {
