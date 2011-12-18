@@ -104,6 +104,8 @@ describe('jstreamserver', function () {
                 expect(url.indexOf(data.url) >= 0).toBeTruthy();
                 expect(callback).toBeDefined();
 
+                //ajax loader should be shown
+                expect($("#" + data.id).find(".ajax-loader").hasClass("hidden")).toBeFalsy();
                 callback(getPlayListCallback);
             });
 
@@ -111,6 +113,7 @@ describe('jstreamserver', function () {
             $(anchor).simulate('click'); //somewhy doesn't always fires click event, maybe because of subsequent eqceptions
             //$(anchor).click();
 
+            expect($("#" + data.id).find(".ajax-loader").hasClass("hidden")).toBeTruthy(); //ajax loader should be hidden
             var video = $("#" + data.id).find("video")[0];
             expect(video).toBeDefined();
 
@@ -126,11 +129,6 @@ describe('jstreamserver', function () {
             expect($(subtitles).attr("data-video")).toEqual(video.id);
             expect($(subtitles).text().replace(/[\r\n\s]+/g, "")).toEqual(getPlayListCallback.subtitle.replace(/[\r\n\s]+/g, ""));
         });
-    });
-
-    it('should send request to getPlayList and render video tag when clicked on link for audio stream link of media file', function () {
-        //TODO: Not implemented;
-        expect(true).toBeFalsy();
     });
 
     it('should render breadcrumbs after page load', function () {
