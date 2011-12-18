@@ -60,6 +60,8 @@ public final class StreamServerHandler extends BaseHandler {
 
     public static final String PATH_PARAM = "path";
     public static final String PARENT_FOLDER_NAME = "[..]";
+    public static final String RESOURCE_URL_PREFIX = "/?path=";
+    public static final String VIDEO_URL_PREFIX = "/livestream?file=";
 
     private ObjectMapper jsonMapper = new ObjectMapper();
     private FFMpegInformer ffMpegInformer;
@@ -133,14 +135,13 @@ public final class StreamServerHandler extends BaseHandler {
         List<String> mediaFileNames = new ArrayList<String>();
 
         try {
-            String prefix = "/?path=";
 
             if (!ROOT_DIRECTORY.equals(parentPath)) {
                 String parentDirPath = parentPath.replaceAll("\\/$", "").replaceAll("\\/[^\\/]+$", "");
                 FileListEntry parentDir = new FileListEntry();
                 parentDir.setDirectory(true);
                 parentDir.setName(PARENT_FOLDER_NAME);
-                parentDir.setUrl(prefix + URLEncoder.encode(parentDirPath.isEmpty() ? ROOT_DIRECTORY : parentDirPath, HttpUtils.DEFAULT_ENCODING));
+                parentDir.setUrl(RESOURCE_URL_PREFIX + URLEncoder.encode(parentDirPath.isEmpty() ? ROOT_DIRECTORY : parentDirPath, HttpUtils.DEFAULT_ENCODING));
 
                 fileList.add(parentDir);
             }
@@ -149,6 +150,8 @@ public final class StreamServerHandler extends BaseHandler {
 
 
             for (File file : files) {
+                String prefix = RESOURCE_URL_PREFIX;
+
                 FileListEntry entry = new FileListEntry();
 
                 if (file.isFile()) {
@@ -161,7 +164,7 @@ public final class StreamServerHandler extends BaseHandler {
                     entry.setVideo(mimeType.startsWith("video"));
                     entry.setAudio(mimeType.startsWith("audio"));
                     if (mimeType.startsWith("video")) {
-                        prefix = "/livestream?file="; //Only video for now supports livestreaming
+                        prefix = VIDEO_URL_PREFIX; //Only video for now supports livestreaming
                     }
 
                     if (entry.getVideo() || entry.getAudio()) {
