@@ -26,9 +26,11 @@ describe('jstreamserver', function () {
         {
             "id":"fileList0",
             "name":"Net (1995) AVC.mkv",
-            "url":"%2Fd%2Fmovies%2FNet+%281995%29+AVC.mkv",
+            "url":"/livestream?file=%2Fd%2Fmovies%2FNet+%281995%29+AVC.mkv",
+            "path":"/?path=%2Fd%2Fmovies%2FNet+%281995%29+AVC.mkv",
             "mimeType":"video/x-matroska",
             "extension":"mkv",
+            "video": true,
             "mediaInfo":{
                 "bitrate":"2769 kb/s",
                 "duration":"01:49:43.00",
@@ -75,11 +77,16 @@ describe('jstreamserver', function () {
 
             new JStreamServer.DirectoryView([
                 {"id":"fileList0", "name":"c", "url":"/?path=%2Fc", "mimeType":null, "extension":null, "directory":true, "mediaInfo":null},
-                {"id":"fileList1", "name":"d", "url":"/?path=%2Fd", "mimeType":null, "extension":null, "directory":true, "mediaInfo":null}
+                {"id":"fileList1", "name":"d", "url":"/?path=%2Fd", "mimeType":null, "extension":null, "directory":true, "mediaInfo":null},
+                data
             ]
             );
 
-            expect($("#directoryList").find("li").length).toEqual(2);
+            expect($("#directoryList").find("li").length).toEqual(3);
+            var mediaListItem = $($("#directoryList").find("li").get(2));
+            expect(mediaListItem.find("div.directory").get(0)).toBeUndefined();
+            expect(mediaListItem.find("div.file")).toBeDefined();
+            expect(mediaListItem.find("a.html5play")).toBeDefined();
         });
     });
 
