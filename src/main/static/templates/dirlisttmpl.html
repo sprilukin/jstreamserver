@@ -30,10 +30,12 @@
         <% } %>
             <div>
                 <span class="icon"></span>
-                <a class="html5play" href="<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
-                <% if (file.video) { %>
-                <span> | </span><a href="<%=file.path%>" title="download <%=file.name%>">download</a>
-                <% } %>
+                <span class="play-links-holder">
+                    <a class="html5play" href="<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
+                    <% if (file.video) { %>
+                    <span> | </span><a href="<%=file.path%>" title="download <%=file.name%>">download</a>
+                    <% } %>
+                </span>
                 <span class="ajax-loader hidden"></span>
             </div>
             <% if (file.mediaInfo) { %>
@@ -59,7 +61,7 @@
                     <span class="label">[</span>
                     <span>
                         <% if (file.video) { %>
-                        <a href="<%=file.url%>&stream=<%=stream.id%>" title="Play <%=file.name%> with audio stream <%=index%>">
+                        <a href="<%=file.url%>&stream=<%=stream.id%>" title="Play [<%=file.name%>] with audio stream <%=index%>">
                         <% } %>
                         <%=stream.encoder%>, <%=stream.frequency%>, <%=stream.channels%>
                         <% if (stream.language) { %>, (<%=stream.language%>)<% } %>

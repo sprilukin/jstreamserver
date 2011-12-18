@@ -75,16 +75,15 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     getPlayListSuccess: function (li, data) {
+        //Hide ajax loader
+        li.find(".play-links-holder").show();
+        li.find(".ajax-loader").addClass("hidden").hide();
+
         var file = this.model.get(li.get(0).id);
-        var anchor = li.find("a").get(0);
 
         //Render html5 video tag
         this.renderLiveStream("#" + file.id, data);
         $("div.subtitles").showSubtitles();
-
-        //Hide ajax loader
-        $(anchor).show();
-        li.find(".ajax-loader").addClass("hidden");
     },
 
     eventListeners: {
@@ -101,8 +100,8 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
                 if (file.get('mimeType').indexOf('video') == 0) {
 
-                    $(li.find("a").get(0)).hide();
-                    li.find(".ajax-loader").removeClass("hidden");
+                    li.find(".play-links-holder").hide();
+                    li.find(".ajax-loader").removeClass("hidden").show();
 
                     //Pause and remove all video elements
                     this.removeLiveStream();
