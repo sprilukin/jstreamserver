@@ -181,7 +181,11 @@ public final class StreamServerHandler extends BaseHandler {
                 }
 
                 entry.setName(name);
-                entry.setUrl(prefix + URLEncoder.encode(parentDir + name, HttpUtils.DEFAULT_ENCODING));
+                String urlEncodedPath = URLEncoder.encode(parentDir + name, HttpUtils.DEFAULT_ENCODING);
+                entry.setUrl(prefix + urlEncodedPath);
+                if (entry.getVideo()) {
+                    entry.setPath(RESOURCE_URL_PREFIX + urlEncodedPath);
+                }
 
                 fileList.add(entry);
             }

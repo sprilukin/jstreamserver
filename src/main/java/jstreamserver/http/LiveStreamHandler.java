@@ -204,7 +204,7 @@ public final class LiveStreamHandler extends BaseHandler {
 
         String extension = FilenameUtils.getExtension(file.getPath());
 
-        if (!html5SupportedVideoExtensions.contains(extension)) {
+        if (!html5SupportedVideoExtensions.contains(extension) || audioStreamId != null) {
             //Need to use HHP Live Streaming
             String ffmpegMapStreamParams = audioStreamId != null ? String.format(Config.FFMPEG_AUDIO_STREAM_SELECTION_FORMAT, audioStreamId) : "";
 
@@ -233,7 +233,7 @@ public final class LiveStreamHandler extends BaseHandler {
             JSONObject jsonObject = new JSONObject();
             JSONArray sources = new JSONArray();
 
-            if (!html5SupportedVideoExtensions.contains(extension)) {
+            if (!html5SupportedVideoExtensions.contains(extension) || audioStreamId != null) {
                 JSONObject liveStreamSource = new JSONObject();
                 liveStreamSource.put("url", PLAYLIST_FULL_PATH);
                 liveStreamSource.put("type", getMimeProperties().getProperty(PLAYLIST_EXTENSION));

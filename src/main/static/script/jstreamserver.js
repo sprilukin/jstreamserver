@@ -89,7 +89,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
     eventListeners: {
         "click":function (event) {
-            if (!$(event.target).is("a")) {
+            if (!$(event.target).is(".html5play")) {
                 return;
             }
 

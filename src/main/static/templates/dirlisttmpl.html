@@ -30,7 +30,10 @@
         <% } %>
             <div>
                 <span class="icon"></span>
-                <a href="<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
+                <a class="html5play" href="<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
+                <% if (file.video) { %>
+                <span> | </span><a href="<%=file.path%>" title="download <%=file.name%>">download</a>
+                <% } %>
                 <span class="ajax-loader hidden"></span>
             </div>
             <% if (file.mediaInfo) { %>

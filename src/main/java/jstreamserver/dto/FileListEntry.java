@@ -33,9 +33,10 @@ public class FileListEntry {
     private String id;
     private String name;
     private String url;
+    private String path;
     private Boolean isDirectory;
-    private Boolean video;
-    private Boolean audio;
+    private Boolean video = false;
+    private Boolean audio = false;
     private String mimeType;
     private String extension;
     private MediaInfo mediaInfo;
@@ -62,6 +63,14 @@ public class FileListEntry {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public Boolean getDirectory() {
