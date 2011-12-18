@@ -34,7 +34,7 @@ ul.folderContent {
     text-transform: uppercase;
 }
 
-.folderContent .icon {
+.icon {
     background-repeat: no-repeat;
     display: inline-block;
     height: 31px;
@@ -71,6 +71,24 @@ ul.folderContent {
 
 .video .icon {
     background-image: url("/img/video.png");
+}
+
+.media .icon.info {
+    background-image: url("/img/info.png");
+    margin-left: 5px;
+    top: 8px;
+    cursor: pointer;
+}
+
+a.download {
+    text-decoration: none;
+}
+
+.media .icon.download {
+    background-image: url("/img/download.png");
+    margin-left: 5px;
+    top: 8px;
+    cursor: pointer;
 }
 
 .breadcrumb-item {

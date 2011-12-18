@@ -50,11 +50,21 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     attachListeners: function() {
-        this.el.bind("click", _.bind(this.eventListeners['click'], this));
+        var _this = this;
+        this.el.bind("click", function(event) {
+            $.each(_this.eventListeners, function(key, value) {
+                if ($(event.target).is(key)) {
+                    value && value.call(_this, event);
+                    return true;//stop iteration
+                }
+            })
+        });
     },
 
     render: function() {
         $(this.el).html(this.template({files: this.model.toJSON()}));
+        $(".ajax-loader").hide(); //hide all ajax loaders
+        $(".mediaInfo").hide(); //hide all media info panels
     },
 
     renderLiveStream: function(element, data) {
@@ -67,32 +77,24 @@ JStreamServer.DirectoryView = Backbone.View.extend({
             this.pause();
         });
         liveStreeamVideos.remove();
-        this.el.find("div.video-container").remove();
-    },
-
-    findMeOrUp: function(elem, selector) {
-        return $(elem).is(selector) ? elem : $(elem).parents(selector).get(0);
+        this.el.find(".video-container").remove();
     },
 
     getPlayListSuccess: function (li, data) {
         //Hide ajax loader
         li.find(".play-links-holder").show();
-        li.find(".ajax-loader").addClass("hidden");
+        li.find(".ajax-loader").hide();
 
         var file = this.model.get(li.get(0).id);
 
         //Render html5 video tag
         this.renderLiveStream("#" + file.id, data);
-        $("div.subtitles").showSubtitles();
+        li.find(".subtitles").showSubtitles();
     },
 
     eventListeners: {
-        "click":function (event) {
-            if (!$(event.target).is(".html5play")) {
-                return;
-            }
-
-            var li = $(this.findMeOrUp(event.target, "li"));
+        ".html5play":function (event) {
+            var li = $(event.target).parents("li");
 
             if (li.find("div.file").length > 0) {
 
@@ -101,13 +103,13 @@ JStreamServer.DirectoryView = Backbone.View.extend({
                 if (file.get('mimeType').indexOf('video') == 0) {
 
                     li.find(".play-links-holder").hide();
-                    li.find(".ajax-loader").removeClass("hidden");
+                    li.find(".ajax-loader").show();
 
                     //Pause and remove all video elements
                     this.removeLiveStream();
 
                     //request .m3u8 playlist for specified video
-                    $.getJSON($(event.target)[0].href, null, _.bind(this.getPlayListSuccess, this, li));
+                    $.getJSON($(event.target).get(0).href, null, _.bind(this.getPlayListSuccess, this, li));
 
                     //Prevent default click behaviour and return false so click on href will not trigger default behaviour
                     event.preventDefault();
@@ -116,6 +118,10 @@ JStreamServer.DirectoryView = Backbone.View.extend({
             }
 
             return true;
+        },
+
+        ".info": function(event) {
+            $(event.target).parents("li").find(".mediaInfo").slideToggle("fast", function() {});
         }
     }
 });

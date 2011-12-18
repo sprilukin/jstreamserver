@@ -33,10 +33,15 @@
                 <span class="play-links-holder">
                     <a class="html5play" href="<%=file.url%>" title="<%=file.name%>"><%=file.name%></a>
                     <% if (file.video) { %>
-                    <span> | </span><a href="<%=file.path%>" title="download <%=file.name%>">download</a>
+                    <a class="download" href="<%=file.path%>" title="download <%=file.name%>">
+                        <span class="icon download"></span>
+                    </a>
+                    <% } %>
+                    <% if (file.mediaInfo) { %>
+                    <span class="icon info"></span>
                     <% } %>
                 </span>
-                <span class="ajax-loader hidden"></span>
+                <span class="ajax-loader"></span>
             </div>
             <% if (file.mediaInfo) { %>
             <div class="mediaInfo">
