@@ -26,7 +26,7 @@
         <% if (file.directory) { %>
         <div class="directory">
         <% } else { %>
-        <div class="file <% if (file.mediaInfo) { %>media<%}%>">
+        <div class="file <% if (file.mediaInfo) { %>media<%}%> <% if (file.video) { %>video<%}%>">
         <% } %>
             <div>
                 <span class="icon"></span>

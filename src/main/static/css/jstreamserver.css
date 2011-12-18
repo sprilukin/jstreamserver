@@ -65,6 +65,14 @@ ul.folderContent {
     font-weight: bold;
 }
 
+.media .icon {
+    background-image: url("/img/audio.png");
+}
+
+.video .icon {
+    background-image: url("/img/video.png");
+}
+
 .breadcrumb-item {
     font-size: 1.5em;
     font-weight: bold;
