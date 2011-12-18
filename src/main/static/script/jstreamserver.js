@@ -77,7 +77,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     getPlayListSuccess: function (li, data) {
         //Hide ajax loader
         li.find(".play-links-holder").show();
-        li.find(".ajax-loader").addClass("hidden").hide();
+        li.find(".ajax-loader").addClass("hidden");
 
         var file = this.model.get(li.get(0).id);
 
@@ -101,7 +101,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
                 if (file.get('mimeType').indexOf('video') == 0) {
 
                     li.find(".play-links-holder").hide();
-                    li.find(".ajax-loader").removeClass("hidden").show();
+                    li.find(".ajax-loader").removeClass("hidden");
 
                     //Pause and remove all video elements
                     this.removeLiveStream();
