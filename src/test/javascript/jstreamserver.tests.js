@@ -22,6 +22,7 @@
 
 describe('jstreamserver', function () {
 
+    // DATA FIXTURES
     var data =
         {
             "id":"fileList0",
@@ -57,20 +58,20 @@ describe('jstreamserver', function () {
     };
 
     beforeEach(function() {
-        $("body").append("<div id=\"testContext\"></div>");
-    });
-
-    afterEach(function() {
-        $("#testContext").remove();
-    });
-
-    it('should render directoryList after page load', function () {
         runs(function () {
-            TestUtils.loadTemplates($("#testContext"), "directory", "dirlisttmpl", "videotagtmpl");
+            TestUtils.loadTemplates($("body"), "directory", "dirlisttmpl", "videotagtmpl", "breadcrumbtmpl");
+            TestUtils.loadCss();
         });
 
         waitsFor(TestUtils.templatesLoaded, "Timeout reached while loading templates", 500);
+        waitsFor(TestUtils.stylesheetLoaded, "Timeout reached while loading css", 500);
+    });
 
+    afterEach(function() {
+        $("body").html("");
+    });
+
+    it('should render directoryList after page load', function () {
         runs(function () {
             expect($("#dirListTmpl")).toBeDefined();
             expect($("#videotagTmpl")).toBeDefined();
@@ -86,17 +87,11 @@ describe('jstreamserver', function () {
             var mediaListItem = $($("#directoryList").find("li").get(2));
             expect(mediaListItem.find("div.directory").get(0)).toBeUndefined();
             expect(mediaListItem.find("div.file")).toBeDefined();
-            expect(mediaListItem.find("a.html5play")).toBeDefined();
+            expect(mediaListItem.find(".play-links-holder a").length).toEqual(2);
         });
     });
 
     it('should send request to getPlayList and render video tag when clicked on link for media file', function () {
-        runs(function () {
-            TestUtils.loadTemplates($("#testContext"), "directory", "dirlisttmpl", "videotagtmpl");
-        });
-
-        waitsFor(TestUtils.templatesLoaded, "Timeout reached while loading templates", 500);
-
         runs(function () {
             new JStreamServer.DirectoryView([data]);
 
@@ -105,7 +100,7 @@ describe('jstreamserver', function () {
                 expect(callback).toBeDefined();
 
                 //ajax loader should be shown
-                expect($("#" + data.id).find(".ajax-loader").hasClass("hidden")).toBeFalsy();
+                expect($("#" + data.id).find(".ajax-loader").is(":visible")).toBeTruthy();
                 callback(getPlayListCallback);
             });
 
@@ -113,7 +108,7 @@ describe('jstreamserver', function () {
             $(anchor).simulate('click'); //somewhy doesn't always fires click event, maybe because of subsequent eqceptions
             //$(anchor).click();
 
-            expect($("#" + data.id).find(".ajax-loader").hasClass("hidden")).toBeTruthy(); //ajax loader should be hidden
+            expect($("#" + data.id).find(".ajax-loader").is(":visible")).toBeFalsy(); //ajax loader should be hidden
             var video = $("#" + data.id).find("video")[0];
             expect(video).toBeDefined();
 
@@ -131,13 +126,27 @@ describe('jstreamserver', function () {
         });
     });
 
-    it('should render breadcrumbs after page load', function () {
+    it('should hide media info element right after rendering and toggle its visibility after a click on info image', function () {
         runs(function () {
-            TestUtils.loadTemplates($("#testContext"), "directory", "breadcrumbtmpl");
+            new JStreamServer.DirectoryView([data]);
+
+            var mediaInfo = $("#" + data.id).find(".mediaInfo");
+
+            spyOn($.fn, "slideToggle").andCallFake(function (speed, easing, callback) {
+                mediaInfo.is(":visible") ? mediaInfo.hide() : mediaInfo.show();
+            });
+
+            expect(mediaInfo.is(":visible")).toBeFalsy();
+
+            $($("#" + data.id).find(".icon.info")).simulate('click');
+            expect(mediaInfo.is(":visible")).toBeTruthy();
+
+            $($("#" + data.id).find(".icon.info")).simulate('click');
+            expect(mediaInfo.is(":visible")).toBeFalsy();
         });
+    });
 
-        waitsFor(TestUtils.templatesLoaded, "Timeout reached while loading templates", 500);
-
+    it('should render breadcrumbs after page load', function () {
         runs(function () {
             new JStreamServer.BreadCrumbView([
                 {"name":"", "url":"/"},

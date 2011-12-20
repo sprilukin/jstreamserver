@@ -45,26 +45,19 @@ JStreamServer.DirectoryView = Backbone.View.extend({
         this.videoTemplate = _.template($("#videotagTmpl").html());
 
         this.model = new JStreamServer.DirectoryList(json);
-        this.attachListeners();
         this.render();
+        this.attachListeners();
     },
 
     attachListeners: function() {
-        var _this = this;
-        this.el.bind("click", function(event) {
-            $.each(_this.eventListeners, function(key, value) {
-                if ($(event.target).is(key)) {
-                    value && value.call(_this, event);
-                    return true;//stop iteration
-                }
-            })
-        });
+        $.each(this.eventListeners, $.proxy(function(selector, handler) {
+            this.el.find(selector).bind("click", $.proxy(handler, this));
+        }, this));
     },
 
     render: function() {
         $(this.el).html(this.template({files: this.model.toJSON()}));
-        $(".ajax-loader").hide(); //hide all ajax loaders
-        $(".mediaInfo").hide(); //hide all media info panels
+        $(".ajax-loader, .mediaInfo").hide(); //hide all ajax loaders and media infos
     },
 
     renderLiveStream: function(element, data) {
@@ -93,7 +86,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     eventListeners: {
-        ".html5play":function (event) {
+        ".video a:first":function (event) {
             var li = $(event.target).parents("li");
 
             if (li.find("div.file").length > 0) {
@@ -109,7 +102,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
                     this.removeLiveStream();
 
                     //request .m3u8 playlist for specified video
-                    $.getJSON($(event.target).get(0).href, null, _.bind(this.getPlayListSuccess, this, li));
+                    $.getJSON($(event.target).get(0).href, null, $.proxy(this.getPlayListSuccess, this, li));
 
                     //Prevent default click behaviour and return false so click on href will not trigger default behaviour
                     event.preventDefault();

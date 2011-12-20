@@ -25,9 +25,12 @@ var TestUtils = {};
 (function (context) {
     var TEMPLATES_PREFIX = "/test/templates/";
     var TEMPLATES_SUFFIX = ".html";
+    var PATH_TO_CSS = "/test/css/jstreamserver.css";
 
     var loadedTemplates = 0;
     var templatesSize = 0;
+
+    var stylesheetLoaded = false;
 
     function loadTemplate(container, template, callback) {
         $.ajax(TEMPLATES_PREFIX + template + TEMPLATES_SUFFIX, {
@@ -41,6 +44,10 @@ var TestUtils = {};
 
     context.templatesLoaded = function () {
         return loadedTemplates == templatesSize;
+    };
+
+    context.stylesheetLoaded = function () {
+        return stylesheetLoaded;
     };
 
     context.loadTemplates = function (container) {
@@ -57,6 +64,17 @@ var TestUtils = {};
                 loadTemplate(container, this, callback);
             })
         }
+    };
+
+    context.loadCss = function() {
+        $.ajax(PATH_TO_CSS, {
+            success:function (stylesheet) {
+                stylesheet = stylesheet.replace(/\/img\//g, "/test/img/");
+                $("head").append(_.template("<style type='text/css'><%=css%></style>")({css:stylesheet}));
+                stylesheetLoaded = true;
+            },
+            dataType:"text"
+        });
     }
 
 })(TestUtils);
