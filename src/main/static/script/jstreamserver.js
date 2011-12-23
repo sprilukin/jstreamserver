@@ -86,7 +86,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     eventListeners: {
-        ".video a:first":function (event) {
+        ".video .play":function (event) {
             var li = $(event.target).parents("li");
 
             if (li.find("div.file").length > 0) {
