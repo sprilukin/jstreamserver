@@ -25,6 +25,7 @@ package jstreamserver;
 
 import anhttpserver.DefaultSimpleHttpServer;
 import anhttpserver.SimpleHttpServer;
+import jstreamserver.ftp.FtpServerWrapper;
 import jstreamserver.http.DispatcherHandler;
 import jstreamserver.utils.Config;
 import org.apache.commons.cli.CommandLine;
@@ -278,8 +279,13 @@ public final class Runner {
 
     public static void main(String[] args) throws Exception {
         try {
+            Config config = getConfig(args);
+
             Runner runner = new Runner();
-            runner.start(getConfig(args));
+            runner.start(config);
+
+            FtpServerWrapper ftpServer = new FtpServerWrapper();
+            ftpServer.start(config);
 
             synchronized (monitor) {
                 monitor.wait();

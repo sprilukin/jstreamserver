@@ -52,6 +52,9 @@ public final class Config {
     private int segmenterSearchKillFile = 1;
     private int segmenterMaxtimeout = Math.max(segmentDurationInSec * 100 * 3, 30000); //3 times of segment duration. should be enough
     private String defaultTextCharset = "UTF-8";
+    
+    //FTP
+    private int ftpPort = 8021;
 
 
     public Config() {
@@ -167,6 +170,14 @@ public final class Config {
 
     public void setDefaultTextCharset(String defaultTextCharset) {
         this.defaultTextCharset = defaultTextCharset;
+    }
+
+    public int getFtpPort() {
+        return ftpPort;
+    }
+
+    public void setFtpPort(int ftpPort) {
+        this.ftpPort = ftpPort;
     }
 
     public String getSegmenterParams() {

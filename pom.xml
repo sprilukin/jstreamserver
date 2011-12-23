@@ -124,6 +124,16 @@
             <version>1.0</version>
         </dependency>
         <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-simple</artifactId>
+          <version>1.6.1</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ftpserver</groupId>
+          <artifactId>ftpserver-core</artifactId>
+          <version>1.0.6</version>
+        </dependency>
+        <dependency>
             <groupId>anhttpserver</groupId>
             <artifactId>anhttpserver</artifactId>
             <version>0.2.6</version>
