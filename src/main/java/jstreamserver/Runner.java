@@ -147,7 +147,7 @@ public final class Runner {
         defaultCharset.setArgName("charset");
         defaultCharset.setRequired(false);
 
-        Option ftpPort = new Option("fp", "ftpport", true, "Port for built-in FTP server");
+        Option ftpPort = new Option("ftp", "ftpport", true, "Port for built-in FTP server");
         ftpPort.setArgs(1);
         ftpPort.setOptionalArg(false);
         ftpPort.setArgName("port");
@@ -237,8 +237,8 @@ public final class Runner {
             }
         }
 
-        if (commandLine.hasOption("fp")) {
-            config.setFtpPort(Integer.parseInt(commandLine.getOptionValue("fp")));
+        if (commandLine.hasOption("ftp")) {
+            config.setFtpPort(Integer.parseInt(commandLine.getOptionValue("ftp")));
         }
 
         if (commandLine.hasOption("se")) {
