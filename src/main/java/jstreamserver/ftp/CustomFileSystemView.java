@@ -80,6 +80,10 @@ public class CustomFileSystemView implements FileSystemView {
                 workingDirectory = rootFtpDir;
             } else {
                 File file = new File(FtpUtils.getNativePath(path, rootDirs));
+                if (!file.exists() || !file.isDirectory()) {
+                    return false;
+                }
+
                 workingDirectory = new CustomFtpFile(path, file);
             }
 
