@@ -147,6 +147,12 @@ public final class Runner {
         defaultCharset.setArgName("charset");
         defaultCharset.setRequired(false);
 
+        Option ftpPort = new Option("fp", "ftpport", true, "Port for built-in FTP server");
+        ftpPort.setArgs(1);
+        ftpPort.setOptionalArg(false);
+        ftpPort.setArgName("port");
+        ftpPort.setRequired(false);
+
         //Root locations
         Option locations = new Option("f", "folders", true, "List of folders which will be shown in root.");
         locations.setArgs(Option.UNLIMITED_VALUES);
@@ -169,6 +175,7 @@ public final class Runner {
         options.addOption(segmenterSearchKillFile);
         options.addOption(segmenterMaxTimeout);
         options.addOption(locations);
+        options.addOption(ftpPort);
         options.addOption(defaultCharset);
     }
 
@@ -228,6 +235,10 @@ public final class Runner {
             if (commandLine.hasOption("fp")) {
                 config.setFfmpegParams(commandLine.getOptionValue("fp"));
             }
+        }
+
+        if (commandLine.hasOption("fp")) {
+            config.setFtpPort(Integer.parseInt(commandLine.getOptionValue("fp")));
         }
 
         if (commandLine.hasOption("se")) {

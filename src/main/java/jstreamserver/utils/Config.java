@@ -54,7 +54,7 @@ public final class Config {
     private String defaultTextCharset = "UTF-8";
     
     //FTP
-    private int ftpPort = 8021;
+    private int ftpPort = 21;
 
 
     public Config() {
@@ -196,6 +196,7 @@ public final class Config {
         sb.append("max threads count: ").append(maxThreads).append("\r\n");
         sb.append("resources folder: ").append(resourcesFolder).append("\r\n");
         sb.append("default text charset: ").append(defaultTextCharset).append("\r\n");
+        sb.append("Built-in FTP server listen on: ").append(ftpPort).append("\r\n");
         if (mimeProperties != null) {
             sb.append("mimeProperties: ").append(mimeProperties).append("\r\n");
         }
