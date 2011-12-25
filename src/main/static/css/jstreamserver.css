@@ -150,3 +150,7 @@ video {
 video, .subtitles-panel {
     margin-left: 20px;
 }
+
+.slider-panel {
+    margin-top: 5px;
+}

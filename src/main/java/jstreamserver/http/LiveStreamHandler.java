@@ -108,8 +108,8 @@ public final class LiveStreamHandler extends BaseHandler {
             if (!file.exists() || !file.isFile() || file.isHidden()) {
                 return rendeResourceNotFound(fileString, httpRequestContext);
             } else {
-                //String startTime = params.containsKey("time") ? params.get("time") : FFMPEG_SS_DATE_FORMAT.format(new Date(0)); // start from the beginning by default
-                return getLiveStream(file, fileString, audioStreamId, httpRequestContext);
+                String startTime = params.get("time"); // start from the beginning by default
+                return getLiveStream(file, fileString, startTime, audioStreamId, httpRequestContext);
             }
         } else {
             String path = httpRequestContext.getRequestURI().getPath();
@@ -198,7 +198,7 @@ public final class LiveStreamHandler extends BaseHandler {
         }
     }
 
-    private InputStream getLiveStream(File file, String fileString, String audioStreamId, HttpRequestContext httpRequestContext) throws IOException {
+    private InputStream getLiveStream(File file, String fileString, String startTime, String audioStreamId, HttpRequestContext httpRequestContext) throws IOException {
 
         cleanResources();
 
@@ -207,6 +207,7 @@ public final class LiveStreamHandler extends BaseHandler {
         if (!html5SupportedVideoExtensions.contains(extension) || audioStreamId != null) {
             //Need to use HHP Live Streaming
             String ffmpegMapStreamParams = audioStreamId != null ? String.format(Config.FFMPEG_AUDIO_STREAM_SELECTION_FORMAT, audioStreamId) : "";
+            String ffmpegStartTimeParam = startTime != null ? String.format(Config.FFMPEG_START_TIME_FORMAT, startTime ) : "";
 
             synchronized (ffmpegSegmenterMonitor) {
                 ffMpegSegmenter = new FFMpegSegmenter();
@@ -214,7 +215,7 @@ public final class LiveStreamHandler extends BaseHandler {
                 ffMpegSegmenter.start(
                         getConfig().getFfmpegLocation(),
                         getConfig().getSegmenterLocation(),
-                        String.format(getConfig().getFfmpegParams(), file.getAbsolutePath(), ffmpegMapStreamParams),
+                        String.format(getConfig().getFfmpegParams(), file.getAbsolutePath(), ffmpegMapStreamParams, ffmpegStartTimeParam),
                         String.format(getConfig().getSegmenterParams(), LIVE_STREAM_FILE_PATH, PLAYLIST_FULL_PATH.substring(1)),
                         progressListener);
 

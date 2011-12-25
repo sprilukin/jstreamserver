@@ -70,6 +70,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
             this.pause();
         });
         liveStreeamVideos.remove();
+        this.el.find(".slider-panel").unbindTouchToMouse();
         this.el.find(".video-container").remove();
     },
 
@@ -83,6 +84,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
         //Render html5 video tag
         this.renderLiveStream("#" + file.id, data);
         li.find(".subtitles").showSubtitles();
+        li.find(".slider-panel").bindTouchToMouse().slider();
     },
 
     eventListeners: {
