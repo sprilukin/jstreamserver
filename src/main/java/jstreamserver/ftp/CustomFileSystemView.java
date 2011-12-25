@@ -40,7 +40,16 @@ public class CustomFileSystemView implements FileSystemView {
     private FtpFile workingDirectory;
     private RootFtpDir rootFtpDir;
 
+    public CustomFileSystemView() {
+        /* default constructor */
+    }
+
     public CustomFileSystemView(Map<String, String> rootDirs) throws FtpException {
+        this.rootDirs = rootDirs;
+        this.rootFtpDir = new RootFtpDir(rootDirs);
+    }
+
+    public void setRootDirs(Map<String, String> rootDirs) {
         this.rootDirs = rootDirs;
         this.rootFtpDir = new RootFtpDir(rootDirs);
     }
@@ -61,27 +70,41 @@ public class CustomFileSystemView implements FileSystemView {
 
     @Override
     public boolean changeWorkingDirectory(String s) throws FtpException {
-        if (RootFtpDir.ROOT_PATH.equals(s)) {
-            workingDirectory = rootFtpDir;
-        } else {
-            File file = new File(FtpUtils.getNativePath(s, getWorkingDirectory().getAbsolutePath(), rootDirs));
-            String name = FtpUtils.getName(s, getWorkingDirectory().getAbsolutePath());
-            workingDirectory = new CustomFtpFile(name, file);
-        }
+        try {
+            String path = FtpUtils.normalizePath(s, getWorkingDirectory().getAbsolutePath());
+            if (path.contains("..")) {
+                return false;
+            }
 
-        return true;
+            if (RootFtpDir.ROOT_PATH.equals(path)) {
+                workingDirectory = rootFtpDir;
+            } else {
+                File file = new File(FtpUtils.getNativePath(path, rootDirs));
+                workingDirectory = new CustomFtpFile(path, file);
+            }
+
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
     public FtpFile getFile(String s) throws FtpException {
-        String path = FtpUtils.convertToAbsolute(s, getWorkingDirectory().getAbsolutePath(), rootDirs);
+        try {
+            String path = FtpUtils.normalizePath(s, getWorkingDirectory().getAbsolutePath());
+            if (path.contains("..")) {
+                throw new IllegalArgumentException();
+            }
 
-        if (RootFtpDir.ROOT_PATH.equals(path)) {
-            return rootFtpDir;
-        } else {
-            File file = new File(FtpUtils.getNativePath(path, getWorkingDirectory().getAbsolutePath(), rootDirs));
-            String name = FtpUtils.getName(path, getWorkingDirectory().getAbsolutePath());
-            return new CustomFtpFile(name, file);
+            if (RootFtpDir.ROOT_PATH.equals(path)) {
+                return rootFtpDir;
+            } else {
+                File file = new File(FtpUtils.getNativePath(path, rootDirs));
+                return new CustomFtpFile(path, file);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

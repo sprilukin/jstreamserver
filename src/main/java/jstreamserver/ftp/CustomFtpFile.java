@@ -103,7 +103,7 @@ public class CustomFtpFile extends NativeFtpFile {
         for (int i = 0; i < files.length; ++i) {
             File fileObj = files[i];
             String fileName = virtualFileStr + fileObj.getPath().substring(getPhysicalFile().getPath().length()).replaceAll("\\\\", "/");
-            virtualFiles[i] = new CustomFtpFile(FtpUtils.getName(fileName, getAbsolutePath()), fileObj);
+            virtualFiles[i] = new CustomFtpFile(fileName, fileObj);
         }
 
         return Collections.unmodifiableList(Arrays.asList(virtualFiles));

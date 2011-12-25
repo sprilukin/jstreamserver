@@ -22,7 +22,9 @@
 
 package jstreamserver.ftp;
 
-import java.io.File;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,18 +36,49 @@ import java.util.regex.Pattern;
  */
 public class FtpUtils {
     public static final String PATH_REGEXP = "^/([^/]+)(.*)$";
-    public static final String PARENT_PATH_REGEXP = "^(.*)(/[^/]+)$";
-    public static final String FIRST_LEVEL_PATH_REGEXP = "^/([^/]+)$";
 
-    public static String getNativePath(String path, String parentPath, Map<String, String> rootDirs) {
-        if (path.startsWith("./")) {
-            path = path.substring(2);
+    public static String normalizePath(String path, String parentPath) throws Exception {
+
+        if (parentPath.charAt(parentPath.length() - 1) == '/') {
+            parentPath = parentPath.substring(0, parentPath.length() - 1);
         }
 
-        if (!path.startsWith("/")) {
-            path = (parentPath + "/" + path).replaceAll("//", "/");
+        if (path.charAt(0) != '/') {
+            path = parentPath + "/" + path;
         }
 
+
+        String normalizedPath = new URI(encodePath(path)).normalize().toString();
+        if (normalizedPath.length() > 1 && normalizedPath.endsWith("/")) {
+            normalizedPath = normalizedPath.substring(0, normalizedPath.length() - 1);
+        }
+
+        return URLDecoder.decode(normalizedPath, "UTF-8");
+    }
+
+    private static String encodePath(String path) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < path.length(); i++) {
+            if (path.charAt(i) == '/') {
+                sb.append(path.charAt(i));
+            } else {
+                char[] chars = new char[path.length() - i];
+                int offset = i;
+
+                while (i < path.length() && path.charAt(i) != '/') {
+                    chars[i - offset] = path.charAt(i);
+                    i++;
+                }
+
+                sb.append(URLEncoder.encode(new String(chars, 0, i - offset), "UTF-8"));
+                i--;
+            }
+        }
+
+        return sb.toString();
+    }
+
+    public static String getNativePath(String path, Map<String, String> rootDirs) {
         String rootDirLabel = null;
         String relativePath = null;
 
@@ -55,50 +88,12 @@ public class FtpUtils {
             relativePath = matcher.group(2);
         }
 
-        if (relativePath.endsWith("/")) {
+        if (relativePath.length() > 0 && relativePath.charAt(relativePath.length() - 1) == '/') {
             relativePath = relativePath.substring(0, relativePath.length() - 1);
         }
 
-        File file = new File(rootDirs.get(rootDirLabel) + relativePath);
-        return file.getPath();
-    }
+        relativePath = relativePath.replaceAll("\\/", "\\" + System.getProperty("file.separator"));
 
-    public static final String convertNativeToFtpPath(String absolutePath, Map<String, String> rootDirs) {
-        for (Map.Entry<String, String> entry: rootDirs.entrySet()) {
-            if (absolutePath.startsWith(entry.getValue())) {
-                return "/" + entry.getKey() + "/" + absolutePath.substring(entry.getValue().length()).replaceAll("\\\\", "/");
-            }
-        }
-
-        return null;
-    }
-    
-    public static String getName(String path, String parentPath) {        
-        if (path.length() > 1 && path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-
-        if (!path.startsWith("/")) {
-            path = (parentPath + "/" + path).replaceAll("//", "/");
-        }
-
-        return path;
-    }
-
-    public static String convertToAbsolute(String path, String currentDir, Map<String, String> rootDirs) {
-        if (path.startsWith("./")) {
-            path = path.substring(2);
-        }
-
-        if (!path.startsWith("/")) {
-            path = (currentDir + "/" + path).replaceAll("//", "/");
-        }
-
-        if (path.equals("/")) {
-            return "/";
-        }
-
-        String nativePath = getNativePath(path, currentDir, rootDirs);
-        return convertNativeToFtpPath(nativePath, rootDirs);
+        return rootDirs.get(rootDirLabel) + relativePath;
     }
 }
