@@ -70,7 +70,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
             this.pause();
         });
         liveStreeamVideos.remove();
-        this.el.find(".slider-panel").unbindTouchToMouse();
+        this.destroySlider(this.el);
         this.el.find(".video-container").remove();
     },
 
@@ -80,11 +80,60 @@ JStreamServer.DirectoryView = Backbone.View.extend({
         li.find(".ajax-loader").hide();
 
         var file = this.model.get(li.get(0).id);
+        var startTime = data.starttime + ",000";
 
         //Render html5 video tag
         this.renderLiveStream("#" + file.id, data);
-        li.find(".subtitles").showSubtitles();
-        li.find(".slider-panel").bindTouchToMouse().slider();
+        li.find(".subtitles").showSubtitles({offset: startTime});
+
+        //show custom slider if this is livestream
+        if (data.sources[0].type === "application/x-mpegURL") {
+            this.setupSlider(li, startTime, file.get("mediaInfo").duration.replace(/\.[\d]+/g, ",000"));
+        }
+    },
+
+    setupSlider: function(li, startTime, duration) {
+        var slider = li.find(".slider-panel");
+        var video = li.find("video");
+
+        var min = 0;
+        startTime = Math.floor($.convertTimeToMillis(startTime) / 1000);
+        var max = Math.floor($.convertTimeToMillis(duration) / 1000);
+
+        //capture touch events
+        slider.bindTouchToMouse();
+
+        var sliderChangedManually = false;
+
+        //setup slider
+        slider.slider({min: min, max: max, value: startTime, change: $.proxy(function(event, ui) {
+            if (!event.originalEvent || event.originalEvent.type !== "mouseup") {
+                return;
+            }
+
+            sliderChangedManually = true;
+            var time = $.convertMillisToString(ui.value * 1000).replace(/,.+$/g, "");
+
+            li.find(".play-links-holder").hide();
+            li.find(".ajax-loader").show();
+
+            //Pause and remove all video elements
+            this.removeLiveStream();
+
+            //request .m3u8 playlist for specified video
+            $.getJSON(li.find("a.play").get(0).href + "&time=" + time, null, $.proxy(this.getPlayListSuccess, this, li));
+        }, this)});
+
+        video.bind("timeupdate", function(event) {
+            if (!sliderChangedManually) {
+                var time = startTime + Math.floor(this.currentTime);
+                slider.slider("value", time);
+            }
+        });
+    },
+
+    destroySlider: function(el) {
+        el.find(".slider-panel").unbindTouchToMouse().slider("destroy");
     },
 
     eventListeners: {

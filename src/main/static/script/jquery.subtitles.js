@@ -42,7 +42,7 @@
         }
 
         loadSubtitlesText(metadata, function(text) {
-            metadata.subtitles = convertTextToSubtitlesModel(text);
+            metadata.subtitles = convertTextToSubtitlesModel(text, metadata.offset);
             metadata.text = null; //free memory;
             metadata.currentSubtitleIndex = 0; //start showing subtitles from the beginning
             createSubtitlesMarkup(metadata);
@@ -70,9 +70,13 @@
         metadata.subtitlesPanel = subtitlesPanel;
     };
 
-    var convertTextToSubtitlesModel = function(text) {
+    //Converts subtitles text to object model
+    //offset is time on which subtitles is faster than video
+    //it will be subtracted from subtitles time to sync video and audio
+    var convertTextToSubtitlesModel = function(text, offset) {
         var splittedSubtitles = text.split(/(\n\n|\r\n\r\n)/g);
         var subtitlesModel = [];
+        offset = getTimeInMillis(offset);
 
         for (var i = 0; i < splittedSubtitles.length; i = i + 2) {
             if (!$.trim(splittedSubtitles[i])) {
@@ -83,8 +87,8 @@
             var time = $.trim(entry[1]).split(' --> ');
 
             subtitlesModel.push({
-                startTime: getTimeInMillis(time[0]),
-                endTime: getTimeInMillis(time[1]),
+                startTime: getTimeInMillis(time[0]) - offset,
+                endTime: getTimeInMillis(time[1]) - offset,
                 text: $.trim(entry.splice(2).join(" "))
             });
         }
@@ -93,13 +97,44 @@
     };
 
     var convertTimePartToInt = function(timePartAsString) {
-        return parseInt(timePartAsString.replace(REMOVE_FIRST_ZERO_REGEXP, ""));
+        var normalizedTimePart = timePartAsString;
+        while (normalizedTimePart.length > 1 && normalizedTimePart.substr(0, 1) === "0") {
+            normalizedTimePart = normalizedTimePart.replace(REMOVE_FIRST_ZERO_REGEXP, "");
+        }
+
+        return parseInt(normalizedTimePart);
     };
 
     var getTimeInMillis = function(timeAsString) {
         var timePartsWithMillis = timeAsString.split(',');
         var timePartsNoMillis = timePartsWithMillis[0].split(':');
         return (convertTimePartToInt(timePartsNoMillis[0]) * 60 * 60 + convertTimePartToInt(timePartsNoMillis[1]) * 60 + convertTimePartToInt(timePartsNoMillis[2])) * 1000 + convertTimePartToInt(timePartsWithMillis[1]);
+    };
+
+    var getTimeAsString = function(timeInMillis) {
+        var millis = "" + timeInMillis % 1000;
+        while (millis.length < 3) {
+            millis = "0" + millis;
+        }
+        timeInMillis = Math.floor(timeInMillis / 1000);
+
+        var seconds = "" + timeInMillis % 60;
+        while (seconds.length < 2) {
+            seconds = "0" + seconds;
+        }
+        timeInMillis = Math.floor(timeInMillis / 60);
+
+        var minutes = "" + timeInMillis % 60;
+        while (minutes.length < 2) {
+            minutes = "0" + minutes;
+        }
+
+        var hours = "" + Math.floor(timeInMillis / 60);
+        while (hours.length < 2) {
+            hours = "0" + hours;
+        }
+
+        return [hours, minutes, seconds].join(":") + "," + millis;
     };
 
     var getSubtitleMetadata = function(element) {
@@ -176,7 +211,8 @@
             var defaults = {
                 fontSize:20,
                 fontFamily:"Arial",
-                fontColor:'#ccc'
+                fontColor:'#ccc',
+                offset: "00:00:00,000"
             };
 
             var options = $.extend(defaults, opts);
@@ -194,5 +230,15 @@
             });
         }
     });
+
+    $.extend({
+        convertTimeToMillis: function(timeAsString) {
+            return getTimeInMillis(timeAsString);
+        },
+
+        convertMillisToString: function(timeInMillis) {
+            return getTimeAsString(timeInMillis);
+        }
+    })
 })(jQuery);
 

@@ -54,7 +54,8 @@ describe('jstreamserver', function () {
         sources:[
             {"type":"application/x-mpegURL", "url":"/test/templates/stream.m3u8"},
             {"type":"application/octet-stream", "url":"/test/templates/stream.m3u8"}
-        ]
+        ],
+        starttime: "00:00:00"
     };
 
     beforeEach(function() {

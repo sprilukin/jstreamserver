@@ -109,6 +109,7 @@ public final class LiveStreamHandler extends BaseHandler {
                 return rendeResourceNotFound(fileString, httpRequestContext);
             } else {
                 String startTime = params.get("time"); // start from the beginning by default
+                System.out.println(startTime);
                 return getLiveStream(file, fileString, startTime, audioStreamId, httpRequestContext);
             }
         } else {
@@ -239,6 +240,8 @@ public final class LiveStreamHandler extends BaseHandler {
                 liveStreamSource.put("url", PLAYLIST_FULL_PATH);
                 liveStreamSource.put("type", getMimeProperties().getProperty(PLAYLIST_EXTENSION));
                 sources.put(liveStreamSource);
+
+                jsonObject.put("starttime", startTime != null ? startTime : "00:00:00");
             }
 
             JSONObject originalSource = new JSONObject();
