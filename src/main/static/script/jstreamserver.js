@@ -50,7 +50,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     attachListeners: function() {
-        $.each(this.eventListeners, $.proxy(function(selector, handler) {
+        $.each(this.clickListeners, $.proxy(function(selector, handler) {
             this.el.find(selector).bind("click", $.proxy(handler, this));
         }, this));
     },
@@ -81,6 +81,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
         var file = this.model.get(li.get(0).id);
         var startTime = data.starttime + ",000";
+        var duration = file.get("mediaInfo").duration.replace(/\.[\d]+/g, ",000");
 
         //Render html5 video tag
         this.renderLiveStream("#" + file.id, data);
@@ -88,7 +89,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
         //show custom slider if this is livestream
         if (data.sources[0].type === "application/x-mpegURL") {
-            this.setupSlider(li, startTime, file.get("mediaInfo").duration.replace(/\.[\d]+/g, ",000"));
+            this.setupSlider(li, startTime, duration);
         }
     },
 
@@ -96,8 +97,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
         var slider = li.find(".slider-panel");
         var video = li.find("video");
 
-        var min = 0;
-        startTime = Math.floor($.convertTimeToMillis(startTime) / 1000);
+        var offset = Math.floor($.convertTimeToMillis(startTime) / 1000);
         var max = Math.floor($.convertTimeToMillis(duration) / 1000);
 
         //capture touch events
@@ -106,7 +106,16 @@ JStreamServer.DirectoryView = Backbone.View.extend({
         var sliderChangedManually = false;
 
         //setup slider
-        slider.slider({min: min, max: max, value: startTime, change: $.proxy(function(event, ui) {
+
+        //video timeupdate listener
+        var timeUpdateListener = function(event) {
+            if (!sliderChangedManually) {
+                slider.slider("value", offset + Math.floor(this.currentTime));
+            }
+        };
+
+        //slider onchange listener
+        var changeHandler = $.proxy(function(event, ui) {
             if (!event.originalEvent || event.originalEvent.type !== "mouseup") {
                 return;
             }
@@ -122,21 +131,17 @@ JStreamServer.DirectoryView = Backbone.View.extend({
 
             //request .m3u8 playlist for specified video
             $.getJSON(li.find("a.play").get(0).href + "&time=" + time, null, $.proxy(this.getPlayListSuccess, this, li));
-        }, this)});
+        }, this);
 
-        video.bind("timeupdate", function(event) {
-            if (!sliderChangedManually) {
-                var time = startTime + Math.floor(this.currentTime);
-                slider.slider("value", time);
-            }
-        });
+        slider.slider({min: 0, max: max, value: offset, change: changeHandler});
+        video.bind("timeupdate", timeUpdateListener);
     },
 
     destroySlider: function(el) {
         el.find(".slider-panel").unbindTouchFromMouseEvents().slider("destroy");
     },
 
-    eventListeners: {
+    clickListeners: {
         ".video .play":function (event) {
             var li = $(event.target).parents("li");
 
