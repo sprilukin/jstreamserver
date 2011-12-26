@@ -57,25 +57,27 @@
     };
 
     $.fn.extend({
-        bindTouchToMouse:function () {
+        bindTouchToMouseEvents:function () {
             if (supportsTouch) {
                 this.each(function () {
-                    this.addEventListener("touchstart", touchHandler, true);
-                    this.addEventListener("touchmove", touchHandler, true);
-                    this.addEventListener("touchend", touchHandler, true);
-                    this.addEventListener("touchcancel", touchHandler, true);
+                    var element = this;
+
+                    $.each(["touchstart", "touchmove", "touchend", "touchcancel"], function() {
+                        element.addEventListener(this, touchHandler, true);
+                    });
                 });
             }
             return this;
         },
 
-        unbindTouchToMouse:function () {
+        unbindTouchFromMouseEvents:function () {
             if (supportsTouch) {
                 this.each(function () {
-                    this.removeEventListener("touchstart", touchHandler, true);
-                    this.removeEventListener("touchmove", touchHandler, true);
-                    this.removeEventListener("touchend", touchHandler, true);
-                    this.removeEventListener("touchcancel", touchHandler, true);
+                    var element = this;
+
+                    $.each(["touchstart", "touchmove", "touchend", "touchcancel"], function() {
+                        element.removeEventListener(this, touchHandler, true);
+                    });
                 });
             }
             return this;

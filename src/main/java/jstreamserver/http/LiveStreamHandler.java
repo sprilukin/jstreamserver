@@ -108,8 +108,7 @@ public final class LiveStreamHandler extends BaseHandler {
             if (!file.exists() || !file.isFile() || file.isHidden()) {
                 return rendeResourceNotFound(fileString, httpRequestContext);
             } else {
-                String startTime = params.get("time"); // start from the beginning by default
-                System.out.println(startTime);
+                String startTime = params.get("time");
                 return getLiveStream(file, fileString, startTime, audioStreamId, httpRequestContext);
             }
         } else {

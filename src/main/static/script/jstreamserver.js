@@ -101,7 +101,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
         var max = Math.floor($.convertTimeToMillis(duration) / 1000);
 
         //capture touch events
-        slider.bindTouchToMouse();
+        slider.bindTouchToMouseEvents();
 
         var sliderChangedManually = false;
 
@@ -133,7 +133,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     destroySlider: function(el) {
-        el.find(".slider-panel").unbindTouchToMouse().slider("destroy");
+        el.find(".slider-panel").unbindTouchFromMouseEvents().slider("destroy");
     },
 
     eventListeners: {
