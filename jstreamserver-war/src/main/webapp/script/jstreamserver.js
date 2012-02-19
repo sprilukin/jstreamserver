@@ -41,6 +41,12 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     initialize: function(json) {
         this.el = $("#directoryList");
 
+        _.templateSettings = {
+            evaluate:/\{\{([\s\S]+?)\}\}/g,
+            interpolate:/\{\{=([\s\S]+?)\}\}/g,
+            escape:/\{\{-([\s\S]+?)\}\}/g
+        };
+
         this.template = _.template($("#dirListTmpl").html());
         this.videoTemplate = _.template($("#videotagTmpl").html());
 

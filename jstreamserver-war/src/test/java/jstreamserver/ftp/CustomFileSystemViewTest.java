@@ -23,6 +23,7 @@
 package jstreamserver.ftp;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.unitils.UnitilsJUnit4;
 import org.unitils.inject.annotation.TestedObject;
@@ -62,7 +63,7 @@ public class CustomFileSystemViewTest extends UnitilsJUnit4 {
         assertEquals(RootFtpDir.ROOT_PATH,  customFileSystemView.getWorkingDirectory().getAbsolutePath());
     }
 
-    @Test
+    @Ignore
     public void testChangeToNonASCIIDir() throws Exception {
         customFileSystemView.setRootDirs(rootDirs);
 

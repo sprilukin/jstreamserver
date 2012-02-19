@@ -22,12 +22,8 @@
 
 package jstreamserver.http;
 
-import anhttpserver.HttpRequestContext;
-import anhttpserver.SimpleHttpHandlerAdapter;
 import jstreamserver.utils.Config;
 import jstreamserver.utils.HttpUtils;
-import jstreamserver.utils.velocity.VelocityModel;
-import jstreamserver.utils.velocity.VelocityRenderer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,8 +39,8 @@ import java.util.Properties;
  *
  * @author Sergey Prilukin
  */
-public final class DispatcherHandler extends SimpleHttpHandlerAdapter {
-    public static final String MAPPING = "handler.properties";
+public final class DispatcherHandler  {
+/*    public static final String MAPPING = "handler.properties";
     private Config config;
     private Properties mapping;
     private Map<String, ConfigAwareHttpHandler> handlers = new HashMap<String, ConfigAwareHttpHandler>();
@@ -106,5 +102,5 @@ public final class DispatcherHandler extends SimpleHttpHandlerAdapter {
         setResponseSize(result.available(), httpRequestContext);
         setResponseCode(HttpURLConnection.HTTP_NOT_FOUND, httpRequestContext);
         return result;
-    }
+    }*/
 }

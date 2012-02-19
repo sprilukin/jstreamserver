@@ -25,10 +25,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>jstreamserver</groupId>
-    <artifactId>jstreamserver-war</artifactId>
-    <packaging>war</packaging>
+    <artifactId>jstreamserver-cli</artifactId>
+    <packaging>jar</packaging>
     <version>0.2</version>
-    <name>jstreamserver-war</name>
+    <name>jstreamserver-cli</name>
     <description>Java HTTP server for static content</description>
     <url>https://github.com/sprilukin/jstreamserver</url>
 
@@ -88,92 +88,56 @@
           <groupId>org.apache.ftpserver</groupId>
           <artifactId>ftpserver-core</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>jsp-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.el</groupId>
-            <artifactId>el-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>jstl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>taglibs</groupId>
-            <artifactId>standard</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
         <defaultGoal>install</defaultGoal>
-        <resources>
-            <resource>
-                <directory>${basedir}/src/main/resources</directory>
-            </resource>
-            <resource>
-                <targetPath>${basedir}/target/static</targetPath>
-                <directory>${basedir}/src/main/static</directory>
-            </resource>
-            <resource>
-                <directory>${basedir}/src/test/javascript</directory>
-                <targetPath>${basedir}/target/test-classes/script</targetPath>
-            </resource>
-        </resources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <configuration>
+                        <archive>
+                            <manifestEntries>
+                                <Built-By>Sergey Prilukin</Built-By>
+                            </manifestEntries>
+                            <manifest>
+                                <mainClass>jstreamserver.Runner</mainClass>
+                                <addClasspath>true</addClasspath>
+                            </manifest>
+                        </archive>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <configuration>
+                        <archive>
+                            <manifest>
+                                <mainClass>jstreamserver.Runner</mainClass>
+                            </manifest>
+                        </archive>
+                        <descriptors>
+                            <descriptor>src/main/assembly/assembly.xml</descriptor>
+                        </descriptors>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>make-assembly</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>attached</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>2.7</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
-
-    <profiles>
-        <profile>
-            <id>dev</id>
-            <build>
-                <resources>
-                    <resource>
-                        <directory>${basedir}/src/main/static</directory>
-                    </resource>
-                    <resource>
-                        <directory>${basedir}/src/main/static</directory>
-                        <targetPath>${basedir}/target/test-classes</targetPath>
-                    </resource>
-                </resources>
-            </build>
-            <activation>
-                <property>
-                    <name>dev</name>
-                </property>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>production</id>
-            <activation>
-                <property>
-                    <name>production</name>
-                </property>
-            </activation>
-        </profile>
-    </profiles>
 
 </project>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Sergey Prilukin
+ * Copyright (c) 2012 Sergey Prilukin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,23 +20,23 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils;
+package jstreamserver.services;
 
-import jstreamserver.utils.velocity.VelocityModel;
-import jstreamserver.utils.velocity.VelocityRenderer;
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import jstreamserver.dto.Folder;
+import org.springframework.stereotype.Service;
 
 /**
- * Tests for {@link VelocityRenderer}
+ * Service to work with file system
  *
  * @author Sergey Prilukin
  */
-public class VelocityRendererTest {
+@Service
+public class FolderServiceImpl implements FolderService {
 
-    @Test
-    public void testVelocityRenderer() throws Exception {
-        System.out.println(IOUtils.toString(VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", new VelocityModel("foo", "my"))));
-        System.out.println(IOUtils.toString(VelocityRenderer.renderTemplate("jstreamserver/utils/template.vm", new VelocityModel("foo", "your"))));
+    /**
+     * {@inheritDoc}
+     */
+    public Folder getFolder(String path) {
+        throw new RuntimeException("Not implemented");
     }
 }
