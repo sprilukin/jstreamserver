@@ -22,6 +22,7 @@
 
 package jstreamserver.utils;
 
+import jstreamserver.ffmpeg.FFMpegConstants;
 import org.springframework.stereotype.Component;
 
 import java.text.MessageFormat;
@@ -34,11 +35,6 @@ import java.util.*;
  */
 @Component
 public final class Config implements ConfigReader, ConfigWriter {
-    public static final String SEGMENTER_PARAMS_FORMAT = "- {0} %s %s / {1} {2}";
-    public static final String FFMPEG_PARAMS_FORMAT = "-i \"%s\" %s %s {0} -";
-    public static final String FFMPEG_AUDIO_STREAM_SELECTION_FORMAT = "-map 0:0 -map 0:%s";
-    public static final String FFMPEG_START_TIME_FORMAT = "-ss %s";
-
     private int port;
     private String host;
     private Map<String, String> rootDirs = new LinkedHashMap<String, String>();
@@ -115,7 +111,7 @@ public final class Config implements ConfigReader, ConfigWriter {
     }
 
     public String getFfmpegParams() {
-        return MessageFormat.format(FFMPEG_PARAMS_FORMAT, ffmpegParams);
+        return MessageFormat.format(FFMpegConstants.FFMPEG_PARAMS_FORMAT, ffmpegParams);
     }
 
     public void setFfmpegParams(String ffmpegParams) {
@@ -180,7 +176,7 @@ public final class Config implements ConfigReader, ConfigWriter {
 
     public String getSegmenterParams() {
         return MessageFormat.format(
-                SEGMENTER_PARAMS_FORMAT,
+                FFMpegConstants.SEGMENTER_PARAMS_FORMAT,
                 String.valueOf(segmentDurationInSec),
                 String.valueOf(segmentWindowSize),
                 String.valueOf(segmenterSearchKillFile));

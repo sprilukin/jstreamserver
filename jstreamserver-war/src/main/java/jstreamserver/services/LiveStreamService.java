@@ -24,6 +24,7 @@ package jstreamserver.services;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Service to operate with live streaming
@@ -43,6 +44,15 @@ public interface LiveStreamService {
      * @throws IOException if exception occurs during stream initialization
      */
     public Integer createLiveStream(File file, String startTime, Integer audioStreamId) throws IOException;
+    
+    /**
+     * Returns {@link InputStream} for .m3u8 playlist of livestream with given ID
+     *
+     * @param liveStreamId id of the stream
+     * @return {@link InputStream} for .m3u8 playlist
+     * @throws IOException if exception occurs during getting playlist
+     */
+    public InputStream getPlayList(Integer liveStreamId) throws IOException;
 
     /**
      * Destroys livestream by given id

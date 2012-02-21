@@ -20,38 +20,16 @@
  * SOFTWARE.
  */
 
-package jstreamserver.services;
-
-import org.springframework.stereotype.Service;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+package jstreamserver.ffmpeg;
 
 /**
- * Service which allows to start or stop livestreaming for specified file
+ * Constants for FFMPEG
  *
  * @author Sergey Prilukin
  */
-
-@Service
-public class LiveStreamServiceImpl implements LiveStreamService {
-
-    public LiveStreamServiceImpl() {
-    }
-
-    @Override
-    public Integer createLiveStream(File file, String startTime, Integer audioStreamId) throws IOException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void destroyLiveStream(Integer liveStreamId) throws IOException {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public InputStream getPlayList(Integer liveStreamId) throws IOException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
+public final class FFMpegConstants {
+    public static final String SEGMENTER_PARAMS_FORMAT = "- {0} %s %s / {1} {2}";
+    public static final String FFMPEG_PARAMS_FORMAT = "-i \"%s\" %s %s {0} -";
+    public static final String FFMPEG_AUDIO_STREAM_SELECTION_FORMAT = "-map 0:0 -map 0:%s";
+    public static final String FFMPEG_START_TIME_FORMAT = "-ss %s";
 }
