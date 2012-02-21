@@ -42,20 +42,4 @@ public final class HttpUtils {
     public static final String GZIP_ENCODING = "gzip";
 
     public static final String DEFAULT_TEXT_CONTENT_TYPE = "text/html; charset=" + DEFAULT_ENCODING;
-
-    public static Map<String, String> getURLParams(String query) {
-        if (query == null || query.isEmpty()) {
-            return Collections.emptyMap();
-        }
-
-        Map<String, String> params = new HashMap<String, String>();
-        String[] paramsArray = query.split("\\&");
-        for (String parameter: paramsArray) {
-            String[] paramValue = parameter.split("=");
-            params.put(paramValue[0], paramValue[1]);
-        }
-
-        return params;
-    }
-
 }

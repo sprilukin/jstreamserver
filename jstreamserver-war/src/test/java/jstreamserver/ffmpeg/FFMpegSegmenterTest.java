@@ -23,9 +23,6 @@
 package jstreamserver.ffmpeg;
 
 import jstreamserver.utils.RuntimeExecutor;
-import jstreamserver.utils.ffmpeg.FFMpegSegmenter;
-import jstreamserver.utils.ffmpeg.FrameMessage;
-import jstreamserver.utils.ffmpeg.ProgressListener;
 import org.junit.Test;
 import org.unitils.UnitilsJUnit4;
 import org.unitils.inject.annotation.InjectInto;
@@ -34,7 +31,6 @@ import org.unitils.mock.Mock;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;

@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils.ffmpeg;
+package jstreamserver.ffmpeg;
 
 import jstreamserver.utils.RuntimeExecutor;
 import org.apache.commons.io.IOUtils;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Sergey Prilukin
+ * Copyright (c) 2011 Sergey Prilukin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,33 +20,17 @@
  * SOFTWARE.
  */
 
-package jstreamserver.services;
-
-import jstreamserver.dto.BreadCrumb;
-import jstreamserver.dto.FileListEntry;
-import jstreamserver.dto.Folder;
-
-import java.util.List;
+package jstreamserver.ffmpeg;
 
 /**
- * Service to work with file system
+ * Implementations can be used in {@link FFMpegSegmenter}
+ * to receive progress info from ffmpeg process
  *
- * @author Sergey Prilukin
+ * @author Sergey
  */
-public interface FolderService {
-
-    /**
-     * Return folder content for given path
-     *
-     * @param path path to folder in file system
-     * @return folder content for given folder
-     */
-    public List<FileListEntry> getFolderContent(String path);
-
-    /**
-     * Return breadcrumbs for given path
-     * @param path path to folder
-     * @return breadcrumbs for given folder
-     */
-    public List<BreadCrumb> getBreadCrumbs(String path);
+public interface ProgressListener {
+    public void onFrameMessage(FrameMessage frameMessage);
+    public void onProgress(String progressString);
+    public void onFinish(int exitCode);
+    public void onPlayListCreated();
 }

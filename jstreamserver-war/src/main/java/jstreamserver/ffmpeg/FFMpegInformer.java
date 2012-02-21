@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils.ffmpeg;
+package jstreamserver.ffmpeg;
 
 import jstreamserver.utils.RuntimeExecutor;
 
@@ -36,18 +36,20 @@ import java.util.regex.Pattern;
 /**
  * Utility class which allows to read information information from audio\video inputs
  *
- * @athor Sergey Prilukin
+ * @author Sergey Prilukin
  */
 public final class FFMpegInformer {
     public static final String INPUT_FILE_FORMAT = "-i";
 
-    private RuntimeExecutor ffmpegExecutor = new RuntimeExecutor();
+    private RuntimeExecutor ffmpegExecutor;
 
     public void setFfmpegExecutor(RuntimeExecutor ffmpegExecutor) {
         this.ffmpegExecutor = ffmpegExecutor;
     }
 
     public List<MediaInfo> getInfo(List<String> files, String ffmpegPath) throws IOException {
+        ffmpegExecutor = new RuntimeExecutor();
+
         final List<MediaInfo> mediaInfos = new ArrayList<MediaInfo>(files.size());
 
         ffmpegExecutor.execute(ffmpegPath, getFFMpegParams(files));

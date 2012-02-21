@@ -1,11 +1,17 @@
 package jstreamserver.web;
 
+import jstreamserver.dto.BreadCrumb;
+import jstreamserver.dto.FileListEntry;
+import jstreamserver.services.FolderService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,6 +24,10 @@ import java.util.Map;
 public class FolderController {
 
     private Log log = LogFactory.getLog(getClass());
+    private ObjectMapper jsonMapper = new ObjectMapper();
+    
+    @Autowired
+    private FolderService folderService;
 
     @RequestMapping("/")
     public String home() {
@@ -25,12 +35,14 @@ public class FolderController {
     }
 
     @RequestMapping("/index")
-    public String listFolder(Map<String, Object> map) {
+    public String listFolder(@RequestParam(value = "path") String path, Map<String, Object> map) throws Exception {
 
-        map.put("files", "{}");
-        map.put("breadCrumbs", "{}");
+        List<FileListEntry> files = folderService.getFolderContent(path);
+        List<BreadCrumb> breadCrumbs = folderService.getBreadCrumbs(path);
 
-        log.debug("HHHHHHHH");
+        map.put("folder", jsonMapper.writeValueAsString(files));
+        map.put("breadCrumbs", jsonMapper.writeValueAsString(breadCrumbs));
+
         return "directory";
     }
 }

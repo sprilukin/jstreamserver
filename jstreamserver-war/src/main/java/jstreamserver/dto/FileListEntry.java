@@ -22,7 +22,7 @@
 
 package jstreamserver.dto;
 
-import jstreamserver.utils.ffmpeg.MediaInfo;
+import jstreamserver.ffmpeg.MediaInfo;
 
 /**
  * Data Transfer Object for a file

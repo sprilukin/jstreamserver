@@ -40,17 +40,7 @@ public class RuntimeExecutor {
     private OutputStream outputStream;
     private InputStream errorStream;
     private Process process;
-    private Thread shutdownHook = new Thread(new Runnable() {
-        @Override
-        public void run() {
-            synchronized (RuntimeExecutor.class) {
-                destroyProcess(process);
-                closeCloseable(inputStream);
-                closeCloseable(outputStream);
-                closeCloseable(errorStream);
-            }
-        }
-    });
+    private Thread shutdownHook;
 
 
     /**
@@ -64,6 +54,18 @@ public class RuntimeExecutor {
      */
     public void execute(String pathToExecutable, String[] args, String[] envp, File homeDir) throws IOException {
         Runtime runtime = Runtime.getRuntime();
+
+        shutdownHook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (RuntimeExecutor.class) {
+                    destroyProcess(process);
+                    closeCloseable(inputStream);
+                    closeCloseable(outputStream);
+                    closeCloseable(errorStream);
+                }
+            }
+        });
 
         synchronized (RuntimeExecutor.class) {
             runtime.addShutdownHook(shutdownHook);

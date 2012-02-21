@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils.ffmpeg;
+package jstreamserver.ffmpeg;
 
 import java.math.BigDecimal;
 import java.text.DateFormat;

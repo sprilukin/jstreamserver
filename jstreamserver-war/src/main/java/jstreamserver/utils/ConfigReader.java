@@ -20,17 +20,40 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils.ffmpeg;
+package jstreamserver.utils;
+
+import java.util.Map;
 
 /**
- * Implementations can be used in {@link FFMpegSegmenter}
- * to receive progress info from ffmpeg process
+ * Allows to read config
  *
- * @author Sergey
+ * @author Sergey Prilukin
  */
-public interface ProgressListener {
-    public void onFrameMessage(FrameMessage frameMessage);
-    public void onProgress(String progressString);
-    public void onFinish(int exitCode);
-    public void onPlayListCreated();
+public interface ConfigReader {
+
+    public int getPort();
+
+    public String getHost();
+
+    public Map<String, String> getRootDirs();
+
+    public String getFfmpegLocation();
+
+    public String getFfmpegParams();
+
+    public String getSegmenterLocation();
+
+    public int getSegmentDurationInSec();
+
+    public int getSegmentWindowSize();
+
+    public int getSegmenterSearchKillFile();
+
+    public int getSegmenterMaxtimeout();
+
+    public String getSegmenterParams();
+
+    public String getDefaultTextCharset();
+
+    public int getFtpPort();
 }

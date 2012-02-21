@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils.ffmpeg;
+package jstreamserver.ffmpeg;
 
 /**
  * DTO with information for video stream.

@@ -22,16 +22,16 @@
     </script>
 
     <%--HTML templates--%>
-    <%@include file="dirlisttmpl.html"%>
-    <%@include file="breadcrumbtmpl.html"%>
-    <%@include file="videotagtmpl.html"%>
+    <%@include file="../templates/dirlisttmpl.html"%>
+    <%@include file="../templates/breadcrumbtmpl.html"%>
+    <%@include file="../templates/videotagtmpl.html"%>
 </head>
 <body>
 
 <%-- Main content--%>
 
 <div class="container">
-    <%@include file="directory.html"%>
+    <%@include file="../templates/directory.html"%>
 </div>
 </body>
 </html>

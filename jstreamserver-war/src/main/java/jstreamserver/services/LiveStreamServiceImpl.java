@@ -22,31 +22,10 @@
 
 package jstreamserver.services;
 
-import jstreamserver.dto.BreadCrumb;
-import jstreamserver.dto.FileListEntry;
-import jstreamserver.dto.Folder;
-
-import java.util.List;
-
 /**
- * Service to work with file system
+ * TODO: description
  *
- * @author Sergey Prilukin
+ * @author: Sergey Prilukin
  */
-public interface FolderService {
-
-    /**
-     * Return folder content for given path
-     *
-     * @param path path to folder in file system
-     * @return folder content for given folder
-     */
-    public List<FileListEntry> getFolderContent(String path);
-
-    /**
-     * Return breadcrumbs for given path
-     * @param path path to folder
-     * @return breadcrumbs for given folder
-     */
-    public List<BreadCrumb> getBreadCrumbs(String path);
+public class LiveStreamServiceImpl {
 }

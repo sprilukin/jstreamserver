@@ -23,8 +23,6 @@
 package jstreamserver.ffmpeg;
 
 import jstreamserver.utils.RuntimeExecutor;
-import jstreamserver.utils.ffmpeg.FFMpegInformer;
-import jstreamserver.utils.ffmpeg.MediaInfo;
 import org.junit.Test;
 import org.unitils.UnitilsJUnit4;
 import org.unitils.inject.annotation.InjectInto;
@@ -40,7 +38,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for {@link jstreamserver.utils.ffmpeg.FFMpegInformer}
+ * Tests for {@link jstreamserver.ffmpeg.FFMpegInformer}
  *
  * @author Sergey Prilukin
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Sergey Prilukin
+ * Copyright (c) 2011 Sergey Prilukin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,33 +20,41 @@
  * SOFTWARE.
  */
 
-package jstreamserver.services;
+package jstreamserver.utils;
 
-import jstreamserver.dto.BreadCrumb;
-import jstreamserver.dto.FileListEntry;
-import jstreamserver.dto.Folder;
-
-import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
- * Service to work with file system
+ * Allows to write config
  *
  * @author Sergey Prilukin
  */
-public interface FolderService {
+public interface ConfigWriter {
 
-    /**
-     * Return folder content for given path
-     *
-     * @param path path to folder in file system
-     * @return folder content for given folder
-     */
-    public List<FileListEntry> getFolderContent(String path);
+    public void setFromProoperties(Properties props);
 
-    /**
-     * Return breadcrumbs for given path
-     * @param path path to folder
-     * @return breadcrumbs for given folder
-     */
-    public List<BreadCrumb> getBreadCrumbs(String path);
+    public void setPort(int port);
+
+    public void setHost(String host);
+
+    public void setRootDirs(Map<String, String> rootDirs);
+
+    public void setFfmpegLocation(String ffmpegLocation);
+
+    public void setFfmpegParams(String ffmpegParams);
+
+    public void setSegmenterLocation(String segmenterLocation);
+
+    public void setSegmentDurationInSec(int segmentDurationInSec);
+
+    public void setSegmentWindowSize(int segmentWindowSize);
+
+    public void setSegmenterSearchKillFile(int segmenterSearchKillFile);
+
+    public void setSegmenterMaxtimeout(int segmenterMaxtimeout);
+
+    public void setDefaultTextCharset(String defaultTextCharset);
+
+    public void setFtpPort(int ftpPort);
 }

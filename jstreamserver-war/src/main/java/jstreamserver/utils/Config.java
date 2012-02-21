@@ -22,43 +22,63 @@
 
 package jstreamserver.utils;
 
+import org.springframework.stereotype.Component;
+
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * POJO which holds config settings for the server.
  *
  * @author Sergey Prilukin
  */
-public final class Config {
+@Component
+public final class Config implements ConfigReader, ConfigWriter {
     public static final String SEGMENTER_PARAMS_FORMAT = "- {0} %s %s / {1} {2}";
     public static final String FFMPEG_PARAMS_FORMAT = "-i \"%s\" %s %s {0} -";
     public static final String FFMPEG_AUDIO_STREAM_SELECTION_FORMAT = "-map 0:0 -map 0:%s";
     public static final String FFMPEG_START_TIME_FORMAT = "-ss %s";
 
-    private int port = 8888;
-    private String host = "0.0.0.0";
-    private int maxThreads = 10;
-    private String resourcesFolder = "static";
+    private int port;
+    private String host;
     private Map<String, String> rootDirs = new LinkedHashMap<String, String>();
-    private String mimeProperties = null;
-    private String ffmpegLocation = null; //ffmpeg not available by default
-    private String ffmpegParams = "-f mpegts -acodec libmp3lame -ab 64000 -ac 2 -s 480x320 -vcodec libx264 -b 480000 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -subq 5 -trellis 1 -refs 1 -coder 0 -me_range 16  -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -bt 400k -maxrate 524288 -bufsize 524288 -rc_eq 'blurCplx^(1-qComp)' -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -level 30 -aspect 480:320 -g 30 -async 2";
-    private String segmenterLocation = null; //segmenter not available by default
-    private int segmentDurationInSec = 10;
-    private int segmentWindowSize = 2 * 60 * 60 / segmentDurationInSec;
-    private int segmenterSearchKillFile = 1;
-    private int segmenterMaxtimeout = Math.max(segmentDurationInSec * 100 * 3, 30000); //3 times of segment duration. should be enough
-    private String defaultTextCharset = "UTF-8";
-    
-    //FTP
+    private String ffmpegLocation;
+    private String ffmpegParams;
+    private String segmenterLocation;
+    private int segmentDurationInSec;
+    private int segmentWindowSize;
+    private int segmenterSearchKillFile;
+    private int segmenterMaxtimeout;
+    private String defaultTextCharset;
     private int ftpPort = 21;
 
 
     public Config() {
+        /* no code */
+    }
+
+    @Override
+    public void setFromProoperties(Properties props) {
+        setPort(Integer.valueOf(props.getProperty("port", "8888")));
+        setHost(props.getProperty("host", "0.0.0.0"));
+        setFfmpegLocation(props.getProperty("ffmpegLocation"));
+        setFfmpegParams(props.getProperty("ffmpegParams", "-f mpegts -acodec libmp3lame -ab 64000 -ac 2 -s 480x320 -vcodec libx264 -b 480000 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -subq 5 -trellis 1 -refs 1 -coder 0 -me_range 16  -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -bt 400k -maxrate 524288 -bufsize 524288 -rc_eq 'blurCplx^(1-qComp)' -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -level 30 -aspect 480:320 -g 30 -async 2"));
+        setSegmenterLocation(props.getProperty("segmenterLocation"));
+        setSegmentDurationInSec(Integer.valueOf(props.getProperty("segmentDurationInSec", "10")));
+        setSegmentWindowSize(Integer.valueOf(props.getProperty("segmentWindowSize", "720")));
+        setSegmenterSearchKillFile(Integer.valueOf(props.getProperty("segmenterSearchKillFile", "1")));
+        setSegmenterMaxtimeout(Integer.valueOf(props.getProperty("segmenterMaxtimeout", "30000")));
+        setDefaultTextCharset(props.getProperty("defaultTextCharset", "UTF-8"));
+        setFtpPort(Integer.valueOf(props.getProperty("ftpPort", "21")));
+
+        for (Map.Entry entry: props.entrySet()) {
+            String key = (String)entry.getKey();
+            String value = (String)entry.getValue();
+
+            if (key.startsWith("rootdir.")) {
+                rootDirs.put(key.substring(8), value);
+            }
+        }
     }
 
     public int getPort() {
@@ -77,28 +97,13 @@ public final class Config {
         this.host = host;
     }
 
-    public int getMaxThreads() {
-        return maxThreads;
-    }
-
-    public void setMaxThreads(int maxThreads) {
-        this.maxThreads = maxThreads;
-    }
-
     public Map<String, String> getRootDirs() {
         return rootDirs;
     }
 
     public void setRootDirs(Map<String, String> rootDirs) {
-        this.rootDirs = rootDirs;
-    }
-
-    public String getMimeProperties() {
-        return mimeProperties;
-    }
-
-    public void setMimeProperties(String mimeProperties) {
-        this.mimeProperties = mimeProperties;
+        this.rootDirs.clear();
+        this.rootDirs.putAll(rootDirs);
     }
 
     public String getFfmpegLocation() {
@@ -157,14 +162,6 @@ public final class Config {
         this.segmenterMaxtimeout = segmenterMaxtimeout;
     }
 
-    public String getResourcesFolder() {
-        return resourcesFolder;
-    }
-
-    public void setResourcesFolder(String resourcesFolder) {
-        this.resourcesFolder = resourcesFolder;
-    }
-
     public String getDefaultTextCharset() {
         return defaultTextCharset;
     }
@@ -194,13 +191,8 @@ public final class Config {
         StringBuilder sb = new StringBuilder();
         sb.append("Jstreamserver config:\r\n");
         sb.append("listening on: ").append(host).append(":").append(port).append("\r\n");
-        sb.append("max threads count: ").append(maxThreads).append("\r\n");
-        sb.append("resources folder: ").append(resourcesFolder).append("\r\n");
         sb.append("default text charset: ").append(defaultTextCharset).append("\r\n");
         sb.append("Built-in FTP server listen on: ").append(ftpPort).append("\r\n");
-        if (mimeProperties != null) {
-            sb.append("mimeProperties: ").append(mimeProperties).append("\r\n");
-        }
         if (ffmpegLocation != null) {
             sb.append("ffmpegLocation: ").append(ffmpegLocation).append("\r\n");
             sb.append("ffmpegParams: ").append(ffmpegParams).append("\r\n");

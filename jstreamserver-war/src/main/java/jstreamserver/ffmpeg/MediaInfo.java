@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils.ffmpeg;
+package jstreamserver.ffmpeg;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
