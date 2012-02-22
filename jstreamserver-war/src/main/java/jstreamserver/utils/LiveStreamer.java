@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package jstreamserver.services;
+package jstreamserver.utils;
 
 import jstreamserver.ffmpeg.FFMpegConstants;
 import jstreamserver.ffmpeg.FFMpegSegmenter;
@@ -33,11 +33,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.*;
 
 /**
- * TODO: description
+ * Class to operate with LiveStream
  *
  * @author Sergey Prilukin
  */
-public class LiveStreamer {
+public final class LiveStreamer {
 
     public static final String HANDLE_PATH = "livestream%s";
     public static final String LIVE_STREAM_FILE_PREFIX = "stream";
@@ -45,35 +45,20 @@ public class LiveStreamer {
     public static final String LIVE_STREAM_FILE_PATH = HANDLE_PATH + "/" + LIVE_STREAM_FILE_PREFIX;
     public static final String PLAYLIST_FULL_PATH = LIVE_STREAM_FILE_PATH + "." + PLAYLIST_EXTENSION;
 
-//    public static final SimpleDateFormat FFMPEG_SS_DATE_FORMAT = new SimpleDateFormat("HH:mm:ss");
-//    static {
-//        FFMPEG_SS_DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
-//    }
-
-//    private static Set<String> html5SupportedVideoExtensions = new HashSet<String>();
-//
-//    static {
-//        html5SupportedVideoExtensions.add("qt"); //IOS only?
-//        html5SupportedVideoExtensions.add("mov"); //IOS only?
-//        html5SupportedVideoExtensions.add("mp4");
-//        html5SupportedVideoExtensions.add("m4v");
-//        html5SupportedVideoExtensions.add("3gp");
-//        html5SupportedVideoExtensions.add("3gpp");
-//    }
-
-    @Autowired
     private ConfigReader configReader;
 
     private FFMpegSegmenter ffMpegSegmenter;
     private final Object ffmpegSegmenterMonitor = new Object();
     private final Object playListCreatedMonitor = new Object();
-    private ProgressListener progressListener = new LiveStreamProgressListener();
+    private ProgressListener progressListener;
     private SegmenterKiller segmenterKiller;
 
     private String liveStreamFolderSuffix;
 
-    public LiveStreamer(String liveStreamFolderSuffix) {
+    public LiveStreamer(String liveStreamFolderSuffix, ProgressListener progressListener, ConfigReader configReader) {
         this.liveStreamFolderSuffix = liveStreamFolderSuffix;
+        this.progressListener = new LiveStreamProgressListener(progressListener);
+        this.configReader = configReader;
     }
 
     private String appendLiveStreamFolderSuffix(String notFormattedString) {
@@ -85,13 +70,14 @@ public class LiveStreamer {
      * and thus this thread can read non-completed version of the file.
      * In this method we ensure that last line of playlist matches one of the possible formats
      */
-    public InputStream getPlayList(String playlist) throws IOException {
+    public InputStream getPlayList() throws IOException {
 
         boolean fileIsOk = false;
         StringBuilder sb = null;
 
         while (!fileIsOk) {
-            BufferedReader reader = new BufferedReader(new FileReader(playlist));
+            String fileName = appendLiveStreamFolderSuffix(PLAYLIST_FULL_PATH);
+            BufferedReader reader = new BufferedReader(new FileReader(fileName));
             sb = new StringBuilder();
 
             String line = "";
@@ -214,12 +200,21 @@ public class LiveStreamer {
     }
 
     class LiveStreamProgressListener implements ProgressListener {
+
+        private ProgressListener listener;
+
+        LiveStreamProgressListener(ProgressListener listener) {
+            this.listener = listener;
+        }
+
         @Override
         public void onFrameMessage(FrameMessage frameMessage) {
+            listener.onFrameMessage(frameMessage);
         }
 
         @Override
         public void onProgress(String progressString) {
+            listener.onProgress(progressString);
         }
 
         @Override
@@ -227,11 +222,14 @@ public class LiveStreamer {
             synchronized (playListCreatedMonitor) {
                 playListCreatedMonitor.notify();
             }
+
+            listener.onPlayListCreated();
         }
 
         @Override
         public void onFinish(int exitCode) {
-            System.out.println("Segmenter finished. Exit code: " + exitCode);
+            System.out.println(String.format("Segmenter with suffix %s finished. Exit code: %s", liveStreamFolderSuffix, exitCode));
+            listener.onFinish(exitCode);
         }
     }
 

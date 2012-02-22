@@ -8,6 +8,7 @@ import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -35,13 +36,13 @@ public class FolderController {
     }
 
     @RequestMapping("/index")
-    public String listFolder(@RequestParam(value = "path") String path, Map<String, Object> map) throws Exception {
+    public String listFolder(@RequestParam(value = "path", required = false) String path, Model model) throws Exception {
 
         List<FileListEntry> files = folderService.getFolderContent(path);
         List<BreadCrumb> breadCrumbs = folderService.getBreadCrumbs(path);
 
-        map.put("folder", jsonMapper.writeValueAsString(files));
-        map.put("breadCrumbs", jsonMapper.writeValueAsString(breadCrumbs));
+        model.addAttribute("folder", jsonMapper.writeValueAsString(files));
+        model.addAttribute("breadCrumbs", jsonMapper.writeValueAsString(breadCrumbs));
 
         return "directory";
     }

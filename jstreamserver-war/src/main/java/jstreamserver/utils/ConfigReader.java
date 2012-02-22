@@ -22,6 +22,7 @@
 
 package jstreamserver.utils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -56,4 +57,8 @@ public interface ConfigReader {
     public String getDefaultTextCharset();
 
     public int getFtpPort();
+    
+    public Map<String, List<String>> getVideoTypesForHTML5();
+
+    public int getMaxLiveStreams();
 }

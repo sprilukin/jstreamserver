@@ -22,11 +22,18 @@
 
 package jstreamserver.services;
 
+import jstreamserver.ffmpeg.FrameMessage;
+import jstreamserver.ffmpeg.ProgressListener;
+import jstreamserver.utils.ConfigReader;
+import jstreamserver.utils.LiveStreamer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Service which allows to start or stop livestreaming for specified file
@@ -37,21 +44,86 @@ import java.io.InputStream;
 @Service
 public class LiveStreamServiceImpl implements LiveStreamService {
 
+    private final List<LiveStreamer> liveStreams = new LinkedList<LiveStreamer>();
+
+    @Autowired
+    private ConfigReader configReader;
+
     public LiveStreamServiceImpl() {
     }
 
     @Override
     public Integer createLiveStream(File file, String startTime, Integer audioStreamId) throws IOException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        synchronized (liveStreams) {
+            Integer streamsCount = liveStreams.size();
+
+            if (streamsCount == configReader.getMaxLiveStreams()) {
+                LiveStreamer liveStreamer = liveStreams.remove(0);
+                liveStreamer.destroyLiveStream();
+            }
+
+            addLiveStreamer(streamsCount - 1);
+
+            return streamsCount - 1;
+        }
+    }
+
+    private void addLiveStreamer(Integer id) {
+        DeadStreamsCleaner deadStreamsCleaner = new DeadStreamsCleaner();
+        LiveStreamer liveStreamer = new LiveStreamer(id.toString(), deadStreamsCleaner, configReader);
+        deadStreamsCleaner.setLiveStreamer(liveStreamer);
+
+        liveStreams.add(liveStreamer);
     }
 
     @Override
     public void destroyLiveStream(Integer liveStreamId) throws IOException {
-        //To change body of implemented methods use File | Settings | File Templates.
+        synchronized (liveStreams) {
+            LiveStreamer liveStreamer = liveStreams.remove(liveStreamId.intValue());
+            liveStreamer.destroyLiveStream();
+        }
     }
 
     @Override
     public InputStream getPlayList(Integer liveStreamId) throws IOException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        synchronized (liveStreams) {
+            return liveStreams.get(liveStreamId).getPlayList();
+        }
+    }
+   
+    class DeadStreamsCleaner implements ProgressListener {
+        private LiveStreamer liveStreamer;
+
+        DeadStreamsCleaner() {
+        }
+
+        public void setLiveStreamer(LiveStreamer liveStreamer) {
+            this.liveStreamer = liveStreamer;
+        }
+
+        @Override
+        public void onFrameMessage(FrameMessage frameMessage) {
+            /* do nothing */
+        }
+
+        @Override
+        public void onProgress(String progressString) {
+            /* do nothing */
+        }
+
+        @Override
+        public void onFinish(int exitCode) {
+            //Remove dead stream from list
+            synchronized (liveStreams) {
+                liveStreams.remove(liveStreamer);
+                //to avoid circular links
+                liveStreamer = null;
+            }
+        }
+
+        @Override
+        public void onPlayListCreated() {
+            /* do nothing */
+        }
     }
 }

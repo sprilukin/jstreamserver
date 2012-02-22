@@ -35,6 +35,7 @@ import java.util.*;
  */
 @Component
 public final class Config implements ConfigReader, ConfigWriter {
+
     private int port;
     private String host;
     private Map<String, String> rootDirs = new LinkedHashMap<String, String>();
@@ -46,11 +47,13 @@ public final class Config implements ConfigReader, ConfigWriter {
     private int segmenterSearchKillFile;
     private int segmenterMaxtimeout;
     private String defaultTextCharset;
-    private int ftpPort = 21;
-
+    private int ftpPort;
+    public Map<String, List<String>> videoTypesForHTML5 = new LinkedHashMap<String, List<String>>();
+    private int maxLiveStreams;
 
     public Config() {
-        /* no code */
+        videoTypesForHTML5.put("ios", Arrays.asList("qt", "mov", "mp4", "m4v", "3gp", "3gpp"));
+        videoTypesForHTML5.put("default", Arrays.asList("mp4", "m4v", "3gp", "3gpp"));
     }
 
     @Override
@@ -66,6 +69,7 @@ public final class Config implements ConfigReader, ConfigWriter {
         setSegmenterMaxtimeout(Integer.valueOf(props.getProperty("segmenterMaxtimeout", "30000")));
         setDefaultTextCharset(props.getProperty("defaultTextCharset", "UTF-8"));
         setFtpPort(Integer.valueOf(props.getProperty("ftpPort", "21")));
+        setMaxLiveStreams(Integer.valueOf(props.getProperty("maxLiveStreams", "5")));
 
         for (Map.Entry entry: props.entrySet()) {
             String key = (String)entry.getKey();
@@ -73,6 +77,8 @@ public final class Config implements ConfigReader, ConfigWriter {
 
             if (key.startsWith("rootdir.")) {
                 rootDirs.put(key.substring(8), value);
+            } else if (key.startsWith("html5VideoTypesFor.")) {
+                videoTypesForHTML5.put(key.substring(19), Arrays.asList(value.split("[,\\s]+")));
             }
         }
     }
@@ -174,12 +180,31 @@ public final class Config implements ConfigReader, ConfigWriter {
         this.ftpPort = ftpPort;
     }
 
+    @Override
+    public Map<String, List<String>> getVideoTypesForHTML5() {
+        return this.videoTypesForHTML5;
+    }
+
+    @Override
+    public void setVideoTypesForHTML5(Map<String, List<String>> videoTypesForHTML5) {
+        this.videoTypesForHTML5.clear();
+        this.videoTypesForHTML5.putAll(videoTypesForHTML5);
+    }
+
     public String getSegmenterParams() {
         return MessageFormat.format(
                 FFMpegConstants.SEGMENTER_PARAMS_FORMAT,
                 String.valueOf(segmentDurationInSec),
                 String.valueOf(segmentWindowSize),
                 String.valueOf(segmenterSearchKillFile));
+    }
+
+    public int getMaxLiveStreams() {
+        return maxLiveStreams;
+    }
+
+    public void setMaxLiveStreams(int maxLiveStreams) {
+        this.maxLiveStreams = maxLiveStreams;
     }
 
     @Override

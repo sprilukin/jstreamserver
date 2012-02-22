@@ -22,6 +22,7 @@
 
 package jstreamserver.utils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -57,4 +58,8 @@ public interface ConfigWriter {
     public void setDefaultTextCharset(String defaultTextCharset);
 
     public void setFtpPort(int ftpPort);
+
+    public void setVideoTypesForHTML5(Map<String, List<String>> videoTypesForHTML5);
+
+    public void setMaxLiveStreams(int maxLiveStreams);
 }
