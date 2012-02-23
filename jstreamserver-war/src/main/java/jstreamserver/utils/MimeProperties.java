@@ -1,5 +1,6 @@
 package jstreamserver.utils;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -13,8 +14,10 @@ import java.util.Properties;
  *
  * @author Sergey Prilukin
  */
+@Component
 public final class MimeProperties extends Properties {
 
+    @Value(value = "classpath:mime.properties")
     public void setMimeFile(Resource mimeFile) throws IOException {
         loadMimeProperties(mimeFile.getInputStream());
     }

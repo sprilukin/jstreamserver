@@ -89,12 +89,12 @@ public class FolderServiceImpl implements FolderService {
         }
 
 
-        return getFiles(children, path);
+        return getFiles(children, path == null ? ROOT_FOLDER_NAME : path);
     }
 
     @Override
     public List<BreadCrumb> getBreadCrumbs(String path) {
-        return generateBreadCrumbs(path);
+        return generateBreadCrumbs(path != null ? path : ROOT_FOLDER_NAME);
     }
 
     private File getFile(String path) {

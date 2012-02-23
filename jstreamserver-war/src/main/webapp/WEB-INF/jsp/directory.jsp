@@ -1,4 +1,5 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 
 <!DOCTYPE html>
 <html>
@@ -16,8 +17,8 @@
     <script src="/script/jstreamserver.js" type="text/javascript"></script>
     <script type="text/javascript">
         $(document).ready(function() {
-            new JStreamServer.DirectoryView(${files});
-            new JStreamServer.BreadCrumbView(${breadCrumbs})
+            new JStreamServer.DirectoryView(${folder});
+            new JStreamServer.BreadCrumbView(${breadCrumbs});
         });
     </script>
 

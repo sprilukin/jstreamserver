@@ -48,7 +48,9 @@ public final class FFMpegInformer {
     }
 
     public List<MediaInfo> getInfo(List<String> files, String ffmpegPath) throws IOException {
-        ffmpegExecutor = new RuntimeExecutor();
+        if (ffmpegExecutor == null) {
+            ffmpegExecutor = new RuntimeExecutor();
+        }
 
         final List<MediaInfo> mediaInfos = new ArrayList<MediaInfo>(files.size());
 

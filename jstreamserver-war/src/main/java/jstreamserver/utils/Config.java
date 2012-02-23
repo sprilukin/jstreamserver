@@ -23,8 +23,12 @@
 package jstreamserver.utils;
 
 import jstreamserver.ffmpeg.FFMpegConstants;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
+import java.io.*;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -34,7 +38,7 @@ import java.util.*;
  * @author Sergey Prilukin
  */
 @Component
-public final class Config implements ConfigReader, ConfigWriter {
+public final class Config implements ConfigReader, InitializingBean {
 
     private int port;
     private String host;
@@ -52,24 +56,47 @@ public final class Config implements ConfigReader, ConfigWriter {
     private int maxLiveStreams;
 
     public Config() {
-        videoTypesForHTML5.put("ios", Arrays.asList("qt", "mov", "mp4", "m4v", "3gp", "3gpp"));
-        videoTypesForHTML5.put("default", Arrays.asList("mp4", "m4v", "3gp", "3gpp"));
     }
 
     @Override
-    public void setFromProoperties(Properties props) {
-        setPort(Integer.valueOf(props.getProperty("port", "8888")));
-        setHost(props.getProperty("host", "0.0.0.0"));
-        setFfmpegLocation(props.getProperty("ffmpegLocation"));
-        setFfmpegParams(props.getProperty("ffmpegParams", "-f mpegts -acodec libmp3lame -ab 64000 -ac 2 -s 480x320 -vcodec libx264 -b 480000 -flags +loop -cmp +chroma -partitions +parti4x4+partp8x8+partb8x8 -subq 5 -trellis 1 -refs 1 -coder 0 -me_range 16  -keyint_min 25 -sc_threshold 40 -i_qfactor 0.71 -bt 400k -maxrate 524288 -bufsize 524288 -rc_eq 'blurCplx^(1-qComp)' -qcomp 0.6 -qmin 10 -qmax 51 -qdiff 4 -level 30 -aspect 480:320 -g 30 -async 2"));
-        setSegmenterLocation(props.getProperty("segmenterLocation"));
-        setSegmentDurationInSec(Integer.valueOf(props.getProperty("segmentDurationInSec", "10")));
-        setSegmentWindowSize(Integer.valueOf(props.getProperty("segmentWindowSize", "720")));
-        setSegmenterSearchKillFile(Integer.valueOf(props.getProperty("segmenterSearchKillFile", "1")));
-        setSegmenterMaxtimeout(Integer.valueOf(props.getProperty("segmenterMaxtimeout", "30000")));
-        setDefaultTextCharset(props.getProperty("defaultTextCharset", "UTF-8"));
-        setFtpPort(Integer.valueOf(props.getProperty("ftpPort", "21")));
-        setMaxLiveStreams(Integer.valueOf(props.getProperty("maxLiveStreams", "5")));
+    public void afterPropertiesSet() throws Exception {
+        String pathToProperties = System.getProperty("jsproperties");
+
+        if (pathToProperties != null) {
+            Reader reader = new BufferedReader(new FileReader(pathToProperties));
+            Properties properties = new Properties();
+            properties.load(reader);
+            setFromProperties(properties);
+        }
+
+        setFromProperties(System.getProperties());
+    }
+
+    @Value(value = "classpath:jstreamserver.properties")
+    public void setResource(Resource resource) throws IOException {
+        Properties properties = new Properties();
+        properties.load(resource.getInputStream());
+        setFromProperties(properties);
+    }
+
+    private Integer getIntValueFromProperties(Properties props, String key, Integer defValue) {
+        String value = props.getProperty(key);
+        return value != null ? Integer.parseInt(value) : defValue;
+    }
+
+    private void setFromProperties(Properties props) {
+        setPort(getIntValueFromProperties(props, "port", port));
+        setHost(props.getProperty("host", host));
+        setFfmpegLocation(props.getProperty("ffmpegLocation", ffmpegLocation));
+        setFfmpegParams(props.getProperty("ffmpegParams", ffmpegParams));
+        setSegmenterLocation(props.getProperty("segmenterLocation", segmenterLocation));
+        setSegmentDurationInSec(getIntValueFromProperties(props, "segmentDurationInSec", segmentDurationInSec));
+        setSegmentWindowSize(getIntValueFromProperties(props, "segmentWindowSize", segmentWindowSize));
+        setSegmenterSearchKillFile(getIntValueFromProperties(props, "segmenterSearchKillFile", segmenterSearchKillFile));
+        setSegmenterMaxtimeout(getIntValueFromProperties(props, "segmenterMaxtimeout", segmenterMaxtimeout));
+        setDefaultTextCharset(props.getProperty("defaultTextCharset", defaultTextCharset));
+        setFtpPort(getIntValueFromProperties(props, "ftpPort", ftpPort));
+        setMaxLiveStreams(getIntValueFromProperties(props, "maxLiveStreams", maxLiveStreams));
 
         for (Map.Entry entry: props.entrySet()) {
             String key = (String)entry.getKey();
@@ -87,108 +114,53 @@ public final class Config implements ConfigReader, ConfigWriter {
         return port;
     }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
-
     public String getHost() {
         return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
     }
 
     public Map<String, String> getRootDirs() {
         return rootDirs;
     }
 
-    public void setRootDirs(Map<String, String> rootDirs) {
-        this.rootDirs.clear();
-        this.rootDirs.putAll(rootDirs);
-    }
-
     public String getFfmpegLocation() {
         return ffmpegLocation;
-    }
-
-    public void setFfmpegLocation(String ffmpegLocation) {
-        this.ffmpegLocation = ffmpegLocation;
     }
 
     public String getFfmpegParams() {
         return MessageFormat.format(FFMpegConstants.FFMPEG_PARAMS_FORMAT, ffmpegParams);
     }
 
-    public void setFfmpegParams(String ffmpegParams) {
-        this.ffmpegParams = ffmpegParams;
-    }
-
     public String getSegmenterLocation() {
         return segmenterLocation;
-    }
-
-    public void setSegmenterLocation(String segmenterLocation) {
-        this.segmenterLocation = segmenterLocation;
     }
 
     public int getSegmentDurationInSec() {
         return segmentDurationInSec;
     }
 
-    public void setSegmentDurationInSec(int segmentDurationInSec) {
-        this.segmentDurationInSec = segmentDurationInSec;
-    }
-
     public int getSegmentWindowSize() {
         return segmentWindowSize;
-    }
-
-    public void setSegmentWindowSize(int segmentWindowSize) {
-        this.segmentWindowSize = segmentWindowSize;
     }
 
     public int getSegmenterSearchKillFile() {
         return segmenterSearchKillFile;
     }
 
-    public void setSegmenterSearchKillFile(int segmenterSearchKillFile) {
-        this.segmenterSearchKillFile = segmenterSearchKillFile;
-    }
-
     public int getSegmenterMaxtimeout() {
         return segmenterMaxtimeout;
-    }
-
-    public void setSegmenterMaxtimeout(int segmenterMaxtimeout) {
-        this.segmenterMaxtimeout = segmenterMaxtimeout;
     }
 
     public String getDefaultTextCharset() {
         return defaultTextCharset;
     }
 
-    public void setDefaultTextCharset(String defaultTextCharset) {
-        this.defaultTextCharset = defaultTextCharset;
-    }
-
     public int getFtpPort() {
         return ftpPort;
-    }
-
-    public void setFtpPort(int ftpPort) {
-        this.ftpPort = ftpPort;
     }
 
     @Override
     public Map<String, List<String>> getVideoTypesForHTML5() {
         return this.videoTypesForHTML5;
-    }
-
-    @Override
-    public void setVideoTypesForHTML5(Map<String, List<String>> videoTypesForHTML5) {
-        this.videoTypesForHTML5.clear();
-        this.videoTypesForHTML5.putAll(videoTypesForHTML5);
     }
 
     public String getSegmenterParams() {
@@ -203,8 +175,93 @@ public final class Config implements ConfigReader, ConfigWriter {
         return maxLiveStreams;
     }
 
-    public void setMaxLiveStreams(int maxLiveStreams) {
-        this.maxLiveStreams = maxLiveStreams;
+
+    public void setPort(Integer port) {
+        if (port != null) {
+            this.port = port;
+        }        
+    }
+
+    public void setHost(String host) {
+        if (host != null) {
+            this.host = host;
+        }
+    }
+
+    public void setRootDirs(Map<String, String> rootDirs) {
+        if (rootDirs != null) {
+            this.rootDirs.clear();
+            this.rootDirs.putAll(rootDirs);
+        }
+    }
+
+    public void setFfmpegLocation(String ffmpegLocation) {
+        if (ffmpegLocation != null) {
+            this.ffmpegLocation = ffmpegLocation
+                    .replaceFirst("\\$\\{work\\.dir\\}", System.getProperty("user.dir").replaceAll("\\\\", "/"));
+        }
+    }
+
+    public void setFfmpegParams(String ffmpegParams) {
+        if (ffmpegParams != null) {
+            this.ffmpegParams = ffmpegParams;
+        }
+    }
+
+    public void setSegmenterLocation(String segmenterLocation) {
+        if (segmenterLocation != null) {
+            this.segmenterLocation = segmenterLocation
+                    .replaceFirst("\\$\\{work\\.dir\\}", System.getProperty("user.dir").replaceAll("\\\\", "/"));
+        }
+    }
+
+    public void setSegmentDurationInSec(Integer segmentDurationInSec) {
+        if (segmentDurationInSec != null) {
+            this.segmentDurationInSec = segmentDurationInSec;
+        }
+    }
+
+    public void setSegmentWindowSize(Integer segmentWindowSize) {
+        if (segmentWindowSize != null) {
+            this.segmentWindowSize = segmentWindowSize;
+        }
+    }
+
+    public void setSegmenterSearchKillFile(Integer segmenterSearchKillFile) {
+        if (segmenterSearchKillFile != null) {
+            this.segmenterSearchKillFile = segmenterSearchKillFile;
+        }
+    }
+
+    public void setSegmenterMaxtimeout(Integer segmenterMaxtimeout) {
+        if (segmenterMaxtimeout != null) {
+            this.segmenterMaxtimeout = segmenterMaxtimeout;
+        }
+    }
+
+    public void setDefaultTextCharset(String defaultTextCharset) {
+        if (defaultTextCharset != null) {
+            this.defaultTextCharset = defaultTextCharset;
+        }
+    }
+
+    public void setFtpPort(Integer ftpPort) {
+        if (ftpPort != null) {
+            this.ftpPort = ftpPort;
+        }
+    }
+
+    public void setVideoTypesForHTML5(Map<String, List<String>> videoTypesForHTML5) {
+        if (videoTypesForHTML5 != null) {
+            this.videoTypesForHTML5.clear();
+            this.videoTypesForHTML5.putAll(videoTypesForHTML5);
+        }
+    }
+
+    public void setMaxLiveStreams(Integer maxLiveStreams) {
+        if (maxLiveStreams != null) {
+            this.maxLiveStreams = maxLiveStreams;
+        }
     }
 
     @Override
