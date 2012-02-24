@@ -79,12 +79,11 @@ public class FolderServiceImpl implements FolderService {
 
 
     @Override
-    public List<FileListEntry> getFolderContent(String path) {
+    public List<FileListEntry> getFolderContent(File file, String path) {
         List<File> children = null;
-        if (path == null || ROOT_FOLDER_NAME.equals(path)) {
+        if (file == null) {
             children = getFilesFromNamesList(configReader.getRootDirs().values());
         } else {
-            File file = getFile(path);
             children = getDirectoryContent(file);
         }
 
@@ -95,12 +94,6 @@ public class FolderServiceImpl implements FolderService {
     @Override
     public List<BreadCrumb> getBreadCrumbs(String path) {
         return generateBreadCrumbs(path != null ? path : ROOT_FOLDER_NAME);
-    }
-
-    private File getFile(String path) {
-        String rootDir = path.replaceFirst("\\/", "").replaceAll("\\/.*$", "");
-        String fsPath = path.replaceFirst("\\/[^\\/]+", "");
-        return new File(configReader.getRootDirs().get(rootDir) + fsPath);
     }
 
     private List<File> getFilesFromNamesList(Collection<String> names) {

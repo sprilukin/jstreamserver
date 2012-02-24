@@ -22,6 +22,7 @@
 
 package jstreamserver.utils;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +40,15 @@ public final class HttpUtils {
 
     public static final String CONTENT_ENCODING_HEADER = "Content-Encoding";
 
+    public static final String CONTENT_RANGE_HEADER = "Content-Range";
+
+    public static final String CONTENT_DISPOSITION_HEADER = "Content-Disposition";
+
     public static final String GZIP_ENCODING = "gzip";
 
     public static final String DEFAULT_TEXT_CONTENT_TYPE = "text/html; charset=" + DEFAULT_ENCODING;
+
+    public static final String CONTENT_RANGE_FORMAT = "bytes %s-%s/%s";
+
+    public static final String CONTENT_DISPOSITION_FORMAT = "attachment; filename=%s";
 }

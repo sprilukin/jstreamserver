@@ -9,8 +9,10 @@
             <div>
                 <span class="icon"></span>
                 <span class="play-links-holder">
-                    {{ var downloadUrl = "/index?path=" + file.url; }}
-                    {{ var url = !file.video ? downloadUrl : "TODO"; }}
+                    {{ var directoryUrl = "/index?path=" + file.url; }}
+                    {{ var downloadUrl = "/download?path=" + file.url; }}
+                    {{ var videoUrl = "TODO"; }}
+                    {{ var url = file.directory ? directoryUrl : (file.video ? videoUrl : downloadUrl); }}
                     <a class="play" href="{{=url}}" title="{{=file.name}}">{{=file.name}}</a>
                     {{ if (file.video) { }}
                     <a class="download" href="{{=downloadUrl}}" title="download {{=file.name}}">

@@ -26,6 +26,7 @@ import jstreamserver.dto.BreadCrumb;
 import jstreamserver.dto.FileListEntry;
 import jstreamserver.dto.Folder;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -38,10 +39,10 @@ public interface FolderService {
     /**
      * Return folder content for given path
      *
-     * @param path path to folder in file system
+     * @param file folder in file system. {@code null} for root folder
      * @return folder content for given folder
      */
-    public List<FileListEntry> getFolderContent(String path);
+    public List<FileListEntry> getFolderContent(File file, String path);
 
     /**
      * Return breadcrumbs for given path
