@@ -23,6 +23,8 @@
 package jstreamserver.utils;
 
 import jstreamserver.ffmpeg.FFMpegConstants;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -39,6 +41,8 @@ import java.util.*;
  */
 @Component
 public final class Config implements ConfigReader, InitializingBean {
+
+    private final Log log = LogFactory.getLog(this.getClass());
 
     private int port;
     private String host;
@@ -70,6 +74,10 @@ public final class Config implements ConfigReader, InitializingBean {
         }
 
         setFromProperties(System.getProperties());
+
+        if (log.isInfoEnabled()) {
+            log.info(this.toString());
+        }
     }
 
     @Value(value = "classpath:jstreamserver.properties")
@@ -267,7 +275,7 @@ public final class Config implements ConfigReader, InitializingBean {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Jstreamserver config:\r\n");
+        sb.append("\r\nJstreamserver config:\r\n");
         sb.append("listening on: ").append(host).append(":").append(port).append("\r\n");
         sb.append("default text charset: ").append(defaultTextCharset).append("\r\n");
         sb.append("Built-in FTP server listen on: ").append(ftpPort).append("\r\n");
