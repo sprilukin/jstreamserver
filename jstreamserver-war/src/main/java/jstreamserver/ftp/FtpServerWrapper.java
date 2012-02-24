@@ -22,38 +22,44 @@
 
 package jstreamserver.ftp;
 
-import jstreamserver.utils.Config;
+import jstreamserver.utils.ConfigReader;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.ftplet.FtpException;
 import org.apache.ftpserver.listener.ListenerFactory;
-import org.apache.ftpserver.usermanager.PropertiesUserManagerFactory;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * FTP server on to of Apache FTP server
  *
  * @author Sergey Prilukin
  */
-public class FtpServerWrapper {
+@Component
+public class FtpServerWrapper implements InitializingBean {
 
-    public void start(Config config) throws FtpException {
+    @Autowired
+    private ConfigReader configReader;
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        start(configReader);
+    }
+
+    public void start(ConfigReader configReader) throws FtpException {
         FtpServerFactory serverFactory = new FtpServerFactory();
 
         ListenerFactory factory = new ListenerFactory();
 
         // set the port of the listener
-        factory.setPort(config.getFtpPort());
+        factory.setPort(configReader.getFtpPort());
 
         // replace the default listener
         serverFactory.addListener("default", factory.createListener());
 
         serverFactory.setUserManager(new FtpUserManager());
-        serverFactory.setFileSystem(new CustomFileSystemFactory(config.getRootDirs()));
+        serverFactory.setFileSystem(new CustomFileSystemFactory(configReader.getRootDirs()));
 
         // start the server
         FtpServer server = serverFactory.createServer();
