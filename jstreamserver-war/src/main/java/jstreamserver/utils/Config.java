@@ -206,7 +206,7 @@ public final class Config implements ConfigReader, InitializingBean {
     public void setFfmpegLocation(String ffmpegLocation) {
         if (ffmpegLocation != null) {
             this.ffmpegLocation = ffmpegLocation
-                    .replaceFirst("\\$\\{work\\.dir\\}", System.getProperty("user.dir").replaceAll("\\\\", "/"));
+                    .replaceFirst("\\$\\{work\\.dir\\}", getUserDir());
         }
     }
 
@@ -219,7 +219,7 @@ public final class Config implements ConfigReader, InitializingBean {
     public void setSegmenterLocation(String segmenterLocation) {
         if (segmenterLocation != null) {
             this.segmenterLocation = segmenterLocation
-                    .replaceFirst("\\$\\{work\\.dir\\}", System.getProperty("user.dir").replaceAll("\\\\", "/"));
+                    .replaceFirst("\\$\\{work\\.dir\\}", getUserDir());
         }
     }
 
@@ -270,6 +270,10 @@ public final class Config implements ConfigReader, InitializingBean {
         if (maxLiveStreams != null) {
             this.maxLiveStreams = maxLiveStreams;
         }
+    }
+
+    private String getUserDir() {
+        return System.getProperty("user.dir").replaceAll("\\\\", "/");
     }
 
     @Override

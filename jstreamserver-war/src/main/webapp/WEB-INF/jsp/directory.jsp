@@ -1,3 +1,4 @@
+<%@ page import="org.codehaus.jackson.map.ObjectMapper" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 
@@ -17,8 +18,11 @@
     <script src="/script/jstreamserver.js" type="text/javascript"></script>
     <script type="text/javascript">
         $(document).ready(function() {
-            new JStreamServer.DirectoryView(${folder});
-            new JStreamServer.BreadCrumbView(${breadCrumbs});
+            var folders = <%= (new ObjectMapper()).writeValueAsString(request.getAttribute("folder"))%>;
+            new JStreamServer.DirectoryView(folders);
+
+            var breadCrumbs = <%= (new ObjectMapper()).writeValueAsString(request.getAttribute("breadCrumbs"))%>;
+            new JStreamServer.BreadCrumbView(breadCrumbs);
         });
     </script>
 

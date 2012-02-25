@@ -11,7 +11,7 @@
                 <span class="play-links-holder">
                     {{ var directoryUrl = "/index?path=" + file.url; }}
                     {{ var downloadUrl = "/download?path=" + file.url; }}
-                    {{ var videoUrl = "TODO"; }}
+                    {{ var videoUrl = "/video?path=" + file.url; }}
                     {{ var url = file.directory ? directoryUrl : (file.video ? videoUrl : downloadUrl); }}
                     <a class="play" href="{{=url}}" title="{{=file.name}}">{{=file.name}}</a>
                     {{ if (file.video) { }}
@@ -48,7 +48,7 @@
                     <span class="label">[</span>
                     <span>
                         {{ if (file.video) { }}
-                        <a href="{{=file.url}}&stream={{=stream.id}}" title="Play [{{=file.name}}] with audio stream {{=index}}">
+                        <a href="{{=url}}&stream={{=stream.id}}" title="Play [{{=file.name}}] with audio stream {{=index}}">
                         {{ } }}
                         {{=stream.encoder}}, {{=stream.frequency}}, {{=stream.channels}}
                         {{ if (stream.language) { }}, ({{=stream.language}}){{ } }}
