@@ -100,9 +100,9 @@ public class VideoController {
         return getVideoListTag(videoFile, path, time, liveStreamId);
     }
 
-    @RequestMapping("/playlist")
+    @RequestMapping("/playlist/{id}")
     public void downloadResource(
-            @RequestParam(value = "id", required = true) Integer id,
+            @PathVariable(value = "id") Integer id,
             HttpServletResponse response) throws Exception {
 
         InputStream is = liveStreamService.getPlayList(id);
@@ -110,21 +110,15 @@ public class VideoController {
         controllerUtils.writeStream(is, response);
     }
 
-    @RequestMapping("/livestream/{videoFile}.ts")
+    @RequestMapping("/livestream/{videoFile:[\\w]+}{liveStreamId:[\\d]+}{suffix:[\\.\\w\\d\\-]+}")
     public void downloadResource(
             @PathVariable("videoFile") String videoFile,
+            @PathVariable("liveStreamId") Integer liveStreamId,
+            @PathVariable("suffix") String suffix,
             @RequestHeader(value = "Range", required = false) String range,
             HttpServletResponse response) throws Exception {
 
-        Integer streamId = null;
-        Matcher matcher = Pattern.compile("^[\\w]+([\\d]+)-[\\d]+$").matcher(videoFile);        
-        if (matcher.find()) {
-            streamId = Integer.parseInt(matcher.group(1));
-        } else {
-            throw new IllegalArgumentException(String.format("Incorrect fileName: %s", videoFile));
-        }
-
-        File file = liveStreamService.getTSFile(videoFile + ".ts", streamId);
+        File file = liveStreamService.getTSFile(String.format("%s%s%s", videoFile, liveStreamId, suffix), liveStreamId);
         if (file != null && file.exists() && file.isFile()) {
             InputStream is = controllerUtils.getFileAsStream(file, range, response);
 
@@ -146,7 +140,7 @@ public class VideoController {
 
         if (liveStreamId != null) {
             String mimeType = mimeProperties.getProperty("m3u8");
-            videoTag.getSources().add(new VideoSource(mimeType, "/playlist?id=" + liveStreamId));
+            videoTag.getSources().add(new VideoSource(mimeType, "/playlist/" + liveStreamId));
         }
 
         String mimeType = mimeProperties.getProperty(FilenameUtils.getExtension(videoFile.getName()), "application/octet-stream");

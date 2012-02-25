@@ -48,7 +48,7 @@
                     <span class="label">[</span>
                     <span>
                         {{ if (file.video) { }}
-                        <a href="{{=contextPath}}{{=url}}&stream={{=stream.id}}" title="Play [{{=file.name}}] with audio stream {{=index}}">
+                        <a class="play" href="{{=contextPath}}{{=url}}&stream={{=stream.id}}" title="Play [{{=file.name}}] with audio stream {{=index}}">
                         {{ } }}
                         {{=stream.encoder}}, {{=stream.frequency}}, {{=stream.channels}}
                         {{ if (stream.language) { }}, ({{=stream.language}}){{ } }}

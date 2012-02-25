@@ -83,9 +83,12 @@ public class RequestLogFilter implements Filter {
 
             String method = request.getMethod();
             String path = request.getRequestURI();
+            String queryString = request.getQueryString();
+            queryString = queryString == null ? "" : "?" + queryString;
+
             String userAgent = request.getHeader("User-Agent");
 
-            log.info(String.format("%s [%s] [%s] [%s]", remoteAddress, method, path, userAgent));
+            log.info(String.format("%s [%s] [%s%s] [%s]", remoteAddress, method, path, queryString, userAgent));
         }
     }
 
