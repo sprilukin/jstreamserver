@@ -28,7 +28,7 @@ package jstreamserver.ffmpeg;
  * @author Sergey Prilukin
  */
 public final class FFMpegConstants {
-    public static final String SEGMENTER_PARAMS_FORMAT = "- {0} %s %s / {1} {2}";
+    public static final String SEGMENTER_PARAMS_FORMAT = "- {0} %s %s %s {1} {2}";
     public static final String FFMPEG_PARAMS_FORMAT = "-i \"%s\" %s %s {0} -";
     public static final String FFMPEG_AUDIO_STREAM_SELECTION_FORMAT = "-map 0:0 -map 0:%s";
     public static final String FFMPEG_START_TIME_FORMAT = "-ss %s";

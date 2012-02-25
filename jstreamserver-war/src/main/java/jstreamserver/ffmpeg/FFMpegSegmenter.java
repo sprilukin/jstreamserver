@@ -166,8 +166,8 @@ public final class FFMpegSegmenter {
                         frameMessage.setSize(Long.parseLong(matcher.group(4)));
                         frameMessage.setTime(FrameMessage.DATE_FORMAT.parse(matcher.group(5)).getTime());
                         frameMessage.setBitrate(new BigDecimal(matcher.group(6)));
-                        frameMessage.setDup(Long.parseLong(matcher.group(7)));
-                        frameMessage.setDrop(Long.parseLong(matcher.group(8)));
+                        frameMessage.setDup(matcher.group(8) != null ? Long.parseLong(matcher.group(8)) : null);
+                        frameMessage.setDrop(matcher.group(9) != null ? Long.parseLong(matcher.group(9)) : null);
 
                         progressListener.onFrameMessage(frameMessage);
                     } else {

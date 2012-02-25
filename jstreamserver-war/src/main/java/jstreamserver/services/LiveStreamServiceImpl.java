@@ -26,6 +26,8 @@ import jstreamserver.ffmpeg.FrameMessage;
 import jstreamserver.ffmpeg.ProgressListener;
 import jstreamserver.utils.ConfigReader;
 import jstreamserver.utils.LiveStreamer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +45,7 @@ import java.util.List;
 
 @Service
 public class LiveStreamServiceImpl implements LiveStreamService {
-
+    private static final Log log = LogFactory.getLog(LiveStreamServiceImpl.class);
     private final List<LiveStreamer> liveStreams = new LinkedList<LiveStreamer>();
 
     @Autowired
@@ -53,25 +55,27 @@ public class LiveStreamServiceImpl implements LiveStreamService {
     }
 
     @Override
-    public Integer createLiveStream(File file, String startTime, Integer audioStreamId) throws IOException {
+    public Integer createLiveStream(File file, String startTime, Integer audioStreamId, String contextPath) throws IOException {
         synchronized (liveStreams) {
             Integer streamsCount = liveStreams.size();
 
-            if (streamsCount == configReader.getMaxLiveStreams()) {
+            if (streamsCount >= configReader.getMaxLiveStreams()) {
                 LiveStreamer liveStreamer = liveStreams.remove(0);
                 liveStreamer.destroyLiveStream();
             }
 
-            LiveStreamer liveStreamer = addLiveStreamer(streamsCount - 1);
+            int streamId = streamsCount > 0 ? streamsCount - 1 : 0;
+
+            LiveStreamer liveStreamer = addLiveStreamer(streamId, contextPath);
             liveStreamer.startLiveStream(file, startTime, audioStreamId);
 
-            return streamsCount - 1;
+            return streamId;
         }
     }
 
-    private LiveStreamer addLiveStreamer(Integer id) {
+    private LiveStreamer addLiveStreamer(Integer id, String contextPath) {
         DeadStreamsCleaner deadStreamsCleaner = new DeadStreamsCleaner();
-        LiveStreamer liveStreamer = new LiveStreamer(id.toString(), deadStreamsCleaner, configReader);
+        LiveStreamer liveStreamer = new LiveStreamer(contextPath, id.toString(), deadStreamsCleaner, configReader);
         deadStreamsCleaner.setLiveStreamer(liveStreamer);
 
         liveStreams.add(liveStreamer);
@@ -83,6 +87,13 @@ public class LiveStreamServiceImpl implements LiveStreamService {
         synchronized (liveStreams) {
             LiveStreamer liveStreamer = liveStreams.remove(liveStreamId.intValue());
             liveStreamer.destroyLiveStream();
+        }
+    }
+
+    @Override
+    public File getTSFile(String path, Integer liveStreamId) throws IOException {
+        synchronized (liveStreams) {
+            return liveStreams.get(liveStreamId).getTSFile(path);
         }
     }
 
@@ -105,7 +116,7 @@ public class LiveStreamServiceImpl implements LiveStreamService {
 
         @Override
         public void onFrameMessage(FrameMessage frameMessage) {
-            /* do nothing */
+            log.debug(frameMessage);
         }
 
         @Override

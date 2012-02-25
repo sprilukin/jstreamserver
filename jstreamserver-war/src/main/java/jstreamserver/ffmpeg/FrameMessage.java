@@ -34,7 +34,7 @@ import java.util.TimeZone;
  * @author Sergey Prilukin
  */
 public final class FrameMessage {
-    public static final String FRAME_PATTERN = "frame=[\\s]*([\\d]+)[\\s]*fps=[\\s]*([\\d]+)[\\s]*q=([\\d\\.]+)[\\s]*size=[\\s]*([\\d]+)kB[\\s]*time=([\\d]+:[\\d]+:[\\d]+\\.[\\d]+)[\\s]*bitrate=[\\s]*([\\d\\.]+)kbits/s[\\s]*dup=([\\d]+)[\\s]*drop=([\\d]+)";
+    public static final String FRAME_PATTERN = "frame=[\\s]*([\\d]+)[\\s]*fps=[\\s]*([\\d]+)[\\s]*q=([\\d\\.]+)[\\s]*size=[\\s]*([\\d]+)kB[\\s]*time=([\\d]+:[\\d]+:[\\d]+\\.[\\d]+)[\\s]*bitrate=[\\s]*([\\d\\.]+)kbits/s[\\s]*(dup=([\\d]+)[\\s]*drop=([\\d]+))?";
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("HH:mm:ss.SS");
     static {
         DATE_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -46,8 +46,8 @@ public final class FrameMessage {
     private long size;
     private long time;
     private BigDecimal bitrate;
-    private long dup;
-    private long drop;
+    private Long dup;
+    private Long drop;
 
     public long getFrameNumber() {
         return frameNumber;
@@ -97,19 +97,19 @@ public final class FrameMessage {
         this.bitrate = bitrate;
     }
 
-    public long getDup() {
+    public Long getDup() {
         return dup;
     }
 
-    public void setDup(long dup) {
+    public void setDup(Long dup) {
         this.dup = dup;
     }
 
-    public long getDrop() {
+    public Long getDrop() {
         return drop;
     }
 
-    public void setDrop(long drop) {
+    public void setDrop(Long drop) {
         this.drop = drop;
     }
 
@@ -123,8 +123,12 @@ public final class FrameMessage {
         sb.append(", size=").append(size);
         sb.append(", time=").append(DATE_FORMAT.format(new Date(time)));
         sb.append(", bitrate=").append(bitrate);
-        sb.append(", dup=").append(dup);
-        sb.append(", drop=").append(drop);
+        if (dup != null) {
+            sb.append(", dup=").append(dup);
+        }
+        if (drop != null) {
+            sb.append(", drop=").append(drop);
+        }
         sb.append('}');
         return sb.toString();
     }

@@ -26,10 +26,8 @@ import jstreamserver.ffmpeg.FFMpegConstants;
 import jstreamserver.ffmpeg.FFMpegSegmenter;
 import jstreamserver.ffmpeg.FrameMessage;
 import jstreamserver.ffmpeg.ProgressListener;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
 
@@ -42,10 +40,10 @@ public final class LiveStreamer {
 
     private static final Log log = LogFactory.getLog(LiveStreamer.class);
 
-    public static final String HANDLE_PATH = "livestream%s";
-    public static final String LIVE_STREAM_FILE_PREFIX = "stream";
+    public static final String LIVE_STREAM_FOLDER = "livestream";
+    public static final String LIVE_STREAM_FILE_PREFIX = "stream%s";
     public static final String PLAYLIST_EXTENSION = "m3u8";
-    public static final String LIVE_STREAM_FILE_PATH = HANDLE_PATH + "/" + LIVE_STREAM_FILE_PREFIX;
+    public static final String LIVE_STREAM_FILE_PATH = LIVE_STREAM_FOLDER + "/" + LIVE_STREAM_FILE_PREFIX;
     public static final String PLAYLIST_FULL_PATH = LIVE_STREAM_FILE_PATH + "." + PLAYLIST_EXTENSION;
 
     private ConfigReader configReader;
@@ -57,9 +55,11 @@ public final class LiveStreamer {
     private SegmenterKiller segmenterKiller;
 
     private String liveStreamFolderSuffix;
+    private String contextPath;
 
-    public LiveStreamer(String liveStreamFolderSuffix, ProgressListener progressListener, ConfigReader configReader) {
+    public LiveStreamer(String contextPath, String liveStreamFolderSuffix, ProgressListener progressListener, ConfigReader configReader) {
         this.liveStreamFolderSuffix = liveStreamFolderSuffix;
+        this.contextPath = contextPath.endsWith("/") ? contextPath : contextPath + "/";
         this.progressListener = new LiveStreamProgressListener(progressListener);
         this.configReader = configReader;
     }
@@ -68,6 +68,10 @@ public final class LiveStreamer {
         return String.format(notFormattedString, liveStreamFolderSuffix);
     }
 
+    public File getTSFile(String path) {
+        return new File(LIVE_STREAM_FOLDER + "/" + path);
+    }
+    
     /**
      * Playlist file is written at the same time by another thread (by segmenter namely)
      * and thus this thread can read non-completed version of the file.
@@ -110,7 +114,7 @@ public final class LiveStreamer {
             }
         }
 
-        File streamDir = new File(appendLiveStreamFolderSuffix(HANDLE_PATH));
+        File streamDir = new File(appendLiveStreamFolderSuffix(LIVE_STREAM_FOLDER));
         if (!streamDir.exists()) {
             streamDir.mkdirs();
         }
@@ -119,8 +123,8 @@ public final class LiveStreamer {
         String[] files = streamDir.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                String extension = FilenameUtils.getExtension(name);
-                return extension.equals(PLAYLIST_EXTENSION) || extension.equals("ts");
+                //String extension = FilenameUtils.getExtension(name);
+                return name.startsWith(appendLiveStreamFolderSuffix(LIVE_STREAM_FILE_PREFIX));
             }
         });
 
@@ -149,7 +153,8 @@ public final class LiveStreamer {
                     String.format(configReader.getFfmpegParams(), file.getAbsolutePath(), ffmpegMapStreamParams, ffmpegStartTimeParam),
                     String.format(configReader.getSegmenterParams(),
                             appendLiveStreamFolderSuffix(LIVE_STREAM_FILE_PATH),
-                            appendLiveStreamFolderSuffix(PLAYLIST_FULL_PATH)),
+                            appendLiveStreamFolderSuffix(PLAYLIST_FULL_PATH),
+                            contextPath),
                     progressListener);
 
             try {
@@ -160,6 +165,8 @@ public final class LiveStreamer {
                 throw new RuntimeException(e);
             }
         }
+
+        updateSegmenterKiller();
     }
 
     private void updateSegmenterKiller() {
@@ -189,7 +196,7 @@ public final class LiveStreamer {
                         timeoutFlag = true;
                         ffmpegSegmenterMonitor.wait(configReader.getSegmenterMaxtimeout());
                         if (timeoutFlag && ffMpegSegmenter != null) {
-                            System.out.println("Destroying idle ffmpeg segmenter...");
+                            log.debug("Destroying idle ffmpeg segmenter...");
                             timeoutFlag = false;
                             destroyLiveStream();
                             ffmpegSegmenterMonitor.wait();

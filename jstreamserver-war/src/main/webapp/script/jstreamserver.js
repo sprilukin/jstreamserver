@@ -22,6 +22,7 @@
 
 //Define jstreamserver context
 JStreamServer = {};
+JStreamServer.contextPath = "";
 
 //Define model for directory list
 JStreamServer.Directory = Backbone.Model.extend({});
@@ -62,12 +63,12 @@ JStreamServer.DirectoryView = Backbone.View.extend({
     },
 
     render: function() {
-        $(this.el).html(this.template({files: this.model.toJSON()}));
+        $(this.el).html(this.template({files: this.model.toJSON(), contextPath: JStreamServer.contextPath}));
         $(".ajax-loader, .mediaInfo").hide(); //hide all ajax loaders and media infos
     },
 
     renderLiveStream: function(element, data) {
-        $(element).append(this.videoTemplate(data));
+        $(element).append(this.videoTemplate(_.extend(data, {contextPath: JStreamServer.contextPath})));
     },
 
     removeLiveStream: function() {
@@ -192,7 +193,7 @@ JStreamServer.BreadCrumbView = Backbone.View.extend({
     },
 
     render: function() {
-        $(this.el).html(this.template({breadCrumbs: this.model.toJSON()}));
+        $(this.el).html(this.template({breadCrumbs: this.model.toJSON(), contextPath: JStreamServer.contextPath}));
     }
 });
 

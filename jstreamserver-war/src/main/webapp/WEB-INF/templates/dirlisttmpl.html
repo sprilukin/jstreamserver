@@ -13,9 +13,9 @@
                     {{ var downloadUrl = "/download?path=" + file.url; }}
                     {{ var videoUrl = "/video?path=" + file.url; }}
                     {{ var url = file.directory ? directoryUrl : (file.video ? videoUrl : downloadUrl); }}
-                    <a class="play" href="{{=url}}" title="{{=file.name}}">{{=file.name}}</a>
+                    <a class="play" href="{{=contextPath}}{{=url}}" title="{{=file.name}}">{{=file.name}}</a>
                     {{ if (file.video) { }}
-                    <a class="download" href="{{=downloadUrl}}" title="download {{=file.name}}">
+                    <a class="download" href="{{=contextPath}}{{=downloadUrl}}" title="download {{=file.name}}">
                         <span class="icon download"></span>
                     </a>
                     {{ } }}
@@ -48,7 +48,7 @@
                     <span class="label">[</span>
                     <span>
                         {{ if (file.video) { }}
-                        <a href="{{=url}}&stream={{=stream.id}}" title="Play [{{=file.name}}] with audio stream {{=index}}">
+                        <a href="{{=contextPath}}{{=url}}&stream={{=stream.id}}" title="Play [{{=file.name}}] with audio stream {{=index}}">
                         {{ } }}
                         {{=stream.encoder}}, {{=stream.frequency}}, {{=stream.channels}}
                         {{ if (stream.language) { }}, ({{=stream.language}}){{ } }}

@@ -40,10 +40,11 @@ public interface LiveStreamService {
      * @param startTime String in format "HH:mm:ss". If passed then video will be played from that point.                                         
      * @param audioStreamId number of audiostream which should be selected. Default audio stream will be choosen if 
      *                      parameter not passed
+     * @param contextPath contextPath of web application to produce correct playlist
      * @return id of created live stream so it can de destroyed in future by calling {@link #destroyLiveStream(Integer)}
      * @throws IOException if exception occurs during stream initialization
      */
-    public Integer createLiveStream(File file, String startTime, Integer audioStreamId) throws IOException;
+    public Integer createLiveStream(File file, String startTime, Integer audioStreamId, String contextPath) throws IOException;
     
     /**
      * Returns {@link InputStream} for .m3u8 playlist of livestream with given ID
@@ -61,4 +62,12 @@ public interface LiveStreamService {
      * @throws IOException if exception occurs during destroying
      */
     public void destroyLiveStream(Integer liveStreamId) throws IOException;
+
+    /**
+     * Returns TS file for give stream ID
+     *
+     * @param liveStreamId id of the stream which should e destroyed
+     * @throws IOException if exception occurs during destroying
+     */
+    public File getTSFile(String path, Integer liveStreamId) throws IOException;
 }

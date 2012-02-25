@@ -3,7 +3,7 @@
         <div class="subtitles-video-wrapper">
             <video controls="controls" autoplay="autoplay" id="streamVideo">
                 {{ _.each(sources, function(source) { }}
-                <source src="{{=source.url}}" type="{{=source.type}}" />
+                <source src="{{=contextPath}}{{=source.url}}" type="{{=source.type}}" />
                 {{ }); }}
                 Your browser does not support the video tag.
             </video>

@@ -35,17 +35,17 @@ import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Controller to show video
@@ -56,9 +56,10 @@ import java.util.List;
 @Controller
 public class VideoController {
 
+    public static final String DEFAULT_START_TIME = "00:00:00";
+
     private static final Log log = LogFactory.getLog(VideoController.class);
-    private ObjectMapper jsonMapper = new ObjectMapper();
-    
+
     @Autowired
     private LiveStreamService liveStreamService;
 
@@ -75,8 +76,9 @@ public class VideoController {
     public @ResponseBody VideoTag getVideoTag(
             @RequestParam(value = "path", required = false) String path,
             @RequestParam(value = "stream", required = false) Integer stream,
-            @RequestParam(value = "time", required = false, defaultValue = "00:00:00") String time,
-            @RequestHeader(value = "User-Agent", required = false, defaultValue = "default") String userAgent) throws Exception {
+            @RequestParam(value = "time", required = false) String time,
+            @RequestHeader(value = "User-Agent", required = false, defaultValue = "default") String userAgent,
+            HttpServletRequest request) throws Exception {
 
 
         Integer liveStreamId = null;
@@ -88,7 +90,7 @@ public class VideoController {
             List<String> supportedVideoTypes = configReader.getVideoTypesForHTML5(userAgent);
 
             if (!supportedVideoTypes.contains(extension)) {
-                liveStreamId = liveStreamService.createLiveStream(videoFile, time, stream);
+                liveStreamId = liveStreamService.createLiveStream(videoFile, time, stream, request.getContextPath());
             }
         } else {
             /*
@@ -103,7 +105,7 @@ public class VideoController {
     private VideoTag getVideoListTag(File videoFile, String path, String startTime, Integer liveStreamId) throws IOException {
         VideoTag videoTag = new VideoTag();
         
-        videoTag.setStartTime(startTime);
+        videoTag.setStartTime(startTime != null ? startTime : DEFAULT_START_TIME);
         
         File subtitles = new File(videoFile.getParentFile(), FilenameUtils.getBaseName(videoFile.getName()) + ".srt");
         if (subtitles.exists() && subtitles.isFile()) {
@@ -124,11 +126,32 @@ public class VideoController {
     @RequestMapping("/playlist")
     public void downloadResource(
             @RequestParam(value = "id", required = true) Integer id,
-            @RequestHeader(value = "Range", required = false) String range,
-            HttpServletRequest request, HttpServletResponse response) throws Exception {
+            HttpServletResponse response) throws Exception {
 
         InputStream is = liveStreamService.getPlayList(id);
         controllerUtils.setCommonResourceHeaders(mimeProperties.getProperty("m3u8"), response);
         controllerUtils.writeStream(is, response);
+    }
+
+    @RequestMapping("/livestream/{videoFile}")
+    public void downloadResource(
+            @PathVariable("videoFile") String videoFile,
+            @RequestHeader(value = "Range", required = false) String range,
+            HttpServletResponse response) throws Exception {
+
+        Integer streamId = null;
+        Matcher matcher = Pattern.compile("[\\w]+([\\d]+)-[\\d]+\\.ts").matcher(videoFile);        
+        if (matcher.find()) {
+            streamId = Integer.parseInt(matcher.group(1));
+        }
+
+        File file = liveStreamService.getTSFile(videoFile, streamId);
+        if (file != null && file.exists() && file.isFile()) {
+            InputStream is = controllerUtils.getFileAsStream(file, range, response);
+
+            controllerUtils.writeStream(is, response);
+        } else {
+            response.setStatus(HttpURLConnection.HTTP_NOT_FOUND);
+        }
     }
 }
