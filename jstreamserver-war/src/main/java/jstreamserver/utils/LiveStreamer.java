@@ -26,8 +26,9 @@ import jstreamserver.ffmpeg.FFMpegConstants;
 import jstreamserver.ffmpeg.FFMpegSegmenter;
 import jstreamserver.ffmpeg.FrameMessage;
 import jstreamserver.ffmpeg.ProgressListener;
-import jstreamserver.utils.ConfigReader;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
@@ -38,6 +39,8 @@ import java.io.*;
  * @author Sergey Prilukin
  */
 public final class LiveStreamer {
+
+    private static final Log log = LogFactory.getLog(LiveStreamer.class);
 
     public static final String HANDLE_PATH = "livestream%s";
     public static final String LIVE_STREAM_FILE_PREFIX = "stream";
@@ -129,7 +132,7 @@ public final class LiveStreamer {
         }
     }
 
-    public void startLiveStream(File file, String startTime, String audioStreamId) throws IOException {
+    public void startLiveStream(File file, String startTime, Integer audioStreamId) throws IOException {
 
         destroyLiveStream();
 
@@ -228,7 +231,10 @@ public final class LiveStreamer {
 
         @Override
         public void onFinish(int exitCode) {
-            System.out.println(String.format("Segmenter with suffix %s finished. Exit code: %s", liveStreamFolderSuffix, exitCode));
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Segmenter [%s] finished. Exit code: %s", liveStreamFolderSuffix, exitCode));
+            }
+
             listener.onFinish(exitCode);
         }
     }

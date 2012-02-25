@@ -30,7 +30,7 @@ import java.util.List;
 @Controller
 public class FolderController {
 
-    private Log log = LogFactory.getLog(getClass());
+    private static final Log log = LogFactory.getLog(FolderController.class);
 
     @Autowired
     private FolderService folderService;
@@ -71,13 +71,7 @@ public class FolderController {
         if (file != null && file.exists() && file.isFile()) {
             InputStream is = controllerUtils.getFileAsStream(file, range, response);
 
-            try {
-                IOUtils.copyLarge(is, response.getOutputStream());
-            } finally {
-                is.close();
-                response.getOutputStream().flush();
-                response.getOutputStream().close();
-            }
+            controllerUtils.writeStream(is, response);
         } else {
             response.setStatus(HttpURLConnection.HTTP_NOT_FOUND);
         }

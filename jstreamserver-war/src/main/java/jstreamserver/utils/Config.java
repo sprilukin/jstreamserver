@@ -41,6 +41,10 @@ import java.util.*;
  */
 @Component
 public final class Config implements ConfigReader, InitializingBean {
+    public static String ROOT_DIR_PREFIX = "rootdir.";
+    public static String HTML5_SUPPORTED_VIDEO_TYPES_PREFIX = "html5SupportedVideoTypes.";
+    public static String SUPPORTS_LIVE_STREAM_PREFIX = "supportsLiveStream.";
+    public static String DEFAULT_KEY = "default";;
 
     private final Log log = LogFactory.getLog(this.getClass());
 
@@ -57,6 +61,7 @@ public final class Config implements ConfigReader, InitializingBean {
     private String defaultTextCharset;
     private int ftpPort;
     public Map<String, List<String>> videoTypesForHTML5 = new LinkedHashMap<String, List<String>>();
+    public Map<String, Boolean> supportsLiveStream = new HashMap<String, Boolean>();
     private int maxLiveStreams;
 
     public Config() {
@@ -110,10 +115,16 @@ public final class Config implements ConfigReader, InitializingBean {
             String key = (String)entry.getKey();
             String value = (String)entry.getValue();
 
-            if (key.startsWith("rootdir.")) {
-                rootDirs.put(key.substring(8), value);
-            } else if (key.startsWith("html5VideoTypesFor.")) {
-                videoTypesForHTML5.put(key.substring(19), Arrays.asList(value.split("[,\\s]+")));
+            if (key.startsWith(ROOT_DIR_PREFIX)) {
+                rootDirs.put(key.substring(ROOT_DIR_PREFIX.length()), value);
+            } else if (key.startsWith(HTML5_SUPPORTED_VIDEO_TYPES_PREFIX)) {
+                    videoTypesForHTML5.put(key.substring(HTML5_SUPPORTED_VIDEO_TYPES_PREFIX.length()),
+                            Arrays.asList(value.split("[,\\s]+")));
+            } else {
+                if (key.startsWith(SUPPORTS_LIVE_STREAM_PREFIX)) {
+                    supportsLiveStream.put(key.substring(SUPPORTS_LIVE_STREAM_PREFIX.length()),
+                            Boolean.valueOf(value));
+                }
             }
         }
     }
@@ -167,8 +178,28 @@ public final class Config implements ConfigReader, InitializingBean {
     }
 
     @Override
-    public Map<String, List<String>> getVideoTypesForHTML5() {
-        return this.videoTypesForHTML5;
+    public List<String> getVideoTypesForHTML5(String userAgent) {
+        List<String> types = this.videoTypesForHTML5.get(DEFAULT_KEY);
+
+        for (Map.Entry<String, List<String>> entry: this.videoTypesForHTML5.entrySet()) {
+            if (userAgent.contains(entry.getKey())) {
+                types = entry.getValue();
+                break;
+            }
+        }
+
+        return Collections.unmodifiableList(types);
+    }
+
+    @Override
+    public Boolean getSupportsLiveStream(String userAgent) {
+        for (Map.Entry<String, Boolean> entry: this.supportsLiveStream.entrySet()) {
+            if (userAgent.contains(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+
+        return this.supportsLiveStream.get(DEFAULT_KEY);
     }
 
     public String getSegmenterParams() {
@@ -263,6 +294,13 @@ public final class Config implements ConfigReader, InitializingBean {
         if (videoTypesForHTML5 != null) {
             this.videoTypesForHTML5.clear();
             this.videoTypesForHTML5.putAll(videoTypesForHTML5);
+        }
+    }
+
+    public void setSupportsLiveStream(Map<String, Boolean> supportsLiveStream) {
+        if (supportsLiveStream != null) {
+            this.supportsLiveStream.clear();
+            this.supportsLiveStream.putAll(supportsLiveStream);
         }
     }
 

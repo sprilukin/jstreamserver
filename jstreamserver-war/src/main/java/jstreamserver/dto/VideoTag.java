@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Sergey Prilukin
+ * Copyright (c) 2012 by Sergey Prilukin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,35 +22,40 @@
 
 package jstreamserver.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * DTO object which represents folder content
+ * DTO for HTML5 video tag
  *
  * @author Sergey Prilukin
  */
-public class Folder {
-    private List<FileListEntry> files;
-    private List<BreadCrumb> breadcrumbs;
+public class VideoTag {
+    private String subtitle;
+    private List<VideoSource> sources = new ArrayList<VideoSource>();
+    private String startTime;
 
-    public Folder(List<FileListEntry> files, List<BreadCrumb> breadcrumbs) {
-        this.files = files;
-        this.breadcrumbs = breadcrumbs;
+    public String getSubtitle() {
+        return subtitle;
     }
 
-    public List<FileListEntry> getFiles() {
-        return files;
+    public void setSubtitle(String subtitle) {
+        this.subtitle = subtitle;
     }
 
-    public void setFiles(List<FileListEntry> files) {
-        this.files = files;
+    public List<VideoSource> getSources() {
+        return sources;
     }
 
-    public List<BreadCrumb> getBreadcrumbs() {
-        return breadcrumbs;
+    public void setSources(List<VideoSource> sources) {
+        this.sources = sources;
     }
 
-    public void setBreadcrumbs(List<BreadCrumb> breadcrumbs) {
-        this.breadcrumbs = breadcrumbs;
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
     }
 }

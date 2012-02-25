@@ -23,6 +23,7 @@
 package jstreamserver.utils;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +49,8 @@ public class ControllerUtils {
         String extension = FilenameUtils.getExtension(file.getName());
         String mimeType = mimeProperties.getProperty(extension.toLowerCase());
 
-        setResourceHeaders(mimeType, response);
+        setCommonResourceHeaders(mimeType, response);
+        response.setHeader("Accept-Ranges", "bytes");
 
         if (range != null) {
             long[] rangeArray = parseRange(range, file.length());
@@ -74,7 +76,7 @@ public class ControllerUtils {
         }
     }
 
-    private void setResourceHeaders(String mimeType, HttpServletResponse response) {
+    public void setCommonResourceHeaders(String mimeType, HttpServletResponse response) {
 
         //Set response headers
         String contentType = mimeType != null ? mimeType : "application/octet-stream";
@@ -86,7 +88,6 @@ public class ControllerUtils {
         response.setDateHeader("Expires", 0);
         response.setHeader("Pragma", "no-cache");
         response.setHeader("Cache-Control", "no-store,private,no-cache");
-        response.setHeader("Accept-Ranges", "bytes");
         response.setHeader("Connection", "keep-alive");
     }
 
@@ -114,5 +115,15 @@ public class ControllerUtils {
         String rootDir = path.replaceFirst("\\/", "").replaceAll("\\/.*$", "");
         String fsPath = path.replaceFirst("\\/[^\\/]+", "");
         return new File(configReader.getRootDirs().get(rootDir) + fsPath);
+    }
+
+    public void writeStream(InputStream is, HttpServletResponse response) throws IOException {
+        try {
+            IOUtils.copyLarge(is, response.getOutputStream());
+        } finally {
+            is.close();
+            response.getOutputStream().flush();
+            response.getOutputStream().close();
+        }
     }
 }

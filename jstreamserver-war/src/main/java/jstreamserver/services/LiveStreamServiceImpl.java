@@ -62,18 +62,20 @@ public class LiveStreamServiceImpl implements LiveStreamService {
                 liveStreamer.destroyLiveStream();
             }
 
-            addLiveStreamer(streamsCount - 1);
+            LiveStreamer liveStreamer = addLiveStreamer(streamsCount - 1);
+            liveStreamer.startLiveStream(file, startTime, audioStreamId);
 
             return streamsCount - 1;
         }
     }
 
-    private void addLiveStreamer(Integer id) {
+    private LiveStreamer addLiveStreamer(Integer id) {
         DeadStreamsCleaner deadStreamsCleaner = new DeadStreamsCleaner();
         LiveStreamer liveStreamer = new LiveStreamer(id.toString(), deadStreamsCleaner, configReader);
         deadStreamsCleaner.setLiveStreamer(liveStreamer);
 
         liveStreams.add(liveStreamer);
+        return liveStreamer;
     }
 
     @Override

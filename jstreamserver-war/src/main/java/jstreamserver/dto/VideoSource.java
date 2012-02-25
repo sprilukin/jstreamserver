@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 Sergey Prilukin
+ * Copyright (c) 2012 by Sergey Prilukin
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,47 +20,35 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils;
-
-import java.util.List;
-import java.util.Map;
+package jstreamserver.dto;
 
 /**
- * Allows to read config
+ * TODO: description
  *
  * @author Sergey Prilukin
  */
-public interface ConfigReader {
+public class VideoSource {
+    private String type;
+    private String url;
 
-    public int getPort();
+    public VideoSource(String type, String url) {
+        this.type = type;
+        this.url = url;
+    }
 
-    public String getHost();
+    public String getType() {
+        return type;
+    }
 
-    public Map<String, String> getRootDirs();
+    public void setType(String type) {
+        this.type = type;
+    }
 
-    public String getFfmpegLocation();
+    public String getUrl() {
+        return url;
+    }
 
-    public String getFfmpegParams();
-
-    public String getSegmenterLocation();
-
-    public int getSegmentDurationInSec();
-
-    public int getSegmentWindowSize();
-
-    public int getSegmenterSearchKillFile();
-
-    public int getSegmenterMaxtimeout();
-
-    public String getSegmenterParams();
-
-    public String getDefaultTextCharset();
-
-    public int getFtpPort();
-    
-    public List<String> getVideoTypesForHTML5(String userAgent);
-
-    public Boolean getSupportsLiveStream(String userAgent);
-
-    public int getMaxLiveStreams();
+    public void setUrl(String url) {
+        this.url = url;
+    }
 }

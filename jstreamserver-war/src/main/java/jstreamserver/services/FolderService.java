@@ -24,7 +24,6 @@ package jstreamserver.services;
 
 import jstreamserver.dto.BreadCrumb;
 import jstreamserver.dto.FileListEntry;
-import jstreamserver.dto.Folder;
 
 import java.io.File;
 import java.util.List;
