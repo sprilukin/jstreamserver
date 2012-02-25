@@ -26,7 +26,6 @@ import jstreamserver.dto.VideoSource;
 import jstreamserver.dto.VideoTag;
 import jstreamserver.services.LiveStreamService;
 import jstreamserver.utils.ConfigReader;
-import jstreamserver.utils.ControllerUtils;
 import jstreamserver.utils.MimeProperties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -150,7 +149,7 @@ public class VideoController {
             videoTag.getSources().add(new VideoSource(mimeType, "/playlist?id=" + liveStreamId));
         }
 
-        String mimeType = mimeProperties.getProperty(FilenameUtils.getExtension(videoFile.getName()));
+        String mimeType = mimeProperties.getProperty(FilenameUtils.getExtension(videoFile.getName()), "application/octet-stream");
         videoTag.getSources().add(new VideoSource(mimeType, "/index?path=" + path));
 
         return videoTag;

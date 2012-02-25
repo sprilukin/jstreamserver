@@ -34,8 +34,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service which allows to start or stop livestreaming for specified file
@@ -46,7 +46,7 @@ import java.util.List;
 @Service
 public class LiveStreamServiceImpl implements LiveStreamService {
     private static final Log log = LogFactory.getLog(LiveStreamServiceImpl.class);
-    private final List<LiveStreamer> liveStreams = new LinkedList<LiveStreamer>();
+    private final Map<Integer, LiveStreamer> liveStreams = new HashMap<Integer, LiveStreamer>();
 
     @Autowired
     private ConfigReader configReader;
@@ -76,25 +76,25 @@ public class LiveStreamServiceImpl implements LiveStreamService {
     private LiveStreamer addLiveStreamer(Integer id, String contextPath) {
         DeadStreamsCleaner deadStreamsCleaner = new DeadStreamsCleaner();
         LiveStreamer liveStreamer = new LiveStreamer(contextPath, id.toString(), deadStreamsCleaner, configReader);
-        deadStreamsCleaner.setLiveStreamer(liveStreamer);
+        deadStreamsCleaner.setLiveStreamer(liveStreamer, id);
 
-        liveStreams.add(liveStreamer);
+        liveStreams.put(id, liveStreamer);
         return liveStreamer;
     }
 
     @Override
     public void destroyLiveStream(Integer liveStreamId) throws IOException {
         synchronized (liveStreams) {
-            LiveStreamer liveStreamer = liveStreams.remove(liveStreamId.intValue());
+            LiveStreamer liveStreamer = liveStreams.remove(liveStreamId);
             liveStreamer.destroyLiveStream();
         }
     }
 
     @Override
     public File getTSFile(String path, Integer liveStreamId) throws IOException {
-        synchronized (liveStreams) {
+        //synchronized (liveStreams) { //TOO slow with sync
             return liveStreams.get(liveStreamId).getTSFile(path);
-        }
+        //}
     }
 
     @Override
@@ -106,12 +106,14 @@ public class LiveStreamServiceImpl implements LiveStreamService {
    
     class DeadStreamsCleaner implements ProgressListener {
         private LiveStreamer liveStreamer;
+        private Integer id;
 
         DeadStreamsCleaner() {
         }
 
-        public void setLiveStreamer(LiveStreamer liveStreamer) {
+        public void setLiveStreamer(LiveStreamer liveStreamer, Integer id) {
             this.liveStreamer = liveStreamer;
+            this.id = id;
         }
 
         @Override
@@ -128,7 +130,11 @@ public class LiveStreamServiceImpl implements LiveStreamService {
         public void onFinish(int exitCode) {
             //Remove dead stream from list
             synchronized (liveStreams) {
-                liveStreams.remove(liveStreamer);
+                LiveStreamer ls = liveStreams.get(id);
+                if (ls == liveStreamer) {
+                    liveStreams.remove(id);
+                }
+
                 //to avoid circular links
                 liveStreamer = null;
             }

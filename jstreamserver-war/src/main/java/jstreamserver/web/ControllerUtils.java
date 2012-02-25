@@ -20,8 +20,12 @@
  * SOFTWARE.
  */
 
-package jstreamserver.utils;
+package jstreamserver.web;
 
+import jstreamserver.utils.ConfigReader;
+import jstreamserver.utils.HttpUtils;
+import jstreamserver.utils.MimeProperties;
+import jstreamserver.utils.RandomAccessFileInputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +51,7 @@ public class ControllerUtils {
 
     public InputStream getFileAsStream(File file, String range, HttpServletResponse response) throws IOException {
         String extension = FilenameUtils.getExtension(file.getName());
-        String mimeType = mimeProperties.getProperty(extension.toLowerCase());
+        String mimeType = mimeProperties.getProperty(extension.toLowerCase(), "application/octet-stream");
 
         setCommonResourceHeaders(mimeType, response);
         response.setHeader("Accept-Ranges", "bytes");
@@ -66,11 +70,12 @@ public class ControllerUtils {
 
             return new BufferedInputStream(new RandomAccessFileInputStream(file, rangeArray[0], rangeLength));
         } else {
-            //We want to open resource, not to download it
-            //so do not set content disposition header
-            //response.setHeader(
-            //        HttpUtils.CONTENT_DISPOSITION_HEADER,
-            //        String.format(HttpUtils.CONTENT_DISPOSITION_FORMAT, file.getName()));
+            //For all non video file types set disposition: attachment header
+            if (!mimeType.startsWith("video")) {
+                response.setHeader(
+                        HttpUtils.CONTENT_DISPOSITION_HEADER,
+                        String.format(HttpUtils.CONTENT_DISPOSITION_FORMAT, file.getName()));
+            }
 
             return new BufferedInputStream(new FileInputStream(file));
         }
