@@ -69,6 +69,7 @@ public final class LiveStreamer {
     }
 
     public File getTSFile(String path) {
+        updateSegmenterKiller();
         return new File(LIVE_STREAM_FOLDER + "/" + path);
     }
     

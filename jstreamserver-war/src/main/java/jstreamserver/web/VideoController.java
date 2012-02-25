@@ -32,7 +32,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -102,27 +101,6 @@ public class VideoController {
         return getVideoListTag(videoFile, path, time, liveStreamId);
     }
 
-    private VideoTag getVideoListTag(File videoFile, String path, String startTime, Integer liveStreamId) throws IOException {
-        VideoTag videoTag = new VideoTag();
-        
-        videoTag.setStartTime(startTime != null ? startTime : DEFAULT_START_TIME);
-        
-        File subtitles = new File(videoFile.getParentFile(), FilenameUtils.getBaseName(videoFile.getName()) + ".srt");
-        if (subtitles.exists() && subtitles.isFile()) {
-            videoTag.setSubtitle(FileUtils.readFileToString(subtitles, configReader.getDefaultTextCharset()));
-        }
-
-        if (liveStreamId != null) {
-            String mimeType = mimeProperties.getProperty("m3u8");
-            videoTag.getSources().add(new VideoSource(mimeType, "/playlist?id=" + liveStreamId));
-        }
-        
-        String mimeType = mimeProperties.getProperty(FilenameUtils.getExtension(videoFile.getName()));
-        videoTag.getSources().add(new VideoSource(mimeType, "/index?path=" + path));
-
-        return videoTag;
-   }
-
     @RequestMapping("/playlist")
     public void downloadResource(
             @RequestParam(value = "id", required = true) Integer id,
@@ -133,19 +111,21 @@ public class VideoController {
         controllerUtils.writeStream(is, response);
     }
 
-    @RequestMapping("/livestream/{videoFile}")
+    @RequestMapping("/livestream/{videoFile}.ts")
     public void downloadResource(
             @PathVariable("videoFile") String videoFile,
             @RequestHeader(value = "Range", required = false) String range,
             HttpServletResponse response) throws Exception {
 
         Integer streamId = null;
-        Matcher matcher = Pattern.compile("[\\w]+([\\d]+)-[\\d]+\\.ts").matcher(videoFile);        
+        Matcher matcher = Pattern.compile("^[\\w]+([\\d]+)-[\\d]+$").matcher(videoFile);        
         if (matcher.find()) {
             streamId = Integer.parseInt(matcher.group(1));
+        } else {
+            throw new IllegalArgumentException(String.format("Incorrect fileName: %s", videoFile));
         }
 
-        File file = liveStreamService.getTSFile(videoFile, streamId);
+        File file = liveStreamService.getTSFile(videoFile + ".ts", streamId);
         if (file != null && file.exists() && file.isFile()) {
             InputStream is = controllerUtils.getFileAsStream(file, range, response);
 
@@ -154,4 +134,26 @@ public class VideoController {
             response.setStatus(HttpURLConnection.HTTP_NOT_FOUND);
         }
     }
+
+    private VideoTag getVideoListTag(File videoFile, String path, String startTime, Integer liveStreamId) throws IOException {
+        VideoTag videoTag = new VideoTag();
+
+        videoTag.setStartTime(startTime != null ? startTime : DEFAULT_START_TIME);
+
+        File subtitles = new File(videoFile.getParentFile(), FilenameUtils.getBaseName(videoFile.getName()) + ".srt");
+        if (subtitles.exists() && subtitles.isFile()) {
+            videoTag.setSubtitle(FileUtils.readFileToString(subtitles, configReader.getDefaultTextCharset()));
+        }
+
+        if (liveStreamId != null) {
+            String mimeType = mimeProperties.getProperty("m3u8");
+            videoTag.getSources().add(new VideoSource(mimeType, "/playlist?id=" + liveStreamId));
+        }
+
+        String mimeType = mimeProperties.getProperty(FilenameUtils.getExtension(videoFile.getName()));
+        videoTag.getSources().add(new VideoSource(mimeType, "/index?path=" + path));
+
+        return videoTag;
+    }
+
 }

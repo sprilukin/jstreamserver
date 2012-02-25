@@ -45,11 +45,11 @@ ul.folderContent {
 }
 
 .directory .icon {
-    background-image: url("/img/folder.png");
+    background-image: url("../img/folder.png");
 }
 
 .file .icon {
-    background-image: url("/img/file.png");
+    background-image: url("../img/file.png");
 }
 
 .file.media {
@@ -66,15 +66,15 @@ ul.folderContent {
 }
 
 .media .icon {
-    background-image: url("/img/audio.png");
+    background-image: url("../img/audio.png");
 }
 
 .video .icon {
-    background-image: url("/img/video.png");
+    background-image: url("../img/video.png");
 }
 
 .media .icon.info {
-    background-image: url("/img/info.png");
+    background-image: url("../img/info.png");
     margin-left: 5px;
     top: 8px;
     cursor: pointer;
@@ -85,7 +85,7 @@ a.download {
 }
 
 .media .icon.download {
-    background-image: url("/img/download.png");
+    background-image: url("../img/download.png");
     margin-left: 5px;
     top: 8px;
     cursor: pointer;
@@ -97,7 +97,7 @@ a.download {
 }
 
 .ajax-loader {
-    background-image: url("/img/ajax-loader.gif");
+    background-image: url("../img/ajax-loader.gif");
     background-repeat: no-repeat;
     display: inline-block;
     height: 19px;
