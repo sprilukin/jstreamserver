@@ -24,6 +24,8 @@ package jstreamserver.ffmpeg;
 
 import jstreamserver.utils.RuntimeExecutor;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -32,6 +34,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +49,8 @@ import java.util.regex.Pattern;
  * @author Sergey Prilukin
  */
 public final class FFMpegSegmenter {
+    private static final Log log = LogFactory.getLog(FFMpegSegmenter.class);
+    
     private RuntimeExecutor ffmpegExecutor = new RuntimeExecutor();
     private RuntimeExecutor segmenterExecutor = new RuntimeExecutor();
     private Thread streamCopier;
@@ -61,22 +67,22 @@ public final class FFMpegSegmenter {
         this.segmenterExecutor = segmenterExecutor;
     }
 
-    public void start(String ffmpegPath, String segmenterPath, String ffmpegParams, String segmenterParams, ProgressListener progressListener) throws IOException {
+    public void start(String ffmpegPath, String segmenterPath, String ffmpegParams, String segmenterParams, ProgressListener progressListener, String suffix) throws IOException {
         ffmpegExecutor.execute(ffmpegPath, ffmpegParams.split("[\\s]+"));
         String[] segmenterParamsArray = segmenterParams.split("[\\s]+");
         segmenterExecutor.execute(segmenterPath, segmenterParamsArray);
 
-        streamCopier = new Thread(new StreamCopier(ffmpegExecutor.getInputStream(), segmenterExecutor.getOutputStream()), "StreamCopier");
-        segmenterInputStreamReader = new Thread(new InputReader(segmenterExecutor.getInputStream(), progressListener), "SegmenterInputReader");
-        segmenterErrorStreamReader = new Thread(new InputReader(segmenterExecutor.getErrorStream(), progressListener), "SegmenterErrorReader");
-        ffmpegErrorStreamReader = new Thread(new InputReader(ffmpegExecutor.getErrorStream(), progressListener, getPlayListPath(segmenterParamsArray)), "FFMpegInputReader");
-        finishWaiter = new Thread(new FinishWaiter(progressListener, ffmpegExecutor, segmenterExecutor));
+        streamCopier = new Thread(new StreamCopier(ffmpegExecutor.getInputStream(), segmenterExecutor.getOutputStream()), "StreamCopier-" + suffix);
+        segmenterInputStreamReader = new Thread(new InputReader(segmenterExecutor.getInputStream(), progressListener), "SegmenterInputReader-" + suffix);
+        segmenterErrorStreamReader = new Thread(new InputReader(segmenterExecutor.getErrorStream(), progressListener), "SegmenterErrorReader-" + suffix);
+        ffmpegErrorStreamReader = new Thread(new InputReader(ffmpegExecutor.getErrorStream(), progressListener, getPlayListPath(segmenterParamsArray)), "FFMpegInputReader-" + suffix);
+        finishWaiter = new Thread(new FinishWaiter(progressListener, ffmpegExecutor, segmenterExecutor), "FinishWaiter-" + suffix);
 
-        streamCopier.start();
-        segmenterInputStreamReader.start();
-        segmenterErrorStreamReader.start();
-        ffmpegErrorStreamReader.start();
-        finishWaiter.start();
+        List<Thread> allThreadsList = Arrays.asList(streamCopier, segmenterInputStreamReader, segmenterErrorStreamReader, ffmpegErrorStreamReader, finishWaiter);
+        for (Thread thread: allThreadsList) {
+            thread.setPriority(Thread.NORM_PRIORITY - 2);
+            thread.start();
+        }
     }
 
     public void destroy() {

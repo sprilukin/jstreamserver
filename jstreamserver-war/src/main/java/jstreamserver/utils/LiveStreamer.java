@@ -156,7 +156,7 @@ public final class LiveStreamer {
                             appendLiveStreamFolderSuffix(LIVE_STREAM_FILE_PATH),
                             appendLiveStreamFolderSuffix(PLAYLIST_FULL_PATH),
                             contextPath),
-                    progressListener);
+                    progressListener, liveStreamFolderSuffix);
 
             try {
                 synchronized (playListCreatedMonitor) {

@@ -64,12 +64,10 @@ public class LiveStreamServiceImpl implements LiveStreamService {
                 liveStreamer.destroyLiveStream();
             }
 
-            int streamId = streamsCount > 0 ? streamsCount - 1 : 0;
-
-            LiveStreamer liveStreamer = addLiveStreamer(streamId, contextPath);
+            LiveStreamer liveStreamer = addLiveStreamer(streamsCount, contextPath);
             liveStreamer.startLiveStream(file, startTime, audioStreamId);
 
-            return streamId;
+            return streamsCount;
         }
     }
 
@@ -99,9 +97,9 @@ public class LiveStreamServiceImpl implements LiveStreamService {
 
     @Override
     public InputStream getPlayList(Integer liveStreamId) throws IOException {
-        synchronized (liveStreams) {
+        //synchronized (liveStreams) {
             return liveStreams.get(liveStreamId).getPlayList();
-        }
+        //}
     }
    
     class DeadStreamsCleaner implements ProgressListener {
@@ -118,12 +116,12 @@ public class LiveStreamServiceImpl implements LiveStreamService {
 
         @Override
         public void onFrameMessage(FrameMessage frameMessage) {
-            log.debug(frameMessage);
+            //log.debug(frameMessage);
         }
 
         @Override
         public void onProgress(String progressString) {
-            /* do nothing */
+            //log.debug(progressString);
         }
 
         @Override
@@ -138,6 +136,8 @@ public class LiveStreamServiceImpl implements LiveStreamService {
                 //to avoid circular links
                 liveStreamer = null;
             }
+
+            log.debug(String.format("Dead liveStream [%s] has been removed", id));
         }
 
         @Override

@@ -51,11 +51,8 @@ public class RequestLogFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        try {
-            chain.doFilter(request, response);
-        } finally {
-            logRequest((HttpServletRequest)request, (HttpServletResponse)response);
-        }
+        logRequest((HttpServletRequest)request, (HttpServletResponse)response);
+        chain.doFilter(request, response);
     }
 
     private void logRequest(HttpServletRequest request, HttpServletResponse response) {
