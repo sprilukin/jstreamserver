@@ -87,7 +87,7 @@ JStreamServer.DirectoryView = Backbone.View.extend({
         li.find(".ajax-loader").hide();
 
         var file = this.model.get(li.get(0).id);
-        var startTime = data.starttime + ",000";
+        var startTime = data.startTime + ",000";
         var duration = file.get("mediaInfo").duration.replace(/\.[\d]+/g, ",000");
 
         //Render html5 video tag

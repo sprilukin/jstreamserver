@@ -84,6 +84,13 @@
             }
 
             var entry = splittedSubtitles[i].split('\n');
+
+            var j = 0;
+            while($.trim(entry[j]) === "") {
+                j++;
+            }
+            entry.splice(0, j);
+
             var time = $.trim(entry[1]).split(' --> ');
 
             subtitlesModel.push({
