@@ -88,7 +88,8 @@ public class VideoController {
             List<String> supportedVideoTypes = configReader.getVideoTypesForHTML5(userAgent);
 
             if (!supportedVideoTypes.contains(extension)) {
-                liveStreamId = liveStreamService.createLiveStream(videoFile, time, stream, request.getContextPath());
+                liveStreamId = liveStreamService.createLiveStream(
+                        videoFile, time, stream, request.getContextPath(), request.getSession(true).getId());
             }
         } else {
             /*

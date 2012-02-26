@@ -40,11 +40,12 @@ public interface LiveStreamService {
      * @param startTime String in format "HH:mm:ss". If passed then video will be played from that point.                                         
      * @param audioStreamId number of audiostream which should be selected. Default audio stream will be choosen if 
      *                      parameter not passed
+     * @param sessionId id of session of liveStream creator. used to better manage liveStreams pool
      * @param contextPath contextPath of web application to produce correct playlist
      * @return id of created live stream so it can de destroyed in future by calling {@link #destroyLiveStream(Integer)}
      * @throws IOException if exception occurs during stream initialization
      */
-    public Integer createLiveStream(File file, String startTime, Integer audioStreamId, String contextPath) throws IOException;
+    public Integer createLiveStream(File file, String startTime, Integer audioStreamId, String contextPath, String sessionId) throws IOException;
     
     /**
      * Returns {@link InputStream} for .m3u8 playlist of livestream with given ID

@@ -34,7 +34,8 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -46,7 +47,8 @@ import java.util.Map;
 @Service
 public class LiveStreamServiceImpl implements LiveStreamService {
     private static final Log log = LogFactory.getLog(LiveStreamServiceImpl.class);
-    private final Map<Integer, LiveStreamer> liveStreams = new HashMap<Integer, LiveStreamer>();
+    private final Map<Integer, LiveStreamer> liveStreams = new LinkedHashMap<Integer, LiveStreamer>();
+    private final Map<String, Integer> sessionsMap = new LinkedHashMap<String, Integer>();
 
     @Autowired
     private ConfigReader configReader;
@@ -55,19 +57,45 @@ public class LiveStreamServiceImpl implements LiveStreamService {
     }
 
     @Override
-    public Integer createLiveStream(File file, String startTime, Integer audioStreamId, String contextPath) throws IOException {
+    public Integer createLiveStream(File file, String startTime, Integer audioStreamId, String contextPath, String sessionId) throws IOException {
         synchronized (liveStreams) {
-            Integer streamsCount = liveStreams.size();
 
-            if (streamsCount >= configReader.getMaxLiveStreams()) {
-                LiveStreamer liveStreamer = liveStreams.remove(0);
+            //Find appropriate liveStreamId.
+            //Use user's session if possible
+            Integer liveStreamId = sessionsMap.get(sessionId);
+            if (liveStreamId == null) {
+                liveStreamId = liveStreams.size();
+                if (liveStreamId >= configReader.getMaxLiveStreams()) {
+                    liveStreamId--;
+                }
+            }
+
+            //Remove sessionId by given liveStreamId if present
+            removeSessionMapEntryByValue(liveStreamId);
+
+            //Destroy liveStream by given liveStreamId if present
+            LiveStreamer liveStreamer = liveStreams.remove(liveStreamId);
+            if (liveStreamer != null) {
                 liveStreamer.destroyLiveStream();
             }
 
-            LiveStreamer liveStreamer = addLiveStreamer(streamsCount, contextPath);
+            //Start new liveStream with given liveStreamId
+            sessionsMap.put(sessionId, liveStreamId);
+            liveStreamer = addLiveStreamer(liveStreamId, contextPath);
             liveStreamer.startLiveStream(file, startTime, audioStreamId);
 
-            return streamsCount;
+            return liveStreamId;
+        }
+    }
+
+    private void removeSessionMapEntryByValue(Integer liveStreamId) {
+        final Iterator<Map.Entry<String, Integer>> iterator = sessionsMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, Integer> entry = iterator.next();
+            if (entry.getValue().equals(liveStreamId)) {
+                iterator.remove();
+                break;
+            }
         }
     }
 
@@ -126,8 +154,10 @@ public class LiveStreamServiceImpl implements LiveStreamService {
 
         @Override
         public void onFinish(int exitCode) {
-            //Remove dead stream from list
-            synchronized (liveStreams) {
+            //Do not remove dead live stream from map - this allows
+            //to read static resources of this live stream until new live
+            //stream will evict this one.
+            /*synchronized (liveStreams) {
                 LiveStreamer ls = liveStreams.get(id);
                 if (ls == liveStreamer) {
                     liveStreams.remove(id);
@@ -137,7 +167,7 @@ public class LiveStreamServiceImpl implements LiveStreamService {
                 liveStreamer = null;
             }
 
-            log.debug(String.format("Dead liveStream [%s] has been removed", id));
+            log.debug(String.format("Dead liveStream [%s] has been removed", id));*/
         }
 
         @Override

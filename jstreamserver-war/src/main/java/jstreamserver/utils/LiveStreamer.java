@@ -73,7 +73,7 @@ public final class LiveStreamer {
         return new File(LIVE_STREAM_FOLDER + "/" + path);
     }
     
-    /**
+    /*
      * Playlist file is written at the same time by another thread (by segmenter namely)
      * and thus this thread can read non-completed version of the file.
      * In this method we ensure that last line of playlist matches one of the possible formats
@@ -114,25 +114,34 @@ public final class LiveStreamer {
                 ffMpegSegmenter = null;
             }
         }
+    }
 
+    private void cleanLiveStreamResources() {
         File streamDir = new File(appendLiveStreamFolderSuffix(LIVE_STREAM_FOLDER));
         if (!streamDir.exists()) {
-            streamDir.mkdirs();
+            boolean success = streamDir.mkdirs();
+            if (!success) {
+                log.warn("Can not create liveStream home folder");
+            }
         }
 
+        final String fileNamePrefix = appendLiveStreamFolderSuffix(LIVE_STREAM_FILE_PREFIX);
+        
         //Remove all .ts and .m3u8 files
         String[] files = streamDir.list(new FilenameFilter() {
             @Override
-            public boolean accept(File dir, String name) {
-                //String extension = FilenameUtils.getExtension(name);
-                return name.startsWith(appendLiveStreamFolderSuffix(LIVE_STREAM_FILE_PREFIX));
+            public boolean accept(File dir, String name) {                
+                return name.startsWith(fileNamePrefix);
             }
         });
 
         for (String fileName: files) {
             File file = new File(streamDir + "/" + fileName);
             if (file.exists()) {
-                file.delete();
+                boolean success = file.delete();
+                if (!success) {
+                    log.warn(String.format("Can not remove liveStream resource: %s", file.getName()));
+                }
             }
         }
     }
@@ -140,6 +149,7 @@ public final class LiveStreamer {
     public void startLiveStream(File file, String startTime, Integer audioStreamId) throws IOException {
 
         destroyLiveStream();
+        cleanLiveStreamResources();
 
         //Need to use HTTP Live Streaming
         String ffmpegMapStreamParams = audioStreamId != null ? String.format(FFMpegConstants.FFMPEG_AUDIO_STREAM_SELECTION_FORMAT, audioStreamId) : "";
@@ -197,7 +207,7 @@ public final class LiveStreamer {
                         timeoutFlag = true;
                         ffmpegSegmenterMonitor.wait(configReader.getSegmenterMaxtimeout());
                         if (timeoutFlag && ffMpegSegmenter != null) {
-                            log.debug("Destroying idle ffmpeg segmenter...");
+                            log.debug(String.format("Destroying idle segmenter [%s]", liveStreamFolderSuffix));
                             timeoutFlag = false;
                             destroyLiveStream();
                             ffmpegSegmenterMonitor.wait();
@@ -243,6 +253,7 @@ public final class LiveStreamer {
                 log.debug(String.format("Segmenter [%s] finished. Exit code: %s", liveStreamFolderSuffix, exitCode));
             }
 
+            ffMpegSegmenter = null;
             listener.onFinish(exitCode);
         }
     }
