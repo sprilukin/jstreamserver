@@ -47,6 +47,7 @@ public class CharsetDetector {
 
         String detectedCharset = detector.getDetectedCharset();
         detector.reset();
+        inputStream.close();
         return detectedCharset != null ? detectedCharset.toLowerCase() : null;
     }    
 }

@@ -25,6 +25,7 @@ package jstreamserver.web;
 import jstreamserver.dto.VideoSource;
 import jstreamserver.dto.VideoTag;
 import jstreamserver.services.LiveStreamService;
+import jstreamserver.utils.CharsetDetector;
 import jstreamserver.utils.ConfigReader;
 import jstreamserver.utils.MimeProperties;
 import org.apache.commons.io.FileUtils;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -136,7 +138,9 @@ public class VideoController {
 
         File subtitles = new File(videoFile.getParentFile(), FilenameUtils.getBaseName(videoFile.getName()) + ".srt");
         if (subtitles.exists() && subtitles.isFile()) {
-            videoTag.setSubtitle(FileUtils.readFileToString(subtitles, configReader.getDefaultTextCharset()));
+            FileInputStream fis = new FileInputStream(subtitles);
+            String charset = CharsetDetector.detect(fis);
+            videoTag.setSubtitle(FileUtils.readFileToString(subtitles, charset != null ? charset : configReader.getDefaultTextCharset()));
         }
 
         if (liveStreamId != null) {
