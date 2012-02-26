@@ -88,6 +88,10 @@
           <groupId>org.apache.ftpserver</groupId>
           <artifactId>ftpserver-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>net.sourceforge.juniversalchardet</groupId>
+            <artifactId>juniversalchardet</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>javax.servlet</groupId>

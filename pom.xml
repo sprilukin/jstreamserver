@@ -62,6 +62,13 @@
         </snapshotRepository>
     </distributionManagement>
 
+    <repositories>
+        <repository>
+            <id>sprilukin-releases</id>
+            <url>https://raw.github.com/sprilukin/mvn-repo/master/releases</url>
+        </repository>
+    </repositories>
+
     <modules>
         <module>jstreamserver-war</module>
         <module>jstreamserver-cli</module>
@@ -133,6 +140,11 @@
           <groupId>org.apache.ftpserver</groupId>
           <artifactId>ftpserver-core</artifactId>
           <version>1.0.6</version>
+        </dependency>
+        <dependency>
+          <groupId>net.sourceforge.juniversalchardet</groupId>
+          <artifactId>juniversalchardet</artifactId>
+          <version>1.0.3</version>
         </dependency>
 
         <dependency>
