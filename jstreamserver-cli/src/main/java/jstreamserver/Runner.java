@@ -23,8 +23,6 @@
 package jstreamserver;
 
 
-import anhttpserver.DefaultSimpleHttpServer;
-import anhttpserver.SimpleHttpServer;
 import jstreamserver.ftp.FtpServerWrapper;
 import jstreamserver.http.DispatcherHandler;
 import jstreamserver.utils.Config;
