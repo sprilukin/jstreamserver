@@ -39,11 +39,11 @@
     </parent>
 
     <dependencies>
-        <dependency>
+        <!--<dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <scope>compile</scope>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>javax.servlet.jsp</groupId>
             <artifactId>jsp-api</artifactId>
@@ -64,6 +64,12 @@
             <groupId>commons-el</groupId>
             <artifactId>commons-el</artifactId>
             <version>1.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>xerces</groupId>
@@ -89,6 +95,12 @@
             <groupId>tomcat</groupId>
             <artifactId>jasper-compiler-jdt</artifactId>
             <version>5.5.23</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>org.eclipse.jdt</artifactId>
+                    <groupId>core</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
