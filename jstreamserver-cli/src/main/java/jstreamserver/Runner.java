@@ -23,9 +23,6 @@
 package jstreamserver;
 
 
-import jstreamserver.ftp.FtpServerWrapper;
-import jstreamserver.http.DispatcherHandler;
-import jstreamserver.utils.Config;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -33,12 +30,16 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.mortbay.jetty.Handler;
+import org.mortbay.jetty.Server;
+import org.mortbay.jetty.handler.DefaultHandler;
+import org.mortbay.jetty.handler.HandlerList;
+import org.mortbay.jetty.webapp.WebAppContext;
+import org.mortbay.xml.XmlConfiguration;
 
-import java.io.IOException;
+import java.io.File;
+import java.io.InputStream;
 import java.io.PrintWriter;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * entry point for <b>jstreamserver</b>
@@ -49,8 +50,6 @@ public final class Runner {
     public static final String SYNTAX = "java -jar jstreamserver.jar";
     public static final String HEADER = "Jstreamserver simple static content HTTP server, version 0.1";
     public static final String FOOTER = "--END--";
-
-    private static final Object monitor = new Object();
 
     private static Options options;
     static {
@@ -177,100 +176,80 @@ public final class Runner {
         options.addOption(defaultCharset);
     }
 
-    private void start(Config config) throws IOException {
-        System.out.print(config.toString());
+    private void start() throws Exception {
+        Server jetty = new Server();
+        String[] configFiles = {"jetty.xml"};
+        for(String configFile : configFiles) {
+            InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile);
+            XmlConfiguration configuration = new XmlConfiguration(is);
+            configuration.configure(jetty);
+        }
 
-        Properties mapping = new Properties();
-        mapping.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(DispatcherHandler.MAPPING));
+        //configure your web application
+        WebAppContext appContext = new WebAppContext();
+        appContext.setContextPath("/jstreamserver");
+        File warPath = new File("./jstreamserver-war-0.2.war");
+        appContext.setWar(warPath.getAbsolutePath());
+        HandlerList handlers = new HandlerList();
+        handlers.setHandlers(new Handler[]{appContext, new DefaultHandler()});
+        jetty.setHandler(handlers);
 
-        DispatcherHandler dispatcherHandler = new DispatcherHandler();
-        dispatcherHandler.setConfig(config);
-        dispatcherHandler.setMapping(mapping);
-
-        SimpleHttpServer server = new DefaultSimpleHttpServer();
-        server.setMaxThreads(config.getMaxThreads());
-        server.setHost(config.getHost());
-        server.setPort(config.getPort());
-        server.addHandler("/", dispatcherHandler);
-        server.start();
+        jetty.start();
+        jetty.join();
     }
 
     /**
-     * Create {@link Config} instance from passed params
+     * Put passed params to system properties
      *
      * @param args command-line parameters
-     * @return instance of {@link Config}
      */
-    private static Config getConfig(String[] args) throws ParseException {
+    private static void setUpConfig(String[] args) throws ParseException {
         CommandLine commandLine = parseCommandLine(options, args);
-        Config config = new Config();
         if (commandLine.hasOption("p")) {
-            config.setPort(Integer.parseInt(commandLine.getOptionValue("p")));
+            System.setProperty("port", commandLine.getOptionValue("p"));
         }
 
         if (commandLine.hasOption("h")) {
-            config.setHost(commandLine.getOptionValue("h"));
-        }
-
-        if (commandLine.hasOption("t")) {
-            config.setMaxThreads(Integer.parseInt(commandLine.getOptionValue("t")));
-        }
-
-        if (commandLine.hasOption("m")) {
-            config.setMimeProperties(commandLine.getOptionValue("m"));
-        }
-
-        if (commandLine.hasOption("r")) {
-            config.setResourcesFolder(commandLine.getOptionValue("r"));
+            System.setProperty("host", commandLine.getOptionValue("h"));
         }
 
         if (commandLine.hasOption("c")) {
-            config.setDefaultTextCharset(commandLine.getOptionValue("charset"));
+            System.setProperty("defaultTextCharset", commandLine.getOptionValue("charset"));
         }
 
         if (commandLine.hasOption("ff")) {
-            config.setFfmpegLocation(commandLine.getOptionValue("ff"));
+            System.setProperty("ffmpegLocation", commandLine.getOptionValue("ff"));
             if (commandLine.hasOption("fp")) {
-                config.setFfmpegParams(commandLine.getOptionValue("fp"));
+                System.setProperty("ffmpegParams", commandLine.getOptionValue("fp"));
             }
         }
 
         if (commandLine.hasOption("ftp")) {
-            config.setFtpPort(Integer.parseInt(commandLine.getOptionValue("ftp")));
+            System.setProperty("ftpPort", commandLine.getOptionValue("ftp"));
         }
 
         if (commandLine.hasOption("se")) {
-            config.setSegmenterLocation(commandLine.getOptionValue("se"));
+            System.setProperty("segmenterLocation", commandLine.getOptionValue("se"));
             if (commandLine.hasOption("sd")) {
-                config.setSegmentDurationInSec(Integer.parseInt(commandLine.getOptionValue("sd")));
+                System.setProperty("segmentDurationInSec", commandLine.getOptionValue("sd"));
             }
             if (commandLine.hasOption("sw")) {
-                config.setSegmentWindowSize(Integer.parseInt(commandLine.getOptionValue("sw")));
+                System.setProperty("segmentWindowSize", commandLine.getOptionValue("sw"));
             }
             if (commandLine.hasOption("sk")) {
-                config.setSegmenterSearchKillFile(Integer.parseInt(commandLine.getOptionValue("sk")));
+                System.setProperty("segmenterSearchKillFile", commandLine.getOptionValue("sk"));
             }
             if (commandLine.hasOption("dt")) {
-                config.setSegmenterMaxtimeout(Integer.parseInt(commandLine.getOptionValue("dt")));
+                System.setProperty("segmenterMaxtimeout", commandLine.getOptionValue("dt"));
             }
         }
 
         if (commandLine.hasOption("f")) {
-            Map<String, String> rotDirs = new LinkedHashMap<String, String>();
-
-            try {
-                for (String path: commandLine.getOptionValues("f")) {
-                    String[] location = path.split("=");
-                    rotDirs.put(location[1], location[0]);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            for (String path: commandLine.getOptionValues("f")) {
+                String[] location = path.split("=");
+                System.setProperty("rootdir." + location[1], location[0]);
             }
-
-            config.setRootDirs(rotDirs);
         }
-
-        return config;
     }
 
     private static CommandLine parseCommandLine(Options options, String[] arguments) throws ParseException {
@@ -288,17 +267,10 @@ public final class Runner {
 
     public static void main(String[] args) throws Exception {
         try {
-            Config config = getConfig(args);
+            //setUpConfig(args);
 
             Runner runner = new Runner();
-            runner.start(config);
-
-            FtpServerWrapper ftpServer = new FtpServerWrapper();
-            ftpServer.start(config);
-
-            synchronized (monitor) {
-                monitor.wait();
-            }
+            runner.start();
         } catch (ParseException e) {
             printHelp();
         }

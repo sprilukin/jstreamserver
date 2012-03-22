@@ -44,7 +44,7 @@ public final class Config implements ConfigReader, InitializingBean {
     public static String ROOT_DIR_PREFIX = "rootdir.";
     public static String HTML5_SUPPORTED_VIDEO_TYPES_PREFIX = "html5SupportedVideoTypes.";
     public static String SUPPORTS_LIVE_STREAM_PREFIX = "supportsLiveStream.";
-    public static String DEFAULT_KEY = "default";;
+    public static String DEFAULT_KEY = "default";
 
     private final Log log = LogFactory.getLog(this.getClass());
 
