@@ -1,0 +1,69 @@
+<script id="dirListTmpl" type="text/template">
+    {{ _.each(files, function(file) { }}
+    <li id="{{=file.id}}">
+        {{ if (file.directory) { }}
+        <div class="directory">
+        {{ } else { }}
+        <div class="file {{ if (file.mediaInfo) { }}media{{}}} {{ if (file.video) { }}video{{}}}">
+        {{ } }}
+            <div>
+                <span class="icon"></span>
+                <span class="play-links-holder">
+                    {{ var directoryUrl = "/index?path=" + file.url; }}
+                    {{ var downloadUrl = "/download?path=" + file.url; }}
+                    {{ var videoUrl = "/video?path=" + file.url; }}
+                    {{ var url = file.directory ? directoryUrl : (file.video ? videoUrl : downloadUrl); }}
+                    <a class="play" href="{{=contextPath}}{{=url}}" title="{{=file.name}}">{{=file.name}}</a>
+                    {{ if (file.video) { }}
+                    <a class="download" href="{{=contextPath}}{{=downloadUrl}}" title="download {{=file.name}}">
+                        <span class="icon download"></span>
+                    </a>
+                    {{ } }}
+                    {{ if (file.mediaInfo) { }}
+                    <span class="icon info"></span>
+                    {{ } }}
+                </span>
+                <span class="ajax-loader"></span>
+            </div>
+            {{ if (file.mediaInfo) { }}
+            <div class="mediaInfo">
+                <div class="common">
+                    <span class="label">bitrate: </span><span>{{=file.mediaInfo.bitrate}}</span>
+                    <span class="label">duration: </span><span>{{=file.mediaInfo.duration}}</span>
+                <div class="common">
+                {{ if (file.mediaInfo.videoStreams.length > 0) { }}
+                <div class="video">
+                    <span class="label">video: </span>
+                    <span>{{=file.mediaInfo.videoStreams[0].encoder}}</span>
+                    <span>, {{=file.mediaInfo.videoStreams[0].resolution}}</span>
+                    {{ if (file.mediaInfo.videoStreams[0].language) { }}
+                    <span>, ({{=file.mediaInfo.videoStreams[0].language}})</span>
+                    {{ } }}
+                </div>
+                {{ } }}
+                {{ if (file.mediaInfo.audioStreams.length > 0) { }}
+                <div class="audio">
+                    <span class="label">audio: </span>
+                    {{ _.each(file.mediaInfo.audioStreams, function(stream, index) { }}
+                    <span class="label">[</span>
+                    <span>
+                        {{ if (file.video) { }}
+                        <a class="play" href="{{=contextPath}}{{=url}}&stream={{=stream.id}}" title="Play [{{=file.name}}] with audio stream {{=index}}">
+                        {{ } }}
+                        {{=stream.encoder}}, {{=stream.frequency}}, {{=stream.channels}}
+                        {{ if (stream.language) { }}, ({{=stream.language}}){{ } }}
+                        {{ if (stream.defaultStream) { }}, (default){{ } }}
+                        {{ if (file.video) { }}
+                        </a>
+                        {{ } }}
+                    </span>
+                    <span class="label">] </span>
+                    {{ }) }}
+                </div>
+                {{ } }}
+            </div>
+            {{ } }}
+        </div>
+    </li>
+    {{ }) }}
+</script>

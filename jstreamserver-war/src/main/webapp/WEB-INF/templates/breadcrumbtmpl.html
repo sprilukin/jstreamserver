@@ -1,0 +1,8 @@
+<script id="breadcumbTmpl" type="text/template">
+    {{ _.each(breadCrumbs, function(breadCrumb) { }}
+    <span class="breadcrumb-item">
+        <span>[</span><a href="{{=contextPath}}/index?path={{=breadCrumb.url}}">{{=breadCrumb.name}}</a><span>]</span>
+    </span>
+    {{ }); }}
+</script>
+

@@ -1,7 +1,0 @@
-## template
-<html>
-    <body>
-       ## comment
-       Hello $foo World!
-    </body>
-</html>
