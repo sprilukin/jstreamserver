@@ -139,22 +139,44 @@
 
     <build>
         <defaultGoal>install</defaultGoal>
-        <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <configuration>
                         <archive>
-                            <manifestEntries>
-                                <Built-By>Sergey Prilukin</Built-By>
-                            </manifestEntries>
                             <manifest>
                                 <mainClass>jstreamserver.Runner</mainClass>
                                 <addClasspath>true</addClasspath>
                             </manifest>
                         </archive>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>1.7</version>
+                    <executions>
+                        <execution>
+                            <phase>package</phase>
+                            <configuration>
+                                <target description="Copies necessary files to bundle">
+                                    <copy todir="${basedir}/target/${artifactId}-${version}-nodep">
+                                        <fileset dir="${basedir}/src/main/assembly">
+                                            <include name="*.bat"/>
+                                            <include name="*.sh"/>
+                                        </fileset>
+                                        <filterset>
+                                            <filter token="VERSION" value="${parent.version}"/>
+                                        </filterset>
+                                    </copy>
+                                    <mkdir dir="${basedir}/target/${artifactId}-${version}-nodep/webapps"/>
+                                </target>
+                            </configuration>
+                            <goals>
+                                <goal>run</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <artifactId>maven-assembly-plugin</artifactId>
@@ -184,7 +206,6 @@
                     <version>2.7</version>
                 </plugin>
             </plugins>
-        </pluginManagement>
     </build>
 
 </project>
